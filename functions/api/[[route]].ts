@@ -1,14 +1,16 @@
 // ============================================================================
-// SICEKAS v3.0 - CLOUDFLARE PAGES FUNCTIONS (EDGE REST API GATEWAY)
+// SICEKAS v3.0 - CLOUDFLARE WORKERS & PAGES API GATEWAY
 // Database Engine: Cloudflare D1 (Serverless SQLite)
 // Storage Engine: Cloudflare R2 (sicekas-storage)
 // ============================================================================
 
-interface Env {
+export interface Env {
   DB: D1Database;
   BUCKET?: R2Bucket;
+  ASSETS?: Fetcher;
   ENVIRONMENT?: string;
   APP_NAME?: string;
+  PUSKESMAS_NAME?: string;
 }
 
 const jsonResponse = (data: any, status = 200) => {
@@ -24,8 +26,7 @@ const jsonResponse = (data: any, status = 200) => {
   });
 };
 
-export const onRequest: PagesFunction<Env> = async (context) => {
-  const { request, env } = context;
+export async function handleApiRequest(request: Request, env: Env, ctx?: any): Promise<Response> {
   const url = new URL(request.url);
   const method = request.method.toUpperCase();
   const pathname = url.pathname;
@@ -62,7 +63,8 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         success: true,
         status: 'ONLINE',
         version: '3.0.0',
-        app: 'SICEKAS v3.0',
+        app: env.APP_NAME || 'SICEKAS v3.0',
+        puskesmas: env.PUSKESMAS_NAME || 'Puskesmas Banjaran Kota',
         database: 'Cloudflare D1 Connected',
         users_count: countRes?.total || 0,
         latency_ms: latency,
@@ -87,13 +89,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         return jsonResponse({ success: false, error: 'Akun pegawai tidak ditemukan.' }, 404);
       }
 
-      // Verify password (supports default bankot2026 or hashed password)
+      // Verify password (supports default bankot2026 or custom password)
       const valid = user.password_hash === password || password === 'bankot2026' || user.password_hash === 'bankot2026';
       if (!valid) {
         return jsonResponse({ success: false, error: 'Password yang Anda masukkan salah.' }, 401);
       }
 
-      // Remove sensitive password hash from response
       delete user.password_hash;
 
       return jsonResponse({
@@ -210,4 +211,35 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       error: error.message || 'Terjadi kesalahan internal pada Edge API.',
     }, 500);
   }
+}
+
+// 1. Cloudflare Pages Functions Handler
+export const onRequest = async (context: any) => {
+  return handleApiRequest(context.request, context.env, context);
+};
+
+// 2. Cloudflare Workers (ES Module Format with Static Assets) Handler
+export default {
+  async fetch(request: Request, env: Env, ctx: any): Promise<Response> {
+    const url = new URL(request.url);
+
+    // API Routes Handler
+    if (url.pathname.startsWith('/api')) {
+      return handleApiRequest(request, env, ctx);
+    }
+
+    // Static Assets Handler (for Cloudflare Workers with Assets)
+    if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
+      const assetRes = await env.ASSETS.fetch(request);
+      if (assetRes.status !== 404) {
+        return assetRes;
+      }
+
+      // Single Page Application Fallback to /index.html
+      const spaRequest = new Request(new URL('/index.html', url.origin), request);
+      return env.ASSETS.fetch(spaRequest);
+    }
+
+    return handleApiRequest(request, env, ctx);
+  },
 };
