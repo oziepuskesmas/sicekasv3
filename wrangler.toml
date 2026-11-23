@@ -1,16 +1,16 @@
 # ============================================================================
-# SICEKAS v3.0 - CLOUDFLARE WORKERS & PAGES CONFIGURATION
+# SICEKAS v3.0 - CLOUDFLARE PAGES & D1 DATABASE CONFIGURATION
 # ============================================================================
 
 name = "sicekasv2"
 compatibility_date = "2026-08-01"
-main = "functions/api/[[route]].ts"
+main = "functions/api/[[route]].js"
 
 [assets]
-directory = "dist"
+directory = "."
 binding = "ASSETS"
-html_handling = "auto-trailing-slash"
-not_found_handling = "single-page-application"
+html_handling = "none"
+not_found_handling = "none"
 
 # Cloudflare D1 Database Binding
 [[d1_databases]]
@@ -24,6 +24,6 @@ binding = "BUCKET"
 bucket_name = "sicekas-storage"
 
 [vars]
-APP_NAME = "SICEKAS v3.0"
 ENVIRONMENT = "production"
+APP_NAME = "SICEKAS v3.0"
 PUSKESMAS_NAME = "Puskesmas Banjaran Kota"

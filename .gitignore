@@ -1,16 +1,7 @@
-# Dependencies
-node_modules/
-
-# Environment Variables
-.env
-.env.*
-!.env.example
-
-# Build & Wrangler outputs
-dist/
-.wrangler/
-
-# System & OS Files
+# SICEKAS v2.0 Git Ignore
+server.ps1
 .DS_Store
 Thumbs.db
 *.log
+_worker.js
+_routes.json

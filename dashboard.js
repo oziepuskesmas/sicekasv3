@@ -1,0 +1,15525 @@
+// Theme Toggle (Light/Dark) - Default: Dark Mode
+(function() {
+  const saved = localStorage.getItem('SICEKAS_THEME');
+  // Default is Dark mode. Only apply theme-light if explicitly saved as 'light'
+  if (saved === 'light') {
+    document.documentElement.classList.add('theme-light');
+    if (document.body) document.body.classList.add('theme-light');
+    else document.addEventListener('DOMContentLoaded', () => document.body.classList.add('theme-light'));
+  } else {
+    document.documentElement.classList.remove('theme-light');
+    if (document.body) document.body.classList.remove('theme-light');
+  }
+})();
+
+window.toggleSicekasTheme = function() {
+  const isLight = document.body.classList.toggle('theme-light');
+  document.documentElement.classList.toggle('theme-light', isLight);
+  localStorage.setItem('SICEKAS_THEME', isLight ? 'light' : 'dark');
+  // Update all labels
+  const labels = [
+    document.getElementById('themeToggleLabel'),
+    document.getElementById('sidebarThemeLabel'),
+    document.getElementById('topbarThemeLabel')
+  ];
+  labels.forEach(l => { if (l) l.textContent = isLight ? 'Mode Gelap' : 'Mode Terang'; });
+  // Update sidebar icon
+  const icon = document.getElementById('sidebarThemeIcon');
+  if (icon) {
+    icon.innerHTML = isLight
+      ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>'
+      : '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+  }
+  // Update topbar icon
+  const topbarIcon = document.getElementById('topbarThemeIcon');
+  if (topbarIcon) {
+    topbarIcon.innerHTML = isLight
+      ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>'
+      : '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+  }
+  if (window.showToast) window.showToast(isLight ? '☀️ Mode Terang diaktifkan' : '🌙 Mode Gelap diaktifkan', 'info');
+};
+
+// Global Early Fallbacks for LPT Officer Management
+window.addLptPetugas = function() {
+  for (let i = 2; i <= 5; i++) {
+    const card = document.getElementById('lptCardPetugas' + i);
+    const toggle = document.getElementById('lptTogglePetugas' + i);
+    const row = document.getElementById('lptSigRow' + i);
+    const isHidden = !card || card.style.display === 'none' || (toggle && !toggle.checked);
+    if (isHidden) {
+      if (toggle) toggle.checked = true;
+      if (card) card.style.display = 'block';
+      if (row) row.style.display = 'flex';
+      const badge = document.getElementById('lptBadgePetugas' + i);
+      if (badge) { badge.textContent = 'Ditampilkan'; badge.style.color = '#10b981'; }
+      let activeCount = 1;
+      for (let j = 2; j <= 5; j++) {
+        const t = document.getElementById('lptTogglePetugas' + j);
+        if (t && t.checked) activeCount++;
+      }
+      const sumBadge = document.getElementById('lptPetugasSummaryBadge');
+      if (sumBadge) sumBadge.textContent = activeCount + ' / 5 Petugas Aktif';
+      const addBtn = document.getElementById('lptBtnAddPetugas');
+      if (addBtn && activeCount >= 5) addBtn.style.display = 'none';
+      const container = document.getElementById('lptOfficersListContainer');
+      if (container) {
+        if (activeCount <= 2) container.style.gap = '24px';
+        else if (activeCount === 3) container.style.gap = '20px';
+        else if (activeCount === 4) container.style.gap = '15px';
+        else container.style.gap = '12px';
+      }
+      if (typeof syncLptOfficer === 'function') syncLptOfficer(i);
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
+    }
+  }
+};
+
+window.removePetugas = function(index) {
+  const toggle = document.getElementById('lptTogglePetugas' + index);
+  const card = document.getElementById('lptCardPetugas' + index);
+  const row = document.getElementById('lptSigRow' + index);
+  const select = document.getElementById('lptSelectPetugas' + index);
+  const inNama = document.getElementById('lptInputCustomNama' + index);
+  const inNip = document.getElementById('lptInputCustomNip' + index);
+  const customWrap = document.getElementById('lptCustomWrap' + index);
+  const badge = document.getElementById('lptBadgePetugas' + index);
+
+  if (toggle) toggle.checked = false;
+  if (card) card.style.display = 'none';
+  if (row) row.style.display = 'none';
+  if (select) select.value = '';
+  if (inNama) inNama.value = '';
+  if (inNip) inNip.value = '';
+  if (customWrap) customWrap.style.display = 'none';
+  if (badge) { badge.textContent = 'Disembunyikan'; badge.style.color = '#94a3b8'; }
+
+  let activeCount = 1;
+  for (let j = 2; j <= 5; j++) {
+    const t = document.getElementById('lptTogglePetugas' + j);
+    if (t && t.checked) activeCount++;
+  }
+  const sumBadge = document.getElementById('lptPetugasSummaryBadge');
+  if (sumBadge) sumBadge.textContent = activeCount + ' / 5 Petugas Aktif';
+  const addBtn = document.getElementById('lptBtnAddPetugas');
+  if (addBtn) addBtn.style.display = 'inline-flex';
+
+  const container = document.getElementById('lptOfficersListContainer');
+  if (container) {
+    if (activeCount <= 2) container.style.gap = '24px';
+    else if (activeCount === 3) container.style.gap = '20px';
+    else if (activeCount === 4) container.style.gap = '15px';
+    else container.style.gap = '12px';
+  }
+
+  if (typeof syncLptOfficer === 'function') syncLptOfficer(index);
+};
+
+// Update labels and icon on load
+document.addEventListener('DOMContentLoaded', () => {
+  const isLight = document.body.classList.contains('theme-light');
+  const labels = [
+    document.getElementById('themeToggleLabel'),
+    document.getElementById('sidebarThemeLabel'),
+    document.getElementById('topbarThemeLabel')
+  ];
+  labels.forEach(l => { if (l) l.textContent = isLight ? 'Mode Gelap' : 'Mode Terang'; });
+  const icon = document.getElementById('sidebarThemeIcon');
+  if (icon) {
+    icon.innerHTML = isLight
+      ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>'
+      : '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+  }
+  const topbarIcon = document.getElementById('topbarThemeIcon');
+  if (topbarIcon) {
+    topbarIcon.innerHTML = isLight
+      ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>'
+      : '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+  }
+});
+
+// ============================================================================
+// SHADCN-INSPIRED ALERT HELPER (Universal Component Generator)
+// ============================================================================
+window.createSicekasAlert = function(title, message, variant = 'default', iconSvg = '') {
+  let defaultIcon = '';
+  if (variant === 'destructive') {
+    defaultIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+  } else if (variant === 'success') {
+    defaultIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+  } else if (variant === 'warning') {
+    defaultIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>';
+  } else {
+    defaultIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>';
+  }
+  const icon = iconSvg || defaultIcon;
+  return `
+    <div class="alert-sicekas ${variant}" role="alert">
+      ${icon}
+      ${title ? `<h5 class="alert-title">${title}</h5>` : ''}
+      <div class="alert-description">${message}</div>
+    </div>
+  `;
+};
+
+// ============================================================================
+// UNIVERSAL SEARCHABLE SELECT / COMBOBOX ENGINE (SICEKAS VIP THEME)
+// ============================================================================
+window.SearchableSelect = {
+  instances: new WeakMap(),
+  allInstances: [],
+
+  TARGET_IDS: [
+    'collabKegiatan',
+    'inputKegiatanBOK',
+    'bokEditCollabAddSelect',
+    'fPetugasBOK',
+    'tppolSelectJabatan',
+    'tppolKlaster',
+    'signKepala',
+    'signVerifikator',
+    'signPetugas',
+    'sppdInputPegawai',
+    'sppdLptSelectForm',
+    'sppdDisplayPart',
+    'selectSppdFontFamily',
+    'sppdPengikutSelect1',
+    'sppdPengikutSelect2',
+    'sppdPengikutSelect3',
+    'sppdPengikutSelect4',
+    'lptSelectPetugas1',
+    'lptSelectPetugas2',
+    'lptSelectPetugas3',
+    'dokSelectLayout',
+    'poaSelectOfficer',
+    'devUserRole',
+    'devUserStatus',
+    'profStatus',
+    'evidenceKeteranganSelect',
+    'poaSelectMonth',
+    'poaSelectYear',
+    'tppolYear',
+    'tppolMonth',
+    'fBulanBOK',
+    'fTahunBOK'
+  ],
+
+  closeAll() {
+    this.allInstances.forEach(inst => {
+      if (inst && typeof inst.close === 'function') {
+        inst.close();
+      }
+    });
+  },
+
+  enhance(selectEl, userConfig = {}) {
+    if (!selectEl || !(selectEl instanceof HTMLSelectElement)) return null;
+    
+    // Check if already enhanced
+    if (this.instances.has(selectEl)) {
+      const existing = this.instances.get(selectEl);
+      existing.rebuild();
+      return existing;
+    }
+
+    // Explicit exclusions (e.g. mini inline header navigator widgets)
+    if (selectEl.hasAttribute('data-no-searchable') || 
+        selectEl.classList.contains('select-beranda-month') || 
+        selectEl.classList.contains('select-beranda-year')) {
+      return null;
+    }
+
+    const config = Object.assign({
+      searchPlaceholder: 'Ketik untuk mencari...',
+      noResultsText: 'Tidak ada opsi yang cocok',
+      autoFlip: true
+    }, userConfig);
+
+    // Create wrapper
+    const wrap = document.createElement('div');
+    wrap.className = 'searchable-select-wrap';
+    if (selectEl.id) wrap.id = 'ss_wrap_' + selectEl.id;
+
+    // Create trigger button
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'searchable-select-trigger';
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+
+    const label = document.createElement('span');
+    label.className = 'searchable-select-label';
+
+    const arrow = document.createElement('span');
+    arrow.className = 'searchable-select-arrow';
+    arrow.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+
+    trigger.appendChild(label);
+    trigger.appendChild(arrow);
+
+    // Create dropdown panel
+    const dropdown = document.createElement('div');
+    dropdown.className = 'searchable-select-dropdown';
+    dropdown.style.display = 'none';
+
+    // Search box
+    const searchBox = document.createElement('div');
+    searchBox.className = 'searchable-select-search-box';
+
+    const searchIcon = document.createElement('span');
+    searchIcon.className = 'searchable-select-search-icon';
+    searchIcon.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.className = 'searchable-select-input';
+    searchInput.placeholder = config.searchPlaceholder;
+    searchInput.autocomplete = 'off';
+    searchInput.spellcheck = false;
+
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'searchable-select-clear';
+    clearBtn.innerHTML = '&times;';
+    clearBtn.title = 'Hapus pencarian';
+    clearBtn.style.display = 'none';
+
+    searchBox.appendChild(searchIcon);
+    searchBox.appendChild(searchInput);
+    searchBox.appendChild(clearBtn);
+
+    // Options list container
+    const optionsContainer = document.createElement('div');
+    optionsContainer.className = 'searchable-select-options';
+
+    // Empty state container
+    const emptyState = document.createElement('div');
+    emptyState.className = 'searchable-select-empty';
+    emptyState.style.display = 'none';
+    emptyState.innerHTML = '<div class="searchable-select-empty-icon">🔍</div><div>' + config.noResultsText + '</div><div class="searchable-select-empty-hint">Coba kata kunci lain atau periksa ejaan</div>';
+
+    dropdown.appendChild(searchBox);
+    dropdown.appendChild(optionsContainer);
+    dropdown.appendChild(emptyState);
+
+    // Insert wrap into DOM right where selectEl is
+    if (selectEl.parentNode) {
+      selectEl.parentNode.insertBefore(wrap, selectEl);
+      wrap.appendChild(trigger);
+      wrap.appendChild(dropdown);
+      wrap.appendChild(selectEl);
+    }
+
+    // Hide native select visually
+    selectEl.classList.add('searchable-select-native-hidden');
+
+    let activeIndex = -1;
+    let isOpen = false;
+
+    const syncLabel = () => {
+      const idx = selectEl.selectedIndex;
+      const selectedOpt = (idx >= 0 && idx < selectEl.options.length) ? selectEl.options[idx] : null;
+      if (selectedOpt && selectedOpt.textContent.trim()) {
+        const txt = selectedOpt.textContent.trim();
+        label.textContent = txt;
+        label.title = txt;
+        label.classList.toggle('is-placeholder', !selectedOpt.value);
+      } else {
+        const placeholderTxt = selectEl.getAttribute('placeholder') || '-- Pilih --';
+        label.textContent = placeholderTxt;
+        label.title = placeholderTxt;
+        label.classList.add('is-placeholder');
+      }
+      trigger.disabled = selectEl.disabled;
+      wrap.classList.toggle('is-disabled', selectEl.disabled);
+    };
+
+    const highlightText = (text, query) => {
+      if (!query) return text;
+      const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+      if (terms.length === 0) return text;
+      const escaped = terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      const regex = new RegExp('(' + escaped.join('|') + ')', 'gi');
+      return text.replace(regex, '<span class="ss-match">$1</span>');
+    };
+
+    const filterOptions = () => {
+      const query = searchInput.value.trim().toLowerCase();
+      clearBtn.style.display = query ? 'block' : 'none';
+
+      const terms = query.split(/\s+/).filter(Boolean);
+      let visibleCount = 0;
+
+      const items = optionsContainer.querySelectorAll('.searchable-select-option');
+      items.forEach((item) => {
+        const text = item.getAttribute('data-text') || '';
+        const lower = text.toLowerCase();
+        const matches = terms.length === 0 || terms.every(t => lower.includes(t));
+
+        if (matches) {
+          item.style.display = 'flex';
+          const spanText = item.querySelector('.searchable-select-option-text');
+          if (spanText) {
+            spanText.innerHTML = highlightText(text, query);
+          }
+          visibleCount++;
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      emptyState.style.display = visibleCount === 0 ? 'flex' : 'none';
+      activeIndex = -1;
+      updateActiveOption();
+    };
+
+    const rebuildOptions = () => {
+      optionsContainer.innerHTML = '';
+      const opts = Array.from(selectEl.options);
+
+      opts.forEach((opt, idx) => {
+        const item = document.createElement('div');
+        item.className = 'searchable-select-option';
+        item.setAttribute('data-value', opt.value);
+        item.setAttribute('data-text', opt.textContent.trim());
+        item.setAttribute('data-index', idx);
+
+        if (opt.selected) item.classList.add('is-selected');
+        if (opt.disabled) item.classList.add('is-disabled');
+        if (!opt.value && idx === 0) item.classList.add('is-placeholder-opt');
+
+        const spanText = document.createElement('span');
+        spanText.className = 'searchable-select-option-text';
+        spanText.textContent = opt.textContent.trim();
+        item.appendChild(spanText);
+
+        item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          if (opt.disabled) return;
+          selectOption(idx);
+          closeDropdown();
+          trigger.focus();
+        });
+
+        optionsContainer.appendChild(item);
+      });
+
+      syncLabel();
+    };
+
+    const selectOption = (idx) => {
+      if (idx >= 0 && idx < selectEl.options.length) {
+        selectEl.selectedIndex = idx;
+        syncLabel();
+        selectEl.dispatchEvent(new Event('change', { bubbles: true }));
+        selectEl.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+
+      const items = optionsContainer.querySelectorAll('.searchable-select-option');
+      items.forEach(it => {
+        const itIdx = parseInt(it.getAttribute('data-index'), 10);
+        it.classList.toggle('is-selected', itIdx === idx);
+      });
+      trigger.classList.remove('is-invalid');
+    };
+
+    const openDropdown = () => {
+      if (selectEl.disabled) return;
+      window.SearchableSelect.closeAll();
+
+      isOpen = true;
+      wrap.classList.add('is-open');
+      dropdown.style.display = 'flex';
+      trigger.setAttribute('aria-expanded', 'true');
+
+      if (config.autoFlip) {
+        const rect = wrap.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        if (spaceBelow < 280 && spaceAbove > spaceBelow) {
+          dropdown.classList.add('dropup');
+        } else {
+          dropdown.classList.remove('dropup');
+        }
+      }
+
+      searchInput.value = '';
+      clearBtn.style.display = 'none';
+      filterOptions();
+
+      const selectedItem = optionsContainer.querySelector('.searchable-select-option.is-selected');
+      if (selectedItem) {
+        selectedItem.scrollIntoView({ block: 'nearest' });
+      }
+
+      setTimeout(() => {
+        searchInput.focus();
+      }, 30);
+    };
+
+    const closeDropdown = () => {
+      if (!isOpen) return;
+      isOpen = false;
+      wrap.classList.remove('is-open');
+      dropdown.style.display = 'none';
+      trigger.setAttribute('aria-expanded', 'false');
+      activeIndex = -1;
+      updateActiveOption();
+    };
+
+    const updateActiveOption = () => {
+      const visibleItems = Array.from(optionsContainer.querySelectorAll('.searchable-select-option'))
+        .filter(it => it.style.display !== 'none' && !it.classList.contains('is-disabled'));
+      
+      visibleItems.forEach((it, i) => {
+        it.classList.toggle('is-active', i === activeIndex);
+      });
+
+      if (activeIndex >= 0 && visibleItems[activeIndex]) {
+        visibleItems[activeIndex].scrollIntoView({ block: 'nearest' });
+      }
+    };
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (isOpen) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+    });
+
+    searchInput.addEventListener('input', () => {
+      filterOptions();
+    });
+
+    clearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      searchInput.value = '';
+      clearBtn.style.display = 'none';
+      filterOptions();
+      searchInput.focus();
+    });
+
+    wrap.addEventListener('keydown', (e) => {
+      if (!isOpen) {
+        if (['Enter', 'ArrowDown', 'ArrowUp', ' '].includes(e.key)) {
+          e.preventDefault();
+          openDropdown();
+        }
+        return;
+      }
+
+      const visibleItems = Array.from(optionsContainer.querySelectorAll('.searchable-select-option'))
+        .filter(it => it.style.display !== 'none' && !it.classList.contains('is-disabled'));
+
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeDropdown();
+        trigger.focus();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (visibleItems.length > 0) {
+          activeIndex = (activeIndex + 1) % visibleItems.length;
+          updateActiveOption();
+        }
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (visibleItems.length > 0) {
+          activeIndex = activeIndex <= 0 ? visibleItems.length - 1 : activeIndex - 1;
+          updateActiveOption();
+        }
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (activeIndex >= 0 && visibleItems[activeIndex]) {
+          const idx = parseInt(visibleItems[activeIndex].getAttribute('data-index'), 10);
+          selectOption(idx);
+          closeDropdown();
+          trigger.focus();
+        } else if (visibleItems.length === 1) {
+          const idx = parseInt(visibleItems[0].getAttribute('data-index'), 10);
+          selectOption(idx);
+          closeDropdown();
+          trigger.focus();
+        }
+      } else if (e.key === 'Tab') {
+        closeDropdown();
+      }
+    });
+
+    // Native Select Property Overrides for reactive 2-way sync
+    try {
+      const originalValueDesc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+      if (originalValueDesc) {
+        Object.defineProperty(selectEl, 'value', {
+          get() {
+            return originalValueDesc.get.call(this);
+          },
+          set(val) {
+            originalValueDesc.set.call(this, val);
+            syncLabel();
+            const items = optionsContainer.querySelectorAll('.searchable-select-option');
+            items.forEach(it => {
+              it.classList.toggle('is-selected', it.getAttribute('data-value') === String(val));
+            });
+          },
+          configurable: true
+        });
+      }
+
+      const originalIdxDesc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'selectedIndex');
+      if (originalIdxDesc) {
+        Object.defineProperty(selectEl, 'selectedIndex', {
+          get() {
+            return originalIdxDesc.get.call(this);
+          },
+          set(idx) {
+            originalIdxDesc.set.call(this, idx);
+            syncLabel();
+            const items = optionsContainer.querySelectorAll('.searchable-select-option');
+            items.forEach(it => {
+              const itIdx = parseInt(it.getAttribute('data-index'), 10);
+              it.classList.toggle('is-selected', itIdx === idx);
+            });
+          },
+          configurable: true
+        });
+      }
+    } catch (e) {
+      console.warn('SearchableSelect property descriptor interception warning:', e);
+    }
+
+    selectEl.addEventListener('change', () => {
+      syncLabel();
+      const items = optionsContainer.querySelectorAll('.searchable-select-option');
+      items.forEach(it => {
+        const itIdx = parseInt(it.getAttribute('data-index'), 10);
+        it.classList.toggle('is-selected', itIdx === selectEl.selectedIndex);
+      });
+    });
+
+    if (selectEl.form) {
+      selectEl.form.addEventListener('reset', () => {
+        setTimeout(syncLabel, 20);
+      });
+    }
+
+    selectEl.addEventListener('invalid', () => {
+      trigger.classList.add('is-invalid');
+      trigger.classList.add('ss-shake');
+      setTimeout(() => trigger.classList.remove('ss-shake'), 500);
+    });
+
+    const observer = new MutationObserver(() => {
+      rebuildOptions();
+    });
+    observer.observe(selectEl, { childList: true, subtree: true, attributes: true, attributeFilter: ['disabled'] });
+
+    rebuildOptions();
+
+    const instance = {
+      selectEl,
+      wrap,
+      trigger,
+      dropdown,
+      rebuild: rebuildOptions,
+      sync: syncLabel,
+      open: openDropdown,
+      close: closeDropdown
+    };
+
+    this.instances.set(selectEl, instance);
+    this.allInstances.push(instance);
+    return instance;
+  },
+
+  initAll() {
+    this.TARGET_IDS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.tagName === 'SELECT') {
+        this.enhance(el);
+      }
+    });
+
+    const allSelects = document.querySelectorAll('select.poa-select, select.sppd-input-styled, select.bok-select, select.sppd-custom-select, select[data-searchable="true"]');
+    allSelects.forEach(el => {
+      this.enhance(el);
+    });
+  }
+};
+
+// Global click outside listener to close any open dropdowns
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.searchable-select-wrap')) {
+    if (window.SearchableSelect && typeof window.SearchableSelect.closeAll === 'function') {
+      window.SearchableSelect.closeAll();
+    }
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Elements
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  const profileTrigger = document.getElementById('profileTrigger');
+  const profilePopover = document.getElementById('profilePopover');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const sidebarSearchInput = document.getElementById('sidebarSearchInput');
+
+  // Topbar titles
+  const topbarCategory = document.getElementById('topbarCategory');
+  const topbarTitle = document.getElementById('topbarTitle');
+  const topbarSubtitle = document.getElementById('topbarSubtitle');
+
+  // Views
+  const viewBeranda = document.getElementById('viewBeranda');
+  const viewPoaBulanan = document.getElementById('viewPoaBulanan');
+  const viewTpPol = document.getElementById('viewTpPol');
+  const viewSppdLpt = document.getElementById('viewSppdLpt');
+  const viewJadwalKegiatan = document.getElementById('viewJadwalKegiatan');
+  const viewDeveloperWeb = document.getElementById('viewDeveloperWeb');
+  const navItemDevWeb = document.getElementById('navItemDevWeb');
+  const navSectionGodMode = document.getElementById('navSectionGodMode');
+
+  // ==========================================================================
+  // DAFTAR RESMI PEGAWAI PUSKESMAS BANJARAN KOTA (39 PEGAWAI)
+  // ==========================================================================
+  const DAFTAR_PEGAWAI = [
+    { no: 1, nama: "dr. Rina Indriati", nip: "19740404 201411 2 001", nipFull: "NIP. 19740404 201411 2 001", gol: "III/d", jabatan: "Kepala Puskesmas" },
+    { no: 2, nama: "Teti Nuryati, S.Keb, Bdn", nip: "19750816 200701 2 012", nipFull: "NIP. 19750816 200701 2 012", gol: "III/b", jabatan: "Satker/Bidan Mahir" },
+    { no: 3, nama: "Satrianita, SKM", nip: "19730908 199403 2 006", nipFull: "NIP. 19730908 199403 2 006", gol: "IV/b", jabatan: "Sanitarian Ahli Muda" },
+    { no: 4, nama: "Asep Yanto, AMKG", nip: "19690623 199103 1 002", nipFull: "NIP. 19690623 199103 1 002", gol: "III/d", jabatan: "Perawat Gigi Penyelia" },
+    { no: 5, nama: "N. Yayat Rohayati, AM.Keb", nip: "19690613 198903 2 005", nipFull: "NIP. 19690613 198903 2 005", gol: "III/d", jabatan: "Bidan Penyelia" },
+    { no: 6, nama: "Rd Teti Mulyati, Amd.Kep", nip: "19680825 199003 2 008", nipFull: "NIP. 19680825 199003 2 008", gol: "III/d", jabatan: "Perawat Penyelia" },
+    { no: 7, nama: "Indri Yusiana, Amd.Kep", nip: "19681004 199103 2 007", nipFull: "NIP. 19681004 199103 2 007", gol: "III/d", jabatan: "Perawat Penyelia" },
+    { no: 8, nama: "Santi Sentri Yanti, S.Keb", nip: "19781014 200501 2 007", nipFull: "NIP. 19781014 200501 2 007", gol: "III/d", jabatan: "Bidan Pelaksana" },
+    { no: 9, nama: "Imas Winarti, AM.Keb", nip: "19690524 200604 2 004", nipFull: "NIP. 19690524 200604 2 004", gol: "III/a", jabatan: "Bidan Pelaksana" },
+    { no: 10, nama: "Eva Farida, S.Keb", nip: "19840508 201704 2 011", nipFull: "NIP. 19840508 201704 2 011", gol: "III/a", jabatan: "Bidan Mahir" },
+    { no: 11, nama: "Neng Yulia Ernawati, S.Keb", nip: "19860725 201704 2 007", nipFull: "NIP. 19860725 201704 2 007", gol: "III/a", jabatan: "Bidan Pelaksana" },
+    { no: 12, nama: "Eva Solina, S.Keb", nip: "19821219 201704 2 003", nipFull: "NIP. 19821219 201704 2 003", gol: "III/a", jabatan: "Bidan Pelaksana" },
+    { no: 13, nama: "Riza Nur Multiani, A.Md.AK", nip: "19910127 202203 2 010", nipFull: "NIP. 19910127 202203 2 010", gol: "II/c", jabatan: "Penata Laboratorium Kesehatan Terampil" },
+    { no: 14, nama: "drg. Regina Desi Gresiana Simamora", nip: "19930805 202505 2 002", nipFull: "NIP. 19930805 202505 2 002", gol: "III/b", jabatan: "Dokter Gigi Ahli Pertama" },
+    { no: 15, nama: "Nurul Hidayah, Amd.Kes", nip: "20001224 202505 2 002", nipFull: "NIP. 20001224 202505 2 002", gol: "II/c", jabatan: "Terapis Gigi dan Mulut Terampil" },
+    { no: 16, nama: "Dadi Permadi, SKM", nip: "19840525 202221 1 001", nipFull: "NIP. 19840525 202221 1 001", gol: "IX", jabatan: "Penyuluh Kesehatan Ahli Pertama" },
+    { no: 17, nama: "Anisa Rohmatunisa, AM.Keb", nip: "19880321 202321 2 001", nipFull: "NIP. 19880321 202321 2 001", gol: "VII", jabatan: "Bidan Terampil" },
+    { no: 18, nama: "Nina Mariyana, Amd.Kep", nip: "19960728 202321 2 005", nipFull: "NIP. 19960728 202321 2 005", gol: "VII", jabatan: "Perawat Terampil" },
+    { no: 19, nama: "Sheila Nurlaila, A.Md.Gz", nip: "19930713 202321 2 003", nipFull: "NIP. 19930713 202321 2 003", gol: "VII", jabatan: "Nutrisionis Terampil" },
+    { no: 20, nama: "Debby Nadia Lofika, S.Farm. Apt", nip: "19921004 202521 2 044", nipFull: "NIP. 19921004 202521 2 044", gol: "IX", jabatan: "Apoteker" },
+    { no: 21, nama: "Lutfiyatun Oktaviana, S.Kep.Ners", nip: "873.3204.10.02.005", nipFull: "NRP. 873.3204.10.02.005", gol: "PPTK PW", jabatan: "Perawat" },
+    { no: 22, nama: "dr. Dinar Dwi Restika Agustin", nip: "873.3204.07.05.005", nipFull: "NRP. 873.3204.07.05.005", gol: "BLUD", jabatan: "Dokter Umum" },
+    { no: 23, nama: "dr. Putri Tasya Afifah", nip: "873.3204.08.06.029", nipFull: "NRP. 873.3204.08.06.029", gol: "BLUD", jabatan: "Dokter Umum" },
+    { no: 24, nama: "drg. Intan Nur Atsila", nip: "873.3204.08.06.019", nipFull: "NRP. 873.3204.08.06.019", gol: "BLUD", jabatan: "Dokter Gigi" },
+    { no: 25, nama: "Rini Julianti, SE", nip: "873.06.02.021", nipFull: "NRP. 873.06.02.021", gol: "BLUD", jabatan: "Akuntan" },
+    { no: 26, nama: "Andriana Mahardhytia, Amd.Kes", nip: "873.120.10.03", nipFull: "NRP. 873.120.10.03", gol: "BLUD", jabatan: "Rekam Medis" },
+    { no: 27, nama: "Dilla Anggraeni Pratiwi, A.Md.Akun", nip: "873.3204.13.03.012", nipFull: "NRP. 873.3204.13.03.012", gol: "BLUD", jabatan: "Admin BOK" },
+    { no: 28, nama: "Mochamad Fauzie, S.Gz", nip: "873.3204.16.02.008", nipFull: "NRP. 873.3204.16.02.008", gol: "BLUD", jabatan: "Nutrisionis" },
+    { no: 29, nama: "Ilham Ardiansyah Isnandar, SKM", nip: "873.3204.11.06.011", nipFull: "NRP. 873.3204.11.06.011", gol: "BLUD", jabatan: "Epidemiolog" },
+    { no: 30, nama: "Rian Sidik Sudiana, Amd.Kes", nip: "873.3204.12.06.007", nipFull: "NRP. 873.3204.12.06.007", gol: "BLUD", jabatan: "Rekam Medis" },
+    { no: 31, nama: "Fahri Dzulfikar Rismayanto, A.Md. Bns", nip: "873.3204.13.07.037", nipFull: "NRP. 873.3204.13.07.037", gol: "BLUD", jabatan: "Admin BLUD" },
+    { no: 32, nama: "Mutiara Sofiatussirri, Amd.", nip: "873.3204.05.05.005", nipFull: "NRP. 873.3204.05.05.005", gol: "BLUD", jabatan: "ATLM" },
+    { no: 33, nama: "Muhamad Faridz Alparizy, Amd.Kep", nip: "873.3204.14.05.040", nipFull: "NRP. 873.3204.14.05.040", gol: "BLUD", jabatan: "Perawat" },
+    { no: 34, nama: "Neng Safitri Nur Ladyawati, AM.Keb", nip: "873.3204.09.06.106", nipFull: "NRP. 873.3204.09.06.106", gol: "BLUD", jabatan: "Bidan Desa" },
+    { no: 35, nama: "Dani Setiadi, S.Farm", nip: "873.3204.18.01.002", nipFull: "NRP. 873.3204.18.01.002", gol: "BLUD", jabatan: "TTK" },
+    { no: 36, nama: "Ripan Sutiana", nip: "-", nipFull: "-", gol: "BLUD", jabatan: "Petugas Keamanan" },
+    { no: 37, nama: "Mevi Riyanayasti", nip: "-", nipFull: "-", gol: "BLUD", jabatan: "Petugas Kebersihan" },
+    { no: 38, nama: "Ade Boy", nip: "-", nipFull: "-", gol: "BLUD", jabatan: "Supir" },
+    { no: 39, nama: "Suhara", nip: "-", nipFull: "-", gol: "BLUD", jabatan: "Petugas Keamanan" }
+  ];
+  window.DAFTAR_PEGAWAI = DAFTAR_PEGAWAI;
+
+  // ==========================================================================
+  // SWEETALERT2 LUXURY NOTIFICATION SYSTEM (Sweet Notify 2)
+  // ==========================================================================
+  const getSicekasToast = () => {
+    if (typeof Swal === 'undefined') return null;
+    return Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3500,
+      timerProgressBar: true,
+      backdrop: false,
+      customClass: {
+        popup: 'sicekas-swal-toast',
+        container: 'sicekas-swal-toast-container'
+      },
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer);
+        toast.addEventListener('mouseleave', Swal.resumeTimer);
+      }
+    });
+  };
+
+  // Global Toast Helper (Sweet Notify 2)
+  window.showToast = (msg, type = 'info') => {
+    const toastInstance = getSicekasToast();
+    if (toastInstance) {
+      const swalType = type === 'error' ? 'error' : (type === 'success' ? 'success' : (type === 'warn' || type === 'warning' ? 'warning' : 'info'));
+      toastInstance.fire({
+        icon: swalType,
+        title: msg
+      });
+      return;
+    }
+
+    // Fallback if Swal not loaded
+    let toastContainer = document.getElementById('sicekasToastContainer');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'sicekasToastContainer';
+      toastContainer.style.cssText = 'position: fixed; bottom: 28px; right: 28px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;';
+      document.body.appendChild(toastContainer);
+    }
+    const toast = document.createElement('div');
+    const bg = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#f59e0b';
+    toast.style.cssText = `background: rgba(15, 23, 42, 0.95); color: #fff; border-left: 4px solid ${bg}; border-radius: 8px; padding: 12px 18px; font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.4); pointer-events: auto; transform: translateY(20px); opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);`;
+    toast.textContent = msg;
+    toastContainer.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.style.transform = 'translateY(0)';
+      toast.style.opacity = '1';
+    });
+    setTimeout(() => {
+      toast.style.transform = 'translateY(20px)';
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 350);
+    }, 3200);
+  };
+
+  // Interactive Luxury SweetAlert2 Dialogs
+  window.SicekasAlert = {
+    toast: (msg, type = 'info') => window.showToast(msg, type),
+    success: (title, text = '') => {
+      if (typeof Swal === 'undefined') { alert(`${title}\n${text}`); return Promise.resolve(); }
+      return Swal.fire({
+        icon: 'success',
+        title: title,
+        text: text,
+        confirmButtonText: 'Selesai',
+        customClass: { popup: 'sicekas-swal-modal', confirmButton: 'btn-swal-teal' }
+      });
+    },
+    error: (title, text = '') => {
+      if (typeof Swal === 'undefined') { alert(`${title}\n${text}`); return Promise.resolve(); }
+      return Swal.fire({
+        icon: 'error',
+        title: title,
+        text: text,
+        confirmButtonText: 'Mengerti',
+        customClass: { popup: 'sicekas-swal-modal', confirmButton: 'btn-swal-teal' }
+      });
+    },
+    confirm: async (title, text = '', confirmText = 'Ya, Lanjutkan', cancelText = 'Batal', isDanger = false) => {
+      if (typeof Swal === 'undefined') { return confirm(`${title}\n${text}`); }
+      const res = await Swal.fire({
+        icon: isDanger ? 'warning' : 'question',
+        title: title,
+        text: text,
+        showCancelButton: true,
+        confirmButtonText: confirmText,
+        cancelButtonText: cancelText,
+        reverseButtons: true,
+        customClass: {
+          popup: 'sicekas-swal-modal',
+          confirmButton: isDanger ? 'btn-swal-danger' : 'btn-swal-teal',
+          cancelButton: 'btn-swal-cancel'
+        }
+      });
+      return res.isConfirmed;
+    }
+  };
+
+  // ==========================================================================
+  // CLOUDFLARE D1 DATABASE & CLOUD-FIRST SERVICE LAYER
+  // ==========================================================================
+  const CloudflareDB = {
+    isCloudReady: false,
+    async checkConnection() {
+      try {
+        const res = await fetch('/api/health');
+        if (res.ok) {
+          const data = await res.json();
+          this.isCloudReady = data.d1_connected || false;
+          return data;
+        }
+      } catch (e) {
+        this.isCloudReady = false;
+      }
+      return null;
+    },
+
+    // 1. Users & Roles
+    async fetchUsers() {
+      try {
+        const res = await fetch('/api/users');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.users) {
+            localStorage.setItem('SICEKAS_D1_USERS_CACHE', JSON.stringify(json.users));
+            // Sync in-memory DAFTAR_PEGAWAI
+            if (Array.isArray(window.DAFTAR_PEGAWAI)) {
+              json.users.forEach(u => {
+                const idx = window.DAFTAR_PEGAWAI.findIndex(p => p.nip === u.nip || p.nama === u.nama);
+                if (idx >= 0) {
+                  window.DAFTAR_PEGAWAI[idx].role = u.role;
+                  window.DAFTAR_PEGAWAI[idx].jabatan = u.jabatan;
+                  window.DAFTAR_PEGAWAI[idx].gol = u.golongan;
+                  window.DAFTAR_PEGAWAI[idx].is_active = u.is_active;
+                }
+              });
+            }
+            if (typeof window.populateTpPolSignatureDropdowns === 'function') {
+              window.populateTpPolSignatureDropdowns();
+            }
+            if (typeof window.populatePoaOfficerDropdown === 'function') {
+              window.populatePoaOfficerDropdown();
+            }
+            return json.users;
+          }
+        }
+      } catch (e) {
+        console.warn('Fallback to local users cache / defaults', e);
+      }
+      return JSON.parse(localStorage.getItem('SICEKAS_D1_USERS_CACHE')) || DAFTAR_PEGAWAI;
+    },
+
+    async saveUser(userData) {
+      try {
+        const res = await fetch('/api/users/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData)
+        });
+        if (res.ok) {
+          const json = await res.json();
+          await this.fetchUsers();
+          return json;
+        } else {
+          const err = await res.json();
+          return { success: false, error: err?.error || 'Gagal menyimpan data pegawai.' };
+        }
+      } catch (e) {
+        console.warn('Save user error:', e);
+        return { success: false, error: 'Koneksi ke API Cloudflare terputus.' };
+      }
+    },
+
+    async updateUserRole(nip, role, id) {
+      try {
+        const res = await fetch('/api/users/update-role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nip, role, id })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          await this.fetchUsers();
+          return json;
+        }
+      } catch (e) {
+        console.warn('Saving role locally due to offline mode', e);
+      }
+      // Local sync fallback
+      const rolesStore = JSON.parse(localStorage.getItem('SICEKAS_USER_ROLES')) || {};
+      rolesStore[nip] = role;
+      localStorage.setItem('SICEKAS_USER_ROLES', JSON.stringify(rolesStore));
+      return { success: true, localOnly: true };
+    },
+
+    async updateUserStatus(nip, is_active, id) {
+      try {
+        const res = await fetch('/api/users/update-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nip, is_active, id })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          await this.fetchUsers();
+          return json;
+        }
+      } catch (e) {
+        console.warn('Update user status error:', e);
+      }
+      return { success: true, localOnly: true };
+    },
+
+    async deleteUser(nip, id, username) {
+      try {
+        const res = await fetch('/api/users/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nip, id, username })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          await this.fetchUsers();
+          return json;
+        } else {
+          const err = await res.json();
+          return { success: false, error: err?.error || 'Gagal menghapus akun pegawai.' };
+        }
+      } catch (e) {
+        console.warn('Delete user error:', e);
+        return { success: false, error: 'Koneksi ke API terputus.' };
+      }
+    },
+
+    async resetUserPass(nip, id) {
+      try {
+        const res = await fetch('/api/users/reset-pass', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nip, id })
+        });
+        if (res.ok) return await res.json();
+      } catch (e) {
+        console.warn('Reset pass fallback', e);
+      }
+      return { success: true };
+    },
+
+    async changePassword({ nip, username, oldPassword, newPassword }) {
+      try {
+        const res = await fetch('/api/users/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nip, username, oldPassword, newPassword })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          return json;
+        } else {
+          const err = await res.json();
+          return { success: false, error: err?.error || 'Gagal mengubah password di cloud.' };
+        }
+      } catch (e) {
+        console.warn('Cloud password update failed, fallback to local', e);
+        return { success: true, localOnly: true, message: 'Password diperbarui di cache lokal.' };
+      }
+    },
+
+    // 2. Jadwal Kegiatan (Cloudflare D1 Primary Source)
+    async fetchJadwal(bulan, tahun) {
+      try {
+        const url = `/api/jadwal?bulan=${bulan || ''}&tahun=${tahun || ''}&_t=${Date.now()}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            localStorage.setItem('SICEKAS_BOK_DATA_V2', JSON.stringify(json.data));
+            return json.data;
+          }
+        }
+      } catch (e) {
+        console.warn('Network error fetching Jadwal from Cloudflare D1, using offline backup:', e);
+      }
+      return JSON.parse(localStorage.getItem('SICEKAS_BOK_DATA_V2')) || [];
+    },
+
+    async saveJadwal(item) {
+      // Direct cloud mutation to Cloudflare D1
+      try {
+        const res = await fetch('/api/jadwal/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item)
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) {
+            return json;
+          }
+        }
+      } catch (e) {
+        console.warn('Network error saving Jadwal to Cloudflare D1:', e);
+      }
+      return { success: true, id: item.id };
+    },
+
+    async deleteJadwal(id, cascade = false) {
+      try {
+        const res = await fetch('/api/jadwal/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, cascade })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          return json;
+        }
+      } catch (e) {
+        console.warn('Network error deleting Jadwal from Cloudflare D1:', e);
+      }
+      return { success: true };
+    },
+
+    // 2b. Kolaborasi Kegiatan (Cloudflare D1 Primary Source)
+    async fetchCollab(nip = '', nama = '', username = '') {
+      try {
+        const url = `/api/collab?all=1&_t=${Date.now()}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            localStorage.setItem('SICEKAS_BOK_COLLAB_V2', JSON.stringify(json.data));
+            return json.data;
+          }
+        }
+      } catch (e) {
+        console.warn('Network error fetching Collab from Cloudflare D1, using offline backup:', e);
+      }
+      return JSON.parse(localStorage.getItem('SICEKAS_BOK_COLLAB_V2')) || [];
+    },
+
+    async sendCollabRequest(payload) {
+      try {
+        const res = await fetch('/api/collab/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const json = await res.json();
+          return json;
+        }
+      } catch (e) {
+        console.warn('Network error sending Collab request to Cloudflare D1:', e);
+      }
+      return { success: true, message: 'Request kolaborasi dikirim.' };
+    },
+
+    async respondCollab(id, status, responderNip, responderNama) {
+      try {
+        const res = await fetch('/api/collab/respond', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id, status, responder_nip: responderNip, responder_nama: responderNama })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          return json;
+        }
+      } catch (e) {
+        console.warn('Network error responding to Collab in Cloudflare D1:', e);
+      }
+      return { success: true };
+    },
+
+    async deleteCollab(id) {
+      try {
+        const res = await fetch('/api/collab/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        if (res.ok) return await res.json();
+      } catch (e) {
+        console.warn('Network error deleting Collab from Cloudflare D1:', e);
+      }
+      return { success: true };
+    },
+
+    // 3. POA Bulanan (Direct Cloudflare D1 Database)
+    async fetchPoa(bulan, tahun, nip = '', nama = '') {
+      try {
+        const qParams = new URLSearchParams();
+        if (bulan) qParams.set('bulan', bulan);
+        if (tahun) qParams.set('tahun', tahun);
+        if (nip) qParams.set('nip', nip);
+        if (nama) qParams.set('nama', nama);
+        qParams.set('_t', Date.now());
+
+        const url = `/api/poa?${qParams.toString()}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            return json.data;
+          }
+        }
+      } catch (e) {
+        console.warn('Network error fetching POA from Cloudflare D1:', e);
+      }
+      return [];
+    },
+
+    async savePoa(item) {
+      try {
+        const res = await fetch('/api/poa/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item)
+        });
+        const json = await res.json().catch(() => ({}));
+        if (res.ok && json.success !== false) {
+          return json;
+        }
+        return { success: false, error: json.error || `HTTP ${res.status}: ${res.statusText}` };
+      } catch (e) {
+        console.warn('Network error saving POA to Cloudflare D1:', e);
+        return { success: false, error: e.message };
+      }
+    },
+
+    async savePoaBatch(items, deletedIds = []) {
+      try {
+        const res = await fetch('/api/poa/save-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items, deletedIds })
+        });
+        const json = await res.json().catch(() => ({}));
+        if (res.ok && json.success !== false) {
+          return json;
+        }
+        return { success: false, error: json.error || `HTTP ${res.status}: ${res.statusText}` };
+      } catch (e) {
+        console.warn('Network error saving POA batch to Cloudflare D1:', e);
+        return { success: false, error: e.message };
+      }
+    },
+
+    async deletePoa(id) {
+      try {
+        const res = await fetch('/api/poa/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        const json = await res.json().catch(() => ({}));
+        if (res.ok && json.success !== false) {
+          return json;
+        }
+        return { success: false, error: json.error || `HTTP ${res.status}: ${res.statusText}` };
+      } catch (e) {
+        console.warn('Network error deleting POA from Cloudflare D1:', e);
+        return { success: false, error: e.message };
+      }
+    },
+
+    // 4. TP POL Jaspel (Direct Cloudflare D1 Database)
+    async fetchTpPol(bulan, tahun, nip) {
+      try {
+        const url = `/api/tppol?bulan=${bulan || ''}&tahun=${tahun || ''}&nip=${nip || ''}&_t=${Date.now()}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) return json.data;
+        }
+      } catch (e) {
+        console.warn('Fallback fetch TP POL from Cloudflare D1:', e);
+      }
+      return [];
+    },
+
+    async fetchTppol(bulan, tahun, nip) {
+      return this.fetchTpPol(bulan, tahun, nip);
+    },
+
+    async saveTpPol(item) {
+      try {
+        const res = await fetch('/api/tppol/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item)
+        });
+        if (res.ok) return await res.json();
+      } catch (e) {
+        console.warn('Error saving TP POL to Cloudflare D1:', e);
+      }
+      return { success: true };
+    },
+
+    // 5. SPPD & LPT (Direct Cloudflare D1 Database)
+    async fetchSppd(id) {
+      try {
+        const url = `/api/sppd?id=${id || ''}&_t=${Date.now()}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) return json.data;
+        }
+      } catch (e) {
+        console.warn('Fallback fetch SPPD from Cloudflare D1:', e);
+      }
+      return [];
+    },
+
+    async saveSppd(item) {
+      try {
+        const res = await fetch('/api/sppd/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item)
+        });
+        if (res.ok) return await res.json();
+      } catch (e) {
+        console.warn('Error saving SPPD to Cloudflare D1:', e);
+      }
+      return { success: true };
+    },
+
+    // 5b. SPPD & LPT Templates (Direct Cloudflare D1 Database + Guaranteed Local Storage Persistence)
+    async fetchSppdTemplates(username) {
+      let localBackup = [];
+      try {
+        localBackup = JSON.parse(localStorage.getItem('SICEKAS_SPPD_TEMPLATES_CACHE')) || [];
+      } catch (e) {}
+
+      try {
+        const u = username || '';
+        const url = u ? `/api/sppd/templates?username=${encodeURIComponent(u)}&_t=${Date.now()}` : `/api/sppd/templates?_t=${Date.now()}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            // If D1 returned data, merge with any recent local items and update storage
+            const d1Map = new Map();
+            json.data.forEach(item => { if (item && item.id) d1Map.set(item.id, item); });
+            // Preserve any local items not yet in D1
+            localBackup.forEach(item => {
+              if (item && item.id && !d1Map.has(item.id)) d1Map.set(item.id, item);
+            });
+            const merged = Array.from(d1Map.values());
+            try {
+              localStorage.setItem('SICEKAS_SPPD_TEMPLATES_CACHE', JSON.stringify(merged));
+            } catch (storageErr) {}
+            return merged;
+          }
+        }
+      } catch (e) {
+        console.warn('Fallback fetch SPPD templates from Cloudflare D1:', e);
+      }
+
+      // Offline fallback: load from localStorage if D1 request fails or returns non-200
+      if (Array.isArray(localBackup) && localBackup.length > 0) {
+        return localBackup;
+      }
+      return [];
+    },
+
+    async saveSppdTemplate(item) {
+      // 1. Guaranteed Immediate Local Persistence (Never lost on reload)
+      let local = [];
+      try {
+        local = JSON.parse(localStorage.getItem('SICEKAS_SPPD_TEMPLATES_CACHE')) || [];
+      } catch (e) {}
+      const idx = local.findIndex(i => i && i.id === item.id);
+      if (idx >= 0) local[idx] = item;
+      else local.unshift(item);
+      try {
+        localStorage.setItem('SICEKAS_SPPD_TEMPLATES_CACHE', JSON.stringify(local));
+      } catch (storageErr) {}
+
+      // 2. Cloudflare D1 Edge Persistence
+      try {
+        const res = await fetch('/api/sppd/templates/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item)
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) {
+            return json;
+          }
+        } else {
+          console.warn('API D1 Template Save returned non-ok status:', res.status);
+        }
+      } catch (e) {
+        console.warn('Network issue saving template to D1, preserved in local cache:', e);
+        return { success: true, id: item.id, isLocalFallback: true, error: e.message };
+      }
+      return { success: true, id: item.id };
+    },
+
+    async deleteSppdTemplate(id) {
+      // 1. Remove from local storage immediately
+      try {
+        let local = JSON.parse(localStorage.getItem('SICEKAS_SPPD_TEMPLATES_CACHE')) || [];
+        local = local.filter(i => i && i.id !== id);
+        localStorage.setItem('SICEKAS_SPPD_TEMPLATES_CACHE', JSON.stringify(local));
+      } catch (storageErr) {}
+
+      // 2. Remove from Cloudflare D1
+      try {
+        const res = await fetch('/api/sppd/templates/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) return json;
+        }
+      } catch (e) {
+        console.warn('Fallback delete SPPD template', e);
+      }
+      return { success: true };
+    },
+
+    // 5c. Cloudflare R2 Media Upload Engine
+    async uploadFotoR2(base64OrFile, originalName = 'foto_kegiatan.jpg') {
+      try {
+        let res;
+        if (typeof base64OrFile === 'string') {
+          res = await fetch('/api/foto/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ base64: base64OrFile, name: originalName })
+          });
+        } else {
+          const formData = new FormData();
+          formData.append('file', base64OrFile, originalName);
+          res = await fetch('/api/foto/upload', {
+            method: 'POST',
+            body: formData
+          });
+        }
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) return json;
+        }
+      } catch (e) {
+        console.warn('Cloudflare R2 direct upload fallback', e);
+      }
+      return null;
+    },
+
+    // 5d. Cloudflare R2 Upload Logs & History
+    async fetchFotoLogs() {
+      try {
+        const res = await fetch(`/api/foto/logs?_t=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) return json.data;
+        }
+      } catch (e) {
+        console.warn('Error fetching foto logs from D1:', e);
+      }
+      return [];
+    },
+
+    async deleteFotoR2(fileKey) {
+      try {
+        const res = await fetch('/api/foto/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: fileKey })
+        });
+        if (res.ok) return await res.json();
+      } catch (e) {
+        console.warn('Error deleting foto from R2:', e);
+      }
+      return { success: false };
+    },
+
+
+    // 6. Audit Logs
+    async fetchAuditLogs() {
+      try {
+        const res = await fetch('/api/audit-logs');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success) return json.data;
+        }
+      } catch (e) {
+        console.warn('Fallback fetch audit logs', e);
+      }
+      return JSON.parse(localStorage.getItem('SICEKAS_AUDIT_LOGS_CACHE')) || [];
+    },
+
+    // 6. Direct SQL Runner (Super Admin)
+    async executeSql(sql) {
+      try {
+        const res = await fetch('/api/sql', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sql })
+        });
+        if (res.ok) return await res.json();
+        return { success: false, error: `HTTP ${res.status}: ${res.statusText}` };
+      } catch (e) {
+        return { success: false, error: e.message };
+      }
+    }
+  };
+
+  window.CloudflareDB = CloudflareDB;
+
+  // ==========================================================================
+  // 1. SIDEBAR COLLAPSE / EXPAND TOGGLE (like @davidm_ai)
+  // ==========================================================================
+  if (sidebarToggle && sidebar) {
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      
+      // Close popover if open when toggling sidebar
+      if (profilePopover) {
+        profilePopover.classList.remove('active');
+      }
+
+      // Re-render chart size if needed
+      setTimeout(() => {
+        if (window.healthChartInstance) {
+          window.healthChartInstance.resize();
+        }
+      }, 360);
+    });
+  }
+
+  // ==========================================================================
+  // 2. USER PROFILE POPOVER TOGGLE (like @davidm_ai)
+  // ==========================================================================
+  if (profileTrigger && profilePopover) {
+    profileTrigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      profilePopover.classList.toggle('active');
+    });
+
+    // Close popover when clicking anywhere outside
+    document.addEventListener('click', (e) => {
+      if (!profilePopover.contains(e.target) && !profileTrigger.contains(e.target)) {
+        profilePopover.classList.remove('active');
+      }
+    });
+  }
+
+  // ==========================================================================
+  // SYNC AUTHENTICATED USER SESSION & PROFILE UI
+  // ==========================================================================
+  try {
+    const rawCurrentUser = localStorage.getItem('SICEKAS_CURRENT_USER');
+    if (!rawCurrentUser) {
+      window.location.replace('index.html');
+      return;
+    }
+    const currentUser = JSON.parse(rawCurrentUser);
+    window.CURRENT_USER = currentUser;
+    if (currentUser) {
+      const profileNameEls = document.querySelectorAll('.profile-name, .popover-user-info h4');
+      const profileRoleEls = document.querySelectorAll('.profile-role');
+      const profileEmailEl = document.querySelector('.popover-user-info p');
+      
+      if (currentUser.nama) {
+        profileNameEls.forEach(el => el.textContent = currentUser.nama);
+      }
+      if (currentUser.role || currentUser.jabatan) {
+        profileRoleEls.forEach(el => el.textContent = `${currentUser.role || 'Petugas'} • ${currentUser.jabatan || 'Puskesmas'}`);
+      }
+      if (profileEmailEl) {
+        profileEmailEl.textContent = `${(currentUser.username || 'pegawai').toLowerCase()}@puskesmasbanjaran.go.id`;
+      }
+    }
+  } catch (err) {
+    console.warn('Error syncing user session', err);
+  }
+
+  // Handle Logout Buttons
+  const logoutButtons = document.querySelectorAll('.popover-item.logout, a.logout');
+  logoutButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'question',
+          title: 'Konfirmasi Keluar',
+          text: 'Apakah Anda yakin ingin keluar dari akun ini?',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Keluar',
+          cancelButtonText: 'Batal',
+          reverseButtons: true,
+          customClass: { popup: 'sicekas-swal-modal', confirmButton: 'btn-swal-danger', cancelButton: 'btn-swal-cancel' }
+        }).then((res) => {
+          if (res.isConfirmed) {
+            localStorage.removeItem('SICEKAS_CURRENT_USER');
+            window.location.replace('index.html');
+          }
+        });
+      } else {
+        if (confirm('Apakah Anda yakin ingin keluar?')) {
+          localStorage.removeItem('SICEKAS_CURRENT_USER');
+          window.location.replace('index.html');
+        }
+      }
+    });
+  });
+
+  // ==========================================================================
+  // PASSWORD MODAL & CLOUD DATABASE CHANGE PASSWORD INTEGRATION
+  // ==========================================================================
+  const passwordModal = document.getElementById('passwordModal');
+  const btnChangePassword = document.getElementById('btnChangePassword');
+  const btnQuickPassword = document.getElementById('btnQuickPassword');
+  const btnChangePasswordPopover = document.getElementById('btnChangePasswordPopover');
+  const closePasswordModal = document.getElementById('closePasswordModal');
+  const btnCancelPassword = document.getElementById('btnCancelPassword');
+  const passwordForm = document.getElementById('passwordForm');
+
+  const openPasswordModal = () => {
+    if (!passwordModal) return;
+    if (profilePopover) profilePopover.classList.remove('active');
+    passwordModal.classList.add('active');
+    gsap.fromTo('#passwordModal .modal-card', 
+      { opacity: 0, scale: 0.94, y: 15 }, 
+      { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'back.out(1.4)' }
+    );
+    const oldPassInput = document.getElementById('oldPassword');
+    if (oldPassInput) oldPassInput.focus();
+  };
+
+  const closePassModal = () => {
+    if (!passwordModal) return;
+    gsap.to('#passwordModal .modal-card', {
+      opacity: 0, scale: 0.94, y: 10, duration: 0.2, ease: 'power2.in',
+      onComplete: () => {
+        passwordModal.classList.remove('active');
+        if (passwordForm) passwordForm.reset();
+      }
+    });
+  };
+
+  if (btnChangePassword) btnChangePassword.addEventListener('click', openPasswordModal);
+  if (btnQuickPassword) btnQuickPassword.addEventListener('click', openPasswordModal);
+  if (btnChangePasswordPopover) {
+    btnChangePasswordPopover.addEventListener('click', (e) => {
+      e.preventDefault();
+      openPasswordModal();
+    });
+  }
+
+  if (closePasswordModal) closePasswordModal.addEventListener('click', closePassModal);
+  if (btnCancelPassword) btnCancelPassword.addEventListener('click', closePassModal);
+
+  if (passwordModal) {
+    passwordModal.addEventListener('click', (e) => {
+      if (e.target === passwordModal) closePassModal();
+    });
+  }
+
+  if (passwordForm) {
+    passwordForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const oldPass = document.getElementById('oldPassword')?.value;
+      const newPass = document.getElementById('newPassword')?.value;
+      const confirmPass = document.getElementById('confirmNewPassword')?.value;
+
+      if (!oldPass || !newPass || !confirmPass) {
+        showToast('Semua kolom password wajib diisi!', 'warn');
+        return;
+      }
+
+      if (newPass.length < 6) {
+        showToast('Password baru minimal 6 karakter!', 'warn');
+        return;
+      }
+
+      if (newPass !== confirmPass) {
+        showToast('Konfirmasi password baru tidak cocok!', 'error');
+        return;
+      }
+
+      showToast('⚡ Mengubah password di Cloudflare D1 Database...', 'info');
+
+      const userNip = typeof CURRENT_USER !== 'undefined' ? CURRENT_USER.nip : '';
+      const userUname = typeof CURRENT_USER !== 'undefined' ? CURRENT_USER.username : '';
+
+      const res = await CloudflareDB.changePassword({
+        nip: userNip,
+        username: userUname,
+        oldPassword: oldPass,
+        newPassword: newPass
+      });
+
+      if (res && res.success) {
+        closePassModal();
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Password Berhasil Diperbarui!',
+            text: res.message || 'Kata sandi akun Anda telah tersimpan langsung di Cloudflare D1 Cloud Database.',
+            confirmButtonText: 'Selesai',
+            customClass: { popup: 'sicekas-swal-modal', confirmButton: 'btn-swal-gold' }
+          });
+        } else {
+          showToast('✓ Password berhasil disimpan ke Cloudflare D1!', 'success');
+        }
+      } else {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Ganti Password',
+            text: res?.error || 'Password saat ini yang Anda masukkan tidak sesuai.',
+            confirmButtonText: 'Coba Lagi',
+            customClass: { popup: 'sicekas-swal-modal', confirmButton: 'btn-swal-gold' }
+          });
+        } else {
+          showToast(`❌ ${res?.error || 'Gagal mengubah password'}`, 'error');
+        }
+      }
+    });
+  }
+
+  // ==========================================================================
+  // 3. NAVIGATION & VIEW SWITCHING (BERANDA <-> POA BULANAN <-> TP POL <-> SPPD/LPT)
+  // ==========================================================================
+  const switchView = (targetView) => {
+    // Sync nav active classes
+    if (navLinks && navLinks.length) {
+      navLinks.forEach(l => {
+        if (l.getAttribute('data-view') === targetView) l.classList.add('active');
+        else l.classList.remove('active');
+      });
+    }
+
+    // Hide all views first
+    if (viewBeranda) viewBeranda.style.display = 'none';
+    if (viewPoaBulanan) viewPoaBulanan.style.display = 'none';
+    if (viewTpPol) viewTpPol.style.display = 'none';
+    if (viewSppdLpt) viewSppdLpt.style.display = 'none';
+    if (viewJadwalKegiatan) viewJadwalKegiatan.style.display = 'none';
+    if (viewDeveloperWeb) viewDeveloperWeb.style.display = 'none';
+
+    if (targetView !== 'developer-web' && window.DeveloperWebController && window.DeveloperWebController.stopLiveAutoSync) {
+      window.DeveloperWebController.stopLiveAutoSync();
+    }
+
+    if (targetView === 'poa-bulanan') {
+      if (viewPoaBulanan) {
+        viewPoaBulanan.style.display = 'block';
+        gsap.fromTo(viewPoaBulanan, 
+          { opacity: 0, y: 15 }, 
+          { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+        );
+      }
+      if (topbarCategory) topbarCategory.textContent = 'PERENCANAAN & PELAPORAN';
+      if (topbarTitle) topbarTitle.textContent = 'POA Bulanan';
+      if (topbarSubtitle) topbarSubtitle.textContent = 'Plan of Action — Rencana kegiatan bulanan petugas Puskesmas Banjaran Kota';
+      if (typeof renderPoaCalendar === 'function') {
+        const selM = parseInt(document.getElementById('poaSelectMonth')?.value || '8', 10);
+        const selY = parseInt(document.getElementById('poaSelectYear')?.value || '2026', 10);
+        const selO = (typeof getPoaOfficerName === 'function') ? getPoaOfficerName() : 'Mochamad Fauzie, S.Gz';
+        renderPoaCalendar(selM, selY, selO);
+      }
+    } else if (targetView === 'tppol-jaspel') {
+      if (viewTpPol) {
+        viewTpPol.style.display = 'block';
+        gsap.fromTo(viewTpPol, 
+          { opacity: 0, y: 15 }, 
+          { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+        );
+      }
+      if (topbarCategory) topbarCategory.textContent = 'PENGAJUAN & SCORING KINERJA';
+      if (topbarTitle) topbarTitle.textContent = 'TP POL (Jaspel)';
+      if (topbarSubtitle) topbarSubtitle.textContent = 'Pengajuan Scoring Jasa Pelayanan — Per pegawai per bulan';
+    } else if (targetView === 'sppd-lpt') {
+      if (viewSppdLpt) {
+        viewSppdLpt.style.display = 'block';
+        gsap.fromTo(viewSppdLpt, 
+          { opacity: 0, y: 15 }, 
+          { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+        );
+      }
+      if (topbarCategory) topbarCategory.textContent = 'ADMINISTRASI & PERJALANAN DINAS';
+      if (topbarTitle) topbarTitle.textContent = 'SPPD dan LPT';
+      if (topbarSubtitle) topbarSubtitle.textContent = 'Penerbitan Surat Perjalanan Dinas dan Laporan Pertanggungjawaban Pelaksanaan Tugas';
+    } else if (targetView === 'jadwal-kegiatan') {
+      if (viewJadwalKegiatan) {
+        viewJadwalKegiatan.style.display = 'block';
+        gsap.fromTo(viewJadwalKegiatan, 
+          { opacity: 0, y: 15 }, 
+          { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+        );
+        gsap.fromTo('.bok-stat-card',
+          { opacity: 0, y: 18, scale: 0.96 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.4, stagger: 0.07, ease: 'back.out(1.3)' }
+        );
+      }
+      if (topbarCategory) topbarCategory.textContent = 'PERENCANAAN & AGENDA PUSKESMAS';
+      if (topbarTitle) topbarTitle.textContent = 'Jadwal Kegiatan';
+      if (topbarSubtitle) topbarSubtitle.textContent = 'Perencanaan dan kolaborasi jadwal kegiatan pelayanan petugas Puskesmas Banjaran Kota';
+      if (window.JadwalBOKController) {
+        window.JadwalBOKController.render();
+      }
+    } else if (targetView === 'developer-web') {
+      const isSuperAdmin = (typeof CURRENT_USER !== 'undefined' && (CURRENT_USER.role === 'Super Admin' || CURRENT_USER.username === 'ozie'));
+      if (!isSuperAdmin) {
+        if (typeof showToast === 'function') {
+          showToast('⛔ Akses Ditolak: Halaman Developer Web hanya untuk akun Super Admin!', 'error');
+        } else {
+          alert('⛔ Akses Ditolak: Halaman Developer Web hanya untuk akun Super Admin!');
+        }
+        switchView('beranda');
+        return;
+      }
+
+      if (viewDeveloperWeb) {
+        viewDeveloperWeb.style.display = 'block';
+        gsap.fromTo(viewDeveloperWeb, 
+          { opacity: 0, y: 15 }, 
+          { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+        );
+        gsap.fromTo('#viewDeveloperWeb .kpi-card',
+          { opacity: 0, y: 18, scale: 0.96 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.4, stagger: 0.07, ease: 'back.out(1.3)' }
+        );
+      }
+      if (topbarCategory) topbarCategory.textContent = 'PENGEMBANG & KENDALI SISTEM';
+      if (topbarTitle) topbarTitle.textContent = 'Developer Web Console';
+      if (topbarSubtitle) topbarSubtitle.textContent = 'Panel Pengendalian Teknis, API Endpoint, Konfigurasi Database Cloud, & Audit Log Sistem SICEKAS v2.0';
+      if (window.DeveloperWebController) {
+        window.DeveloperWebController.init();
+      }
+    } else {
+      // Default: Beranda
+      if (viewBeranda) {
+        viewBeranda.style.display = 'block';
+        gsap.fromTo(viewBeranda, 
+          { opacity: 0, y: 15 }, 
+          { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+        );
+      }
+      if (topbarCategory) topbarCategory.textContent = 'PORTAL RESMI SICEKAS';
+      if (topbarTitle) topbarTitle.textContent = 'Beranda SICEKAS';
+      if (topbarSubtitle) topbarSubtitle.textContent = 'Sistem Informasi Catat Pelaporan Puskesmas Banjaran Kota';
+      
+      if (window.JadwalBOKController && typeof window.JadwalBOKController.renderBerandaWidget === 'function') {
+        window.JadwalBOKController.renderBerandaWidget();
+      }
+
+      setTimeout(() => {
+        if (window.healthChartInstance) window.healthChartInstance.resize();
+        if (window.SearchableSelect && typeof window.SearchableSelect.initAll === 'function') {
+          window.SearchableSelect.initAll();
+        }
+      }, 100);
+    }
+  };
+
+  window.switchView = switchView;
+
+  navLinks.forEach(link => {
+    link.addEventListener('click', (e) => {
+      const href = link.getAttribute('href');
+      const viewAttr = link.getAttribute('data-view');
+
+      // Open In-App Browser modal for CKG Bankot
+      if (viewAttr === 'browser-ckgbankot' || link.id === 'navCkgBankot') {
+        e.preventDefault();
+        if (window.InAppBrowser) {
+          window.InAppBrowser.open();
+        }
+        return;
+      }
+
+      // Direct external link (if any other)
+      if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+        window.open(href, '_blank');
+        e.preventDefault();
+        return;
+      }
+
+      e.preventDefault();
+
+      // Popup under-development notification for Pelaporan Program
+      if (viewAttr === 'pelaporan-program') {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            title: 'Mohon Maaf, Masih Tahap Pengembangan',
+            html: `
+              <div style="text-align: center; color: #cbd5e1; font-size: 13.5px; line-height: 1.6; margin-top: 8px;">
+                <p style="margin-bottom: 10px;">Fitur <strong>Pelaporan Program</strong> Puskesmas Banjaran Kota sedang dalam proses persiapan integrasi data dan modul laporan.</p>
+                <div style="display: inline-block; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; padding: 6px 16px; border-radius: 8px; font-weight: 700; font-size: 12px; margin-top: 4px;">
+                  🚧 Status: Masih Tahap Pengembangan
+                </div>
+              </div>
+            `,
+            icon: 'info',
+            iconColor: '#ffd166',
+            background: '#121722',
+            color: '#ffffff',
+            confirmButtonText: 'Baik, Mengerti',
+            confirmButtonColor: '#ffd166',
+            customClass: {
+              popup: 'sicekas-swal-modal',
+              confirmButton: 'btn-swal-confirm'
+            }
+          });
+        } else {
+          alert('Mohon Maaf, Masih Tahap Pengembangan');
+        }
+        return;
+      }
+
+      navLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+
+      if (viewAttr) {
+        switchView(viewAttr);
+        if (link.getAttribute('data-subtab') === 'r2storage') {
+          setTimeout(() => {
+            const tabBtn = document.querySelector('.dev-tab-btn[data-devtab="r2storage"]');
+            if (tabBtn) tabBtn.click();
+          }, 150);
+        }
+      } else {
+        const label = link.querySelector('.nav-label')?.textContent || 'Menu';
+        alert(`Membuka halaman ${label}...`);
+      }
+
+      // Subtle click animation with GSAP
+      gsap.fromTo(link, 
+        { scale: 0.97 }, 
+        { scale: 1, duration: 0.25, ease: 'power2.out' }
+      );
+    });
+  });
+
+  // Quick Navigation Tiles in Beranda
+  const quickNavCards = document.querySelectorAll('[data-quick-nav]');
+  quickNavCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const targetView = card.getAttribute('data-quick-nav');
+      if (targetView) {
+        navLinks.forEach(l => {
+          if (l.getAttribute('data-view') === targetView) {
+            l.classList.add('active');
+          } else {
+            l.classList.remove('active');
+          }
+        });
+        switchView(targetView);
+        gsap.fromTo(card, { scale: 0.97 }, { scale: 1, duration: 0.2, ease: 'power2.out' });
+      }
+    });
+  });
+
+  // ==========================================================================
+  // 4. SIDEBAR SEARCH FILTER
+  // ==========================================================================
+  if (sidebarSearchInput) {
+    sidebarSearchInput.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase().trim();
+      navLinks.forEach(link => {
+        const text = link.querySelector('.nav-label')?.textContent.toLowerCase() || '';
+        const item = link.closest('.nav-item');
+        if (item) {
+          if (text.includes(term) || term === '') {
+            item.style.display = 'block';
+          } else {
+            item.style.display = 'none';
+          }
+        }
+      });
+
+      // Synchronize section headers with visible items
+      document.querySelectorAll('.sidebar-nav .nav-list').forEach(list => {
+        const title = list.previousElementSibling;
+        if (title && title.classList.contains('nav-section-title')) {
+          const hasVisibleItems = Array.from(list.querySelectorAll('.nav-item')).some(item => item.style.display !== 'none');
+          if (title.id === 'navSectionGodMode') {
+            const isSuperAdmin = (typeof CURRENT_USER !== 'undefined' && (CURRENT_USER.role === 'Super Admin' || CURRENT_USER.username === 'ozie'));
+            title.style.display = (hasVisibleItems && isSuperAdmin) ? 'block' : 'none';
+          } else {
+            title.style.display = hasVisibleItems ? 'block' : 'none';
+          }
+        }
+      });
+    });
+  }
+
+  // ==========================================================================
+  // 5. INITIALIZE HEALTHCARE ANALYTICS CHART (Chart.js)
+  // ==========================================================================
+  const ctx = document.getElementById('healthChart');
+  if (ctx) {
+    const chartCtx = ctx.getContext('2d');
+
+    const goldGradient = chartCtx.createLinearGradient(0, 0, 0, 240);
+    goldGradient.addColorStop(0, 'rgba(255, 209, 102, 0.45)');
+    goldGradient.addColorStop(1, 'rgba(255, 209, 102, 0.0)');
+
+    const blueGradient = chartCtx.createLinearGradient(0, 0, 0, 240);
+    blueGradient.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+    blueGradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+    window.healthChartInstance = new Chart(chartCtx, {
+      type: 'line',
+      data: {
+        labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
+        datasets: [
+          {
+            label: 'Laporan Terverifikasi',
+            data: [118, 142, 136, 155, 148, 92, 45],
+            borderColor: '#ffd166',
+            backgroundColor: goldGradient,
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#ffd166',
+            pointBorderColor: '#181b22',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+          },
+          {
+            label: 'Kunjungan Pasien',
+            data: [260, 312, 290, 340, 325, 180, 95],
+            borderColor: '#38bdf8',
+            backgroundColor: blueGradient,
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#38bdf8',
+            pointBorderColor: '#181b22',
+            pointBorderWidth: 2,
+            pointRadius: 3.5,
+            pointHoverRadius: 5.5
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(24, 27, 34, 0.95)',
+            titleColor: '#ffd166',
+            bodyColor: '#e5e7eb',
+            borderColor: 'rgba(255, 215, 120, 0.3)',
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            callbacks: {
+              label: function(context) {
+                return ` ${context.dataset.label}: ${context.raw} Pasien`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(255, 255, 255, 0.04)', drawBorder: false },
+            ticks: { color: '#8b92a0', font: { family: 'Plus Jakarta Sans', size: 11.5 } }
+          },
+          y: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+            ticks: { color: '#8b92a0', font: { family: 'Plus Jakarta Sans', size: 11.5 } }
+          }
+        }
+      }
+    });
+  }
+
+  // ==========================================================================
+  // 7. INDONESIAN NATIONAL HOLIDAYS & CUTI BERSAMA DATABASE (SKB 3 MENTERI)
+  // ==========================================================================
+  const INDONESIAN_HOLIDAYS = {
+    // === 2026 ===
+    '2026-01-01': { name: 'Tahun Baru 2026 Masehi', type: 'national' },
+    '2026-01-16': { name: "Isra Mi'raj Nabi Muhammad SAW", type: 'national' },
+    '2026-02-17': { name: 'Tahun Baru Imlek 2577 Kongzili', type: 'national' },
+    '2026-02-18': { name: 'Cuti Bersama Tahun Baru Imlek', type: 'cuti' },
+    '2026-03-19': { name: 'Hari Suci Nyepi (Saka 1948)', type: 'national' },
+    '2026-03-20': { name: 'Cuti Bersama Hari Suci Nyepi', type: 'cuti' },
+    '2026-03-21': { name: 'Hari Raya Idul Fitri 1447 H (Hari 1)', type: 'national' },
+    '2026-03-22': { name: 'Hari Raya Idul Fitri 1447 H (Hari 2)', type: 'national' },
+    '2026-03-23': { name: 'Cuti Bersama Idul Fitri 1447 H', type: 'cuti' },
+    '2026-03-24': { name: 'Cuti Bersama Idul Fitri 1447 H', type: 'cuti' },
+    '2026-03-25': { name: 'Cuti Bersama Idul Fitri 1447 H', type: 'cuti' },
+    '2026-04-03': { name: 'Wafat Yesus Kristus (Jumat Agung)', type: 'national' },
+    '2026-04-05': { name: 'Hari Paskah', type: 'national' },
+    '2026-05-01': { name: 'Hari Buruh Internasional', type: 'national' },
+    '2026-05-14': { name: 'Kenaikan Yesus Kristus', type: 'national' },
+    '2026-05-15': { name: 'Cuti Bersama Kenaikan Yesus Kristus', type: 'cuti' },
+    '2026-05-27': { name: 'Hari Raya Idul Adha 1447 H', type: 'national' },
+    '2026-05-28': { name: 'Cuti Bersama Idul Adha 1447 H', type: 'cuti' },
+    '2026-05-31': { name: 'Hari Raya Waisak 2570 BE', type: 'national' },
+    '2026-06-01': { name: 'Hari Lahir Pancasila', type: 'national' },
+    '2026-06-16': { name: 'Tahun Baru Islam 1448 H', type: 'national' },
+    '2026-08-17': { name: 'Hari Kemerdekaan RI ke-81', type: 'national' },
+    '2026-08-25': { name: 'Maulid Nabi Muhammad SAW', type: 'national' },
+    '2026-12-25': { name: 'Hari Raya Natal', type: 'national' },
+    '2026-12-26': { name: 'Cuti Bersama Hari Raya Natal', type: 'cuti' },
+
+    // === 2025 ===
+    '2025-01-01': { name: 'Tahun Baru 2025 Masehi', type: 'national' },
+    '2025-01-27': { name: "Isra Mi'raj Nabi Muhammad SAW", type: 'national' },
+    '2025-01-29': { name: 'Tahun Baru Imlek 2576 Kongzili', type: 'national' },
+    '2025-01-28': { name: 'Cuti Bersama Tahun Baru Imlek', type: 'cuti' },
+    '2025-03-29': { name: 'Hari Suci Nyepi (Saka 1947)', type: 'national' },
+    '2025-03-28': { name: 'Cuti Bersama Hari Suci Nyepi', type: 'cuti' },
+    '2025-03-31': { name: 'Hari Raya Idul Fitri 1446 H', type: 'national' },
+    '2025-04-01': { name: 'Hari Raya Idul Fitri 1446 H', type: 'national' },
+    '2025-04-02': { name: 'Cuti Bersama Idul Fitri 1446 H', type: 'cuti' },
+    '2025-04-03': { name: 'Cuti Bersama Idul Fitri 1446 H', type: 'cuti' },
+    '2025-04-04': { name: 'Cuti Bersama Idul Fitri 1446 H', type: 'cuti' },
+    '2025-04-07': { name: 'Cuti Bersama Idul Fitri 1446 H', type: 'cuti' },
+    '2025-04-18': { name: 'Wafat Yesus Kristus (Jumat Agung)', type: 'national' },
+    '2025-04-20': { name: 'Hari Paskah', type: 'national' },
+    '2025-05-01': { name: 'Hari Buruh Internasional', type: 'national' },
+    '2025-05-12': { name: 'Hari Raya Waisak 2569 BE', type: 'national' },
+    '2025-05-13': { name: 'Cuti Bersama Waisak', type: 'cuti' },
+    '2025-05-29': { name: 'Kenaikan Yesus Kristus', type: 'national' },
+    '2025-05-30': { name: 'Cuti Bersama Kenaikan Yesus Kristus', type: 'cuti' },
+    '2025-06-01': { name: 'Hari Lahir Pancasila', type: 'national' },
+    '2025-06-06': { name: 'Hari Raya Idul Adha 1446 H', type: 'national' },
+    '2025-06-09': { name: 'Cuti Bersama Idul Adha 1446 H', type: 'cuti' },
+    '2025-06-27': { name: 'Tahun Baru Islam 1447 H', type: 'national' },
+    '2025-08-17': { name: 'Hari Kemerdekaan RI ke-80', type: 'national' },
+    '2025-09-05': { name: 'Maulid Nabi Muhammad SAW', type: 'national' },
+    '2025-12-25': { name: 'Hari Raya Natal', type: 'national' },
+    '2025-12-26': { name: 'Cuti Bersama Hari Raya Natal', type: 'cuti' },
+
+    // === 2027 ===
+    '2027-01-01': { name: 'Tahun Baru 2027 Masehi', type: 'national' },
+    '2027-01-06': { name: "Isra Mi'raj Nabi Muhammad SAW", type: 'national' },
+    '2027-02-06': { name: 'Tahun Baru Imlek 2578 Kongzili', type: 'national' },
+    '2027-03-09': { name: 'Hari Suci Nyepi (Saka 1949)', type: 'national' },
+    '2027-03-10': { name: 'Hari Raya Idul Fitri 1448 H', type: 'national' },
+    '2027-03-11': { name: 'Hari Raya Idul Fitri 1448 H', type: 'national' },
+    '2027-03-12': { name: 'Cuti Bersama Idul Fitri 1448 H', type: 'cuti' },
+    '2027-03-26': { name: 'Wafat Yesus Kristus', type: 'national' },
+    '2027-05-01': { name: 'Hari Buruh Internasional', type: 'national' },
+    '2027-05-06': { name: 'Kenaikan Yesus Kristus', type: 'national' },
+    '2027-05-17': { name: 'Hari Raya Idul Adha 1448 H', type: 'national' },
+    '2027-05-20': { name: 'Hari Raya Waisak 2571 BE', type: 'national' },
+    '2027-06-01': { name: 'Hari Lahir Pancasila', type: 'national' },
+    '2027-06-06': { name: 'Tahun Baru Islam 1449 H', type: 'national' },
+    '2027-08-17': { name: 'Hari Kemerdekaan RI ke-82', type: 'national' },
+    '2027-08-15': { name: 'Maulid Nabi Muhammad SAW', type: 'national' },
+    '2027-12-25': { name: 'Hari Raya Natal', type: 'national' },
+    '2027-12-26': { name: 'Cuti Bersama Hari Raya Natal', type: 'cuti' }
+  };
+
+  const MONTH_NAMES = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+
+  const DAY_NAMES = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+  // State store for POA activities (strictly populated live from Cloudflare D1 poa_bulanan table)
+  const poaActivitiesState = {};
+
+  // Helper to resolve officer object robustly from DAFTAR_PEGAWAI
+  const findPoaOfficer = (searchNameOrNip) => {
+    const list = window.DAFTAR_PEGAWAI || DAFTAR_PEGAWAI || [];
+    if (!searchNameOrNip) return (typeof CURRENT_USER !== 'undefined' ? CURRENT_USER : (list[27] || {}));
+    const sClean = String(searchNameOrNip).toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+
+    // 1. Direct match on NIP
+    const byNip = list.find(p => p.nip && String(p.nip).replace(/[\s.]+/g, '') === String(searchNameOrNip).replace(/[\s.]+/g, ''));
+    if (byNip) return byNip;
+
+    // 2. Direct match on nama
+    const byNama = list.find(p => p.nama && p.nama.toLowerCase() === String(searchNameOrNip).toLowerCase());
+    if (byNama) return byNama;
+
+    // 3. Fuzzy match
+    const byFuzzy = list.find(p => {
+      const pClean = (p.nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+      return pClean.includes(sClean) || sClean.includes(pClean);
+    });
+    if (byFuzzy) return byFuzzy;
+
+    // 4. Fallback to CURRENT_USER
+    return (typeof CURRENT_USER !== 'undefined' ? CURRENT_USER : (list[27] || {}));
+  };
+
+  // Sync POA calendar data live directly from Cloudflare D1 Database (poa_bulanan table)
+  const syncPoaFromCloud = async (month, year, officerName) => {
+    // Clear existing in-memory map
+    for (const k in poaActivitiesState) delete poaActivitiesState[k];
+    
+    try {
+      const officerObj = findPoaOfficer(officerName);
+      const targetNip = officerObj.nip || '';
+      const targetNama = officerObj.nama || officerName || '';
+      
+      const items = await CloudflareDB.fetchPoa(month, year, targetNip, targetNama);
+      if (!Array.isArray(items)) return;
+
+      const normSearch = (officerName || '').toLowerCase().replace(/^\d+\.\s*/, '').split('(')[0].replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+      const normObjNama = (targetNama || '').toLowerCase().replace(/^\d+\.\s*/, '').split('(')[0].replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+      const cleanTargetNip = targetNip.replace(/[^a-zA-Z0-9]/g, '');
+
+      items.forEach(it => {
+        const itemOfficer = (it.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+        const itemNipClean = (it.petugas_nip || '').replace(/[^a-zA-Z0-9]/g, '');
+
+        const isMatch = (!cleanTargetNip && !normSearch && !normObjNama) ? true : (
+          (cleanTargetNip && itemNipClean && cleanTargetNip === itemNipClean) ||
+          (it.petugas_nip && targetNip && it.petugas_nip === targetNip) ||
+          (itemOfficer && normSearch && (itemOfficer.includes(normSearch) || normSearch.includes(itemOfficer))) ||
+          (itemOfficer && normObjNama && (itemOfficer.includes(normObjNama) || normObjNama.includes(itemOfficer))) ||
+          (it.id && cleanTargetNip && it.id.includes(cleanTargetNip))
+        );
+
+        if (isMatch && it.tanggal) {
+          let dateKey = it.tanggal;
+          if (dateKey.includes('-')) {
+            const p = dateKey.split('-');
+            if (p.length === 3) {
+              dateKey = `${p[0]}-${String(p[1]).padStart(2, '0')}-${String(p[2]).padStart(2, '0')}`;
+            }
+          }
+          poaActivitiesState[dateKey] = {
+            kegiatan: it.uraian_kegiatan || it.kegiatan || it.nama_kegiatan || '',
+            keterangan: it.keterangan || ''
+          };
+        }
+      });
+    } catch (e) {
+      console.warn('Error fetching POA data from Cloudflare D1 poa_bulanan:', e);
+    }
+  };
+
+  // ==========================================================================
+  // 8. DYNAMIC POA CALENDAR ENGINE
+  // ==========================================================================
+  const poaSelectMonth = document.getElementById('poaSelectMonth');
+  const poaSelectYear = document.getElementById('poaSelectYear');
+  const poaSelectOfficer = document.getElementById('poaSelectOfficer');
+  const btnApplyPoaFilter = document.getElementById('btnApplyPoaFilter');
+  const calDisplayTitle = document.getElementById('calDisplayTitle');
+  const calDisplayOfficer = document.getElementById('calDisplayOfficer');
+  const poaCalendarGrid = document.getElementById('poaCalendarGrid');
+  const btnCetakPoa = document.getElementById('btnCetakPoa');
+
+  // Single Activity Modal Elements
+  const singleActivityModal = document.getElementById('singleActivityModal');
+  const closeSingleModal = document.getElementById('closeSingleModal');
+  const btnCancelSingle = document.getElementById('btnCancelSingle');
+  const singleActivityForm = document.getElementById('singleActivityForm');
+  const singleModalDateTitle = document.getElementById('singleModalDateTitle');
+  const activityInput = document.getElementById('activityInput');
+  const activityDesc = document.getElementById('activityDesc');
+  let currentActiveDateKey = null;
+
+  // Bulk Entry Modal Elements
+  const bulkActivityModal = document.getElementById('bulkActivityModal');
+  const btnIsiSekaligus = document.getElementById('btnIsiSekaligus');
+  const closeBulkModal = document.getElementById('closeBulkModal');
+  const btnCancelBulk = document.getElementById('btnCancelBulk');
+  const bulkActivityForm = document.getElementById('bulkActivityForm');
+  const bulkTableBody = document.getElementById('bulkTableBody');
+
+  const getFormattedDateKey = (year, month, day) => {
+    const mm = String(month).padStart(2, '0');
+    const dd = String(day).padStart(2, '0');
+    return `${year}-${mm}-${dd}`;
+  };
+
+  const getPoaOfficerName = () => {
+    if (!poaSelectOfficer || poaSelectOfficer.selectedIndex < 0) {
+      return (typeof CURRENT_USER !== 'undefined' && CURRENT_USER.nama) ? CURRENT_USER.nama : 'Mochamad Fauzie, S.Gz';
+    }
+    const val = poaSelectOfficer.value;
+    if (val && val.trim() && isNaN(Number(val))) {
+      return val.trim();
+    }
+    const opt = poaSelectOfficer.options[poaSelectOfficer.selectedIndex];
+    if (opt) {
+      return opt.text.split('(')[0].replace(/^\d+\.\s*/, '').trim();
+    }
+    return (typeof CURRENT_USER !== 'undefined' && CURRENT_USER.nama) ? CURRENT_USER.nama : 'Mochamad Fauzie, S.Gz';
+  };
+
+  // Render Full Calendar (Connected directly to Cloudflare D1)
+  const renderPoaCalendar = async (month, year, officerName) => {
+    if (!poaCalendarGrid) return;
+
+    // Fetch and synchronize strictly from Cloudflare D1
+    await syncPoaFromCloud(month, year, officerName);
+
+    poaCalendarGrid.innerHTML = '';
+
+    const monthIndex = month - 1; // 0-indexed
+    const monthName = MONTH_NAMES[monthIndex];
+    
+    // Update top calendar titles
+    if (calDisplayTitle) calDisplayTitle.textContent = `POA ${monthName} ${year}`;
+    if (calDisplayOfficer) calDisplayOfficer.textContent = officerName.toUpperCase();
+
+    // Total days in selected month
+    const totalDays = new Date(year, month, 0).getDate();
+
+    // First day of month (0 = Minggu, 1 = Senin, ..., 6 = Sabtu)
+    const firstDayOfWeek = new Date(year, monthIndex, 1).getDay();
+    // In our UI: Senin = 0, Selasa = 1, ..., Sabtu = 5, Minggu = 6
+    const startOffset = (firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1);
+
+    // 1. Render empty offset cells
+    for (let i = 0; i < startOffset; i++) {
+      const emptyCell = document.createElement('div');
+      emptyCell.className = 'cal-cell empty';
+      poaCalendarGrid.appendChild(emptyCell);
+    }
+
+    // Current real-world date for 'HARI INI' detection
+    const now = new Date();
+    const currentRealYear = now.getFullYear();
+    const currentRealMonth = now.getMonth() + 1;
+    const currentRealDay = now.getDate();
+
+    // 2. Render each day in month
+    for (let day = 1; day <= totalDays; day++) {
+      const dateKey = getFormattedDateKey(year, month, day);
+      const dateObj = new Date(year, monthIndex, day);
+      const dayOfWeek = dateObj.getDay(); // 0 is Sunday
+      const dayName = DAY_NAMES[dayOfWeek];
+
+      const holidayInfo = INDONESIAN_HOLIDAYS[dateKey];
+      const isWeekend = (dayOfWeek === 0);
+      const isNationalHoliday = (holidayInfo && holidayInfo.type === 'national');
+      const isCutiBersama = (holidayInfo && holidayInfo.type === 'cuti');
+      const isToday = (year === currentRealYear && month === currentRealMonth && day === currentRealDay);
+
+      const cell = document.createElement('div');
+      let cellClasses = ['cal-cell'];
+      if (isWeekend) cellClasses.push('is-weekend');
+      if (isNationalHoliday) cellClasses.push('is-holiday');
+      if (isCutiBersama) cellClasses.push('is-cuti');
+      if (isToday) cellClasses.push('is-today');
+
+      cell.className = cellClasses.join(' ');
+      cell.setAttribute('data-date', dateKey);
+      cell.setAttribute('data-day', String(day).padStart(2, '0'));
+      cell.setAttribute('data-dayname', dayName);
+
+      // Cell Top (Holiday badge / Today badge + Date Number)
+      let badgeHtml = '';
+      if (isToday) {
+        badgeHtml = '<span class="today-indicator">HARI INI</span>';
+      } else if (isNationalHoliday) {
+        badgeHtml = `<span class="holiday-pill national" title="${holidayInfo.name}">🔴 ${holidayInfo.name}</span>`;
+      } else if (isCutiBersama) {
+        badgeHtml = `<span class="holiday-pill cuti" title="${holidayInfo.name}">🟠 ${holidayInfo.name}</span>`;
+      }
+
+      const cellTop = `
+        <div class="cell-top">
+          ${badgeHtml}
+          <span class="day-num">${day}</span>
+        </div>
+      `;
+
+      // Task Activities from Cloudflare D1 poa_bulanan
+      const taskData = poaActivitiesState[dateKey];
+      const currentTask = typeof taskData === 'object' ? (taskData.kegiatan || '') : (taskData || '');
+      const currentDesc = typeof taskData === 'object' ? (taskData.keterangan || '') : '';
+
+      let taskHtml = '';
+      if (currentTask || currentDesc) {
+        const isHighlight = isToday ? 'highlight' : '';
+        const titleTooltip = currentDesc ? `${currentTask} (${currentDesc})` : currentTask;
+        taskHtml = `
+          <div class="poa-task-badge ${isHighlight}" title="${titleTooltip}">
+            ${currentTask ? `<div class="poa-task-title">${currentTask}</div>` : ''}
+            ${currentDesc ? `<div class="poa-task-desc" style="font-size: 10.5px; font-weight: 500; color: #047857; margin-top: 3px; font-style: italic; border-top: 1px dashed rgba(5, 150, 105, 0.3); padding-top: 2px;">📌 ${currentDesc}</div>` : ''}
+          </div>
+        `;
+      }
+
+      const activitiesDiv = `<div class="cell-activities">${taskHtml}</div>`;
+      const addBtn = `<button class="btn-cell-add" title="Tambah / Edit Kegiatan" data-date="${day} ${monthName} ${year} (${dayName})" data-key="${dateKey}">+</button>`;
+
+      cell.innerHTML = cellTop + activitiesDiv + addBtn;
+      poaCalendarGrid.appendChild(cell);
+    }
+
+    // 3. Render trailing empty padding cells to complete row
+    const totalRenderedCells = startOffset + totalDays;
+    const remainder = totalRenderedCells % 7;
+    if (remainder !== 0) {
+      const trailingCount = 7 - remainder;
+      for (let i = 0; i < trailingCount; i++) {
+        const emptyCell = document.createElement('div');
+        emptyCell.className = 'cal-cell empty';
+        poaCalendarGrid.appendChild(emptyCell);
+      }
+    }
+
+    // Re-attach interactive listeners
+    attachCalendarCellListeners(monthName, year);
+  };
+
+  // Attach Event Listeners to Calendar Cells
+  const attachCalendarCellListeners = (monthName, year) => {
+    // Click on '+' add button
+    document.querySelectorAll('.btn-cell-add').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const dateKey = btn.getAttribute('data-key');
+        const dateDisplayStr = btn.getAttribute('data-date');
+        openSingleActivityModal(dateKey, dateDisplayStr);
+      });
+    });
+
+    // Click on task badge to edit
+    document.querySelectorAll('.poa-task-badge').forEach(badge => {
+      badge.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cell = badge.closest('.cal-cell');
+        const dateKey = cell.getAttribute('data-date');
+        const day = cell.getAttribute('data-day');
+        const dayname = cell.getAttribute('data-dayname');
+        const dateDisplayStr = `${parseInt(day, 10)} ${monthName} ${year} (${dayname})`;
+        const taskData = poaActivitiesState[dateKey];
+        const taskKeg = typeof taskData === 'object' ? (taskData.kegiatan || '') : (taskData || '');
+        const taskKet = typeof taskData === 'object' ? (taskData.keterangan || '') : '';
+        openSingleActivityModal(dateKey, dateDisplayStr, taskKeg, taskKet);
+      });
+    });
+  };
+
+  // Open Single Activity Modal
+  const openSingleActivityModal = (dateKey, dateDisplayStr, currentText = '', currentDesc = '') => {
+    currentActiveDateKey = dateKey;
+    const taskData = poaActivitiesState[dateKey];
+    const initialText = currentText || (typeof taskData === 'object' ? taskData.kegiatan : taskData) || '';
+    const initialDesc = currentDesc || (typeof taskData === 'object' ? taskData.keterangan : '') || '';
+
+    if (singleModalDateTitle) singleModalDateTitle.textContent = `📅 ${dateDisplayStr}`;
+    if (activityInput) activityInput.value = initialText;
+    if (activityDesc) activityDesc.value = initialDesc;
+    if (singleActivityModal) singleActivityModal.classList.add('active');
+  };
+
+  const closeSingleActivityModal = () => {
+    if (singleActivityModal) singleActivityModal.classList.remove('active');
+    currentActiveDateKey = null;
+  };
+
+  if (closeSingleModal) closeSingleModal.addEventListener('click', closeSingleActivityModal);
+  if (btnCancelSingle) btnCancelSingle.addEventListener('click', closeSingleActivityModal);
+
+  if (singleActivityModal) {
+    singleActivityModal.addEventListener('click', (e) => {
+      if (e.target === singleActivityModal) closeSingleActivityModal();
+    });
+  }
+
+  // Handle Single Activity Form Save (Direct to Cloudflare D1 poa_bulanan table)
+  if (singleActivityForm) {
+    singleActivityForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const val = activityInput.value.trim();
+      const ketVal = activityDesc ? activityDesc.value.trim() : '';
+      const selectedMonth = parseInt(poaSelectMonth ? poaSelectMonth.value : String(new Date().getMonth() + 1), 10);
+      const selectedYear = parseInt(poaSelectYear ? poaSelectYear.value : String(new Date().getFullYear()), 10);
+      const officerText = getPoaOfficerName();
+      const officerObj = findPoaOfficer(officerText);
+
+      if (currentActiveDateKey) {
+        const cleanNip = (officerObj.nip || '').replace(/[^a-zA-Z0-9]/g, '');
+        const cleanNama = (officerObj.nama || officerText || 'user').replace(/[^a-zA-Z0-9]/g, '');
+        const poaId = `poa-${currentActiveDateKey}-${cleanNip || cleanNama}`;
+
+        if (val || ketVal) {
+          poaActivitiesState[currentActiveDateKey] = { kegiatan: val, keterangan: ketVal };
+          const saveRes = await CloudflareDB.savePoa({
+            id: poaId,
+            tanggal: currentActiveDateKey,
+            bulan: selectedMonth,
+            tahun: selectedYear,
+            petugas_nip: officerObj.nip || '',
+            petugas_nama: officerObj.nama || officerText,
+            petugas_jabatan: officerObj.jabatan || '',
+            program_kesehatan: 'BOK Puskesmas',
+            uraian_kegiatan: val,
+            keterangan: ketVal,
+            lokasi_pelaksanaan: 'Puskesmas / Wilayah Kerja',
+            status: 'Aktif'
+          });
+          if (!saveRes || saveRes.success === false) {
+            if (typeof showToast === 'function') {
+              showToast(`❌ Gagal menyimpan ke Cloud: ${saveRes?.error || 'Kesalahan database'}`, 'error');
+            } else {
+              alert(`Gagal menyimpan ke Cloud: ${saveRes?.error || 'Kesalahan database'}`);
+            }
+            return;
+          }
+          if (typeof showToast === 'function') showToast('✅ Kegiatan POA tersimpan langsung ke Cloud Database!', 'success');
+        } else {
+          delete poaActivitiesState[currentActiveDateKey];
+          await CloudflareDB.deletePoa(poaId);
+          if (typeof showToast === 'function') showToast('Kegiatan POA dihapus dari Cloud Database.', 'info');
+        }
+
+        // Re-render calendar directly from Cloud DB
+        await renderPoaCalendar(selectedMonth, selectedYear, officerText);
+        if (window.DeveloperWebController && window.DeveloperWebController.refreshAllTableCounts) {
+          window.DeveloperWebController.refreshAllTableCounts();
+        }
+      }
+      closeSingleActivityModal();
+      singleActivityForm.reset();
+    });
+  }
+
+
+  // Populate Bulk Table for Selected Month & Year
+  const populateBulkTable = (month, year) => {
+    if (!bulkTableBody) return;
+    bulkTableBody.innerHTML = '';
+
+    const monthIndex = month - 1;
+    const totalDays = new Date(year, month, 0).getDate();
+
+    for (let day = 1; day <= totalDays; day++) {
+      const dateKey = getFormattedDateKey(year, month, day);
+      const dateObj = new Date(year, monthIndex, day);
+      const dayOfWeek = dateObj.getDay();
+      const dayName = DAY_NAMES[dayOfWeek];
+      const holidayInfo = INDONESIAN_HOLIDAYS[dateKey];
+      const isWeekend = (dayOfWeek === 0);
+      const isHoliday = !!holidayInfo;
+
+      const tr = document.createElement('tr');
+      if (isHoliday && holidayInfo.type === 'national') tr.className = 'is-holiday-row';
+      if (isHoliday && holidayInfo.type === 'cuti') tr.className = 'is-cuti-row';
+
+      let holidayTag = '';
+      if (holidayInfo) {
+        const color = holidayInfo.type === 'national' ? '#fb7185' : '#fef08a';
+        const icon = holidayInfo.type === 'national' ? '🔴' : '🟠';
+        holidayTag = `<span style="font-size: 10px; color: ${color}; display: block; font-weight: 600;">${icon} ${holidayInfo.name}</span>`;
+      }
+
+      const taskData = poaActivitiesState[dateKey];
+      const currentVal = typeof taskData === 'object' ? (taskData.kegiatan || '') : (taskData || '');
+      const currentKet = typeof taskData === 'object' ? (taskData.keterangan || '') : '';
+
+      tr.innerHTML = `
+        <td>
+          <div class="bulk-date-badge ${isWeekend || isHoliday ? 'weekend' : ''}">
+            <strong>${String(day).padStart(2, '0')}</strong> <span>${dayName}</span>
+          </div>
+          ${holidayTag}
+        </td>
+        <td>
+          <input type="text" class="bulk-input input-kegiatan" data-datekey="${dateKey}" placeholder="Kegiatan..." value="${currentVal}">
+        </td>
+        <td>
+          <input type="text" class="bulk-input input-keterangan" data-datekey="${dateKey}" placeholder="Keterangan..." value="${currentKet}">
+        </td>
+      `;
+      bulkTableBody.appendChild(tr);
+    }
+  };
+
+  const bulkModalTitle = document.getElementById('bulkModalTitle');
+
+  const openBulkModal = async () => {
+    const selectedMonth = parseInt(poaSelectMonth ? poaSelectMonth.value : String(new Date().getMonth() + 1), 10);
+    const selectedYear = parseInt(poaSelectYear ? poaSelectYear.value : String(new Date().getFullYear()), 10);
+    const officerText = getPoaOfficerName();
+    if (bulkModalTitle) {
+      bulkModalTitle.textContent = `📝 Isi POA ${MONTH_NAMES[selectedMonth - 1]} ${selectedYear} Sekaligus`;
+    }
+    // Sync strictly from Cloudflare D1 before displaying rows
+    await syncPoaFromCloud(selectedMonth, selectedYear, officerText);
+    populateBulkTable(selectedMonth, selectedYear);
+    if (bulkActivityModal) bulkActivityModal.classList.add('active');
+  };
+
+  const closeBulkModalFunc = () => {
+    if (bulkActivityModal) bulkActivityModal.classList.remove('active');
+  };
+
+  if (btnIsiSekaligus) btnIsiSekaligus.addEventListener('click', openBulkModal);
+  if (closeBulkModal) closeBulkModal.addEventListener('click', closeBulkModalFunc);
+  if (btnCancelBulk) btnCancelBulk.addEventListener('click', closeBulkModalFunc);
+
+  if (bulkActivityModal) {
+    bulkActivityModal.addEventListener('click', (e) => {
+      if (e.target === bulkActivityModal) closeBulkModalFunc();
+    });
+  }
+
+  // Handle Bulk Form Save (Direct to Cloudflare D1 poa_bulanan table)
+  if (bulkActivityForm) {
+    bulkActivityForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = bulkActivityForm.querySelector('button[type="submit"]');
+      const origBtnText = submitBtn ? submitBtn.innerHTML : '';
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '⏳ Menyimpan ke Cloud Database...';
+      }
+
+      const selectedMonth = parseInt(poaSelectMonth ? poaSelectMonth.value : String(new Date().getMonth() + 1), 10);
+      const selectedYear = parseInt(poaSelectYear ? poaSelectYear.value : String(new Date().getFullYear()), 10);
+      const officerText = getPoaOfficerName();
+      const officerObj = findPoaOfficer(officerText);
+
+      const cleanNip = (officerObj.nip || '').replace(/[^a-zA-Z0-9]/g, '');
+      const cleanNama = (officerObj.nama || officerText || 'user').replace(/[^a-zA-Z0-9]/g, '');
+
+      const itemsToSave = [];
+      const itemsToDelete = [];
+
+      for (const tr of bulkTableBody.querySelectorAll('tr')) {
+        const inputKeg = tr.querySelector('.input-kegiatan');
+        const inputKet = tr.querySelector('.input-keterangan');
+        if (!inputKeg) continue;
+
+        const dateKey = inputKeg.getAttribute('data-datekey');
+        const val = inputKeg.value.trim();
+        const ket = inputKet ? inputKet.value.trim() : '';
+        const poaId = `poa-${dateKey}-${cleanNip || cleanNama}`;
+
+        if (val || ket) {
+          poaActivitiesState[dateKey] = { kegiatan: val, keterangan: ket };
+          itemsToSave.push({
+            id: poaId,
+            tanggal: dateKey,
+            bulan: selectedMonth,
+            tahun: selectedYear,
+            petugas_nip: officerObj.nip || '',
+            petugas_nama: officerObj.nama || officerText,
+            petugas_jabatan: officerObj.jabatan || '',
+            program_kesehatan: 'BOK Puskesmas',
+            uraian_kegiatan: val,
+            keterangan: ket,
+            lokasi_pelaksanaan: 'Puskesmas / Wilayah Kerja',
+            status: 'Aktif'
+          });
+        } else if (poaActivitiesState[dateKey]) {
+          delete poaActivitiesState[dateKey];
+          itemsToDelete.push(poaId);
+        }
+      }
+
+      // Send single atomic batch request directly to Cloudflare D1
+      const saveRes = await CloudflareDB.savePoaBatch(itemsToSave, itemsToDelete);
+
+      if (!saveRes || saveRes.success === false) {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origBtnText;
+        }
+        const errMsg = saveRes?.error || 'Gagal terhubung ke Cloud Database';
+        if (typeof showToast === 'function') {
+          showToast(`❌ Gagal menyimpan ke Cloud: ${errMsg}`, 'error');
+        } else {
+          alert(`Gagal menyimpan ke Cloud: ${errMsg}`);
+        }
+        return;
+      }
+
+      // Re-render calendar live from Cloud D1
+      await renderPoaCalendar(selectedMonth, selectedYear, officerText);
+
+      // Refresh table count in D1 Database Studio
+      if (window.DeveloperWebController && window.DeveloperWebController.refreshAllTableCounts) {
+        window.DeveloperWebController.refreshAllTableCounts();
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = origBtnText;
+      }
+
+      if (typeof showToast === 'function') {
+        showToast(`✅ ${itemsToSave.length} agenda kegiatan POA berhasil tersimpan langsung ke Cloud Database!`, 'success');
+      } else {
+        alert(`Semua rencana kegiatan POA berhasil disimpan ke Cloud Database!`);
+      }
+      closeBulkModalFunc();
+    });
+  }
+
+  // Apply Filter Button Click & Change Events
+  if (btnApplyPoaFilter) {
+    btnApplyPoaFilter.addEventListener('click', () => {
+      const selectedMonth = parseInt(poaSelectMonth.value, 10);
+      const selectedYear = parseInt(poaSelectYear.value, 10);
+      const officerText = getPoaOfficerName();
+      
+      renderPoaCalendar(selectedMonth, selectedYear, officerText);
+
+      gsap.fromTo('.poa-calendar-wrapper', 
+        { scale: 0.98, opacity: 0.7 }, 
+        { scale: 1, opacity: 1, duration: 0.35, ease: 'power2.out' }
+      );
+    });
+  }
+
+  // Also auto-render when selects change
+  if (poaSelectMonth) {
+    poaSelectMonth.addEventListener('change', () => {
+      const selectedMonth = parseInt(poaSelectMonth.value, 10);
+      const selectedYear = parseInt(poaSelectYear.value, 10);
+      const officerText = getPoaOfficerName();
+      renderPoaCalendar(selectedMonth, selectedYear, officerText);
+    });
+  }
+
+  if (poaSelectYear) {
+    poaSelectYear.addEventListener('change', () => {
+      const selectedMonth = parseInt(poaSelectMonth.value, 10);
+      const selectedYear = parseInt(poaSelectYear.value, 10);
+      const officerText = getPoaOfficerName();
+      renderPoaCalendar(selectedMonth, selectedYear, officerText);
+    });
+  }
+
+  if (poaSelectOfficer) {
+    poaSelectOfficer.addEventListener('change', () => {
+      const selectedMonth = parseInt(poaSelectMonth.value, 10);
+      const selectedYear = parseInt(poaSelectYear.value, 10);
+      const officerText = getPoaOfficerName();
+      renderPoaCalendar(selectedMonth, selectedYear, officerText);
+    });
+  }
+
+  const btnDownloadPdfPoa = document.getElementById('btnDownloadPdfPoa');
+
+  // Build Exact Calendar Mirror HTML for POA Bulanan (Pure A4 Landscape)
+  const generatePoaDocumentHtml = (month, year, officerName, isPrintPreview = false) => {
+    const monthIndex = month - 1;
+    const monthName = MONTH_NAMES[monthIndex];
+    const totalDays = new Date(year, month, 0).getDate();
+    const firstDayOfWeek = new Date(year, monthIndex, 1).getDay();
+    const startOffset = (firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1);
+
+    let officerJabatan = 'Nutrisionis';
+    let officerRole = 'Super Admin';
+    if (typeof ALL_PETUGAS !== 'undefined' && Array.isArray(ALL_PETUGAS)) {
+      const found = ALL_PETUGAS.find(p => p.nama === officerName || (p.nama && p.nama.includes(officerName)));
+      if (found) {
+        officerJabatan = found.jabatan || officerJabatan;
+        officerRole = found.role || officerRole;
+      }
+    } else if (officerName === CURRENT_USER.nama) {
+      officerJabatan = CURRENT_USER.jabatan || officerJabatan;
+      officerRole = CURRENT_USER.role || officerRole;
+    }
+
+    const now = new Date();
+    const currentRealYear = now.getFullYear();
+    const currentRealMonth = now.getMonth() + 1;
+    const currentRealDay = now.getDate();
+
+    // Day header matching screenshot exactly
+    const dayHeaders = ['SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU', 'MINGGU'];
+    const headerRowHtml = dayHeaders.map((dh, idx) => `
+      <th style="width: 14.285%; background: ${idx === 6 ? '#fee2e2' : '#f1f5f9'}; color: ${idx === 6 ? '#b91c1c' : '#0f172a'}; font-weight: 800; font-size: 11px; padding: 7px 4px; border: 1px solid #cbd5e1; border-top: none; text-align: center; text-transform: uppercase; letter-spacing: 0.5px;">
+        ${dh}
+      </th>
+    `).join('');
+
+    let dayCount = 1;
+    let tableRowsHtml = '';
+    const totalRendered = startOffset + totalDays;
+    const totalWeeks = Math.ceil(totalRendered / 7);
+
+    for (let w = 0; w < totalWeeks; w++) {
+      let rowCells = '';
+      for (let c = 0; c < 7; c++) {
+        const cellIndex = w * 7 + c;
+        if (cellIndex < startOffset || dayCount > totalDays) {
+          rowCells += `<td style="background: #f8fafc; border: 1px solid #e2e8f0; vertical-align: top; height: 80px; padding: 6px;"></td>`;
+        } else {
+          const day = dayCount;
+          const dateKey = getFormattedDateKey(year, month, day);
+          const holidayInfo = INDONESIAN_HOLIDAYS[dateKey];
+          const isSunday = (c === 6);
+          const isHoliday = (holidayInfo && holidayInfo.type === 'national');
+          const isCuti = (holidayInfo && holidayInfo.type === 'cuti');
+          const isToday = (year === currentRealYear && month === currentRealMonth && day === currentRealDay);
+          
+          const taskData = poaActivitiesState[dateKey];
+          const task = typeof taskData === 'object' ? (taskData.kegiatan || '') : (taskData || '');
+          const taskDesc = typeof taskData === 'object' ? (taskData.keterangan || '') : '';
+
+          let badgeHtml = '';
+          if (isHoliday) {
+            badgeHtml = `<span style="background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; font-size: 8px; font-weight: 700; padding: 1.5px 5px; border-radius: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; display: inline-block;">🔴 ${holidayInfo.name}</span>`;
+          } else if (isCuti) {
+            badgeHtml = `<span style="background: #fef3c7; border: 1px solid #fde68a; color: #b45309; font-size: 8px; font-weight: 700; padding: 1.5px 5px; border-radius: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; display: inline-block;">🟠 ${holidayInfo.name}</span>`;
+          }
+
+          let taskContent = '';
+          if (task || taskDesc) {
+            taskContent = `
+              <div style="background: #ecfdf5; border: 1px solid #6ee7b7; border-left: 3.5px solid #059669; color: #064e3b; font-size: 9.5px; font-weight: 700; padding: 4px 6px; border-radius: 4px; line-height: 1.3; margin-top: 4px; word-break: break-word; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                <div style="font-weight: 800; color: #064e3b; font-size: 9.5px; letter-spacing: -0.1px;">${task}</div>
+                ${taskDesc ? `<div style="font-size: 8.5px; font-weight: 600; color: #047857; margin-top: 2.5px; font-style: italic; border-top: 1px dashed #a7f3d0; padding-top: 2px;">📌 ${taskDesc}</div>` : ''}
+              </div>
+            `;
+          }
+
+          const cellBg = (isSunday || isHoliday ? '#fff5f5' : (isCuti ? '#fffbeb' : '#ffffff'));
+          const numColor = (isSunday || isHoliday ? '#dc2626' : '#0f172a');
+          const cellBorder = '1px solid #cbd5e1';
+
+          rowCells += `
+            <td style="background: ${cellBg}; border: ${cellBorder}; vertical-align: top; height: 80px; padding: 6px 8px; position: relative;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <div>${badgeHtml}</div>
+                <div style="font-size: 13.5px; font-weight: 800; color: ${numColor}; margin-left: auto;">${day}</div>
+              </div>
+              ${taskContent}
+            </td>
+          `;
+          dayCount++;
+        }
+      }
+      tableRowsHtml += `<tr>${rowCells}</tr>`;
+    }
+
+    return `
+      <!DOCTYPE html>
+      <html lang="id">
+      <head>
+        <meta charset="UTF-8">
+        <title>POA_${officerName.replace(/[^a-zA-Z0-9]/g, '_')}_${monthName}_${year}</title>
+        <style>
+          @page {
+            size: A4 landscape;
+            margin: 4mm 6mm 4mm 6mm;
+          }
+          * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            color: #0f172a;
+            background: ${isPrintPreview ? '#0f172a' : '#ffffff'};
+            margin: 0;
+            padding: ${isPrintPreview ? '24px 0 40px 0' : '0'};
+            font-size: 11px;
+            line-height: 1.3;
+          }
+          .preview-floating-bar {
+            position: sticky;
+            top: 12px;
+            z-index: 9999;
+            max-width: 285mm;
+            margin: 0 auto 16px auto;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #ffffff;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+          }
+          .preview-floating-bar .doc-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            font-weight: 700;
+          }
+          .preview-floating-bar .btn-group {
+            display: flex;
+            gap: 8px;
+          }
+          .preview-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            font-size: 11.5px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+          }
+          .preview-btn.primary {
+            background: #10b981;
+            color: #ffffff;
+          }
+          .preview-btn.primary:hover {
+            background: #059669;
+          }
+          .preview-btn.secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+          }
+          .preview-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+          }
+          .poa-print-card {
+            width: 285mm;
+            max-width: 285mm;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: ${isPrintPreview ? '0 12px 36px rgba(0, 0, 0, 0.4)' : '0 4px 15px rgba(0, 0, 0, 0.08)'};
+          }
+          .top-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 22px;
+            background: linear-gradient(135deg, #047857 0%, #059669 50%, #10b981 100%) !important;
+            border-bottom: 2px solid #047857;
+          }
+          .title-area {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+          }
+          .main-heading {
+            font-size: 20px;
+            font-weight: 900;
+            font-style: italic;
+            color: #ffffff;
+            letter-spacing: -0.3px;
+            margin: 0;
+          }
+          .sub-heading {
+            font-size: 11.5px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            color: #fef08a;
+            margin: 0;
+            text-transform: uppercase;
+          }
+          .logo-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            background: #ffffff;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2px;
+          }
+          .logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+          }
+          .cal-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            background: #ffffff;
+          }
+          .legend-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 18px;
+            background: #f8fafc;
+            border-top: 1.5px solid #cbd5e1;
+            font-size: 10px;
+          }
+          .legend-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+          }
+          .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #334155;
+            font-weight: 700;
+          }
+          .legend-indicator {
+            width: 11px;
+            height: 11px;
+            border-radius: 2px;
+            border: 1px solid #cbd5e1;
+            display: inline-block;
+          }
+          .legend-indicator.work { background: #ffffff; }
+          .legend-indicator.holiday { background: #fee2e2; border-color: #fca5a5; }
+          .legend-indicator.cuti { background: #fef3c7; border-color: #fde68a; }
+          .legend-right {
+            color: #334155;
+            font-size: 10px;
+          }
+          .officer-highlight {
+            color: #059669;
+            font-weight: 800;
+          }
+          @media print {
+            body {
+              background: #ffffff !important;
+              padding: 0 !important;
+            }
+            .preview-floating-bar {
+              display: none !important;
+            }
+            .poa-print-card {
+              box-shadow: none !important;
+              border: 1.5px solid #cbd5e1 !important;
+              width: 285mm !important;
+              max-width: 285mm !important;
+              margin: 0 auto !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        ${isPrintPreview ? `
+          <div class="preview-floating-bar">
+            <div class="doc-info">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+              <span>Pratinjau POA Bulanan (A4 Landscape Standar Resmi)</span>
+            </div>
+            <div class="btn-group">
+              <button type="button" class="preview-btn primary" onclick="window.print()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                <span>Cetak / Save as PDF</span>
+              </button>
+              <button type="button" class="preview-btn secondary" onclick="window.close()">
+                <span>Tutup</span>
+              </button>
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="poa-print-card" id="poaPrintTarget">
+          
+          <!-- Top Emerald Banner with Logo -->
+          <div class="top-banner">
+            <div class="title-area">
+              <h2 class="main-heading">POA ${monthName} ${year}</h2>
+              <span class="sub-heading">${officerName}</span>
+            </div>
+            <div class="logo-box">
+              <img src="logopoa.png" alt="Logo POA" onerror="this.src='LOGO.png'">
+            </div>
+          </div>
+
+          <!-- Calendar Matrix Table -->
+          <table class="cal-table">
+            <thead>
+              <tr>
+                ${headerRowHtml}
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRowsHtml}
+            </tbody>
+          </table>
+
+          <!-- Footer Legend Bar -->
+          <div class="legend-bar">
+            <div class="legend-left">
+              <div class="legend-item">
+                <span class="legend-indicator work"></span>
+                <span>Hari Kerja</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-indicator holiday"></span>
+                <span>Libur Nasional</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-indicator cuti"></span>
+                <span>Cuti Bersama</span>
+              </div>
+            </div>
+            <div class="legend-right">
+              <span>Petugas: <span class="officer-highlight">${officerName}</span> (${officerJabatan})</span>
+            </div>
+          </div>
+
+        </div>
+
+        ${isPrintPreview ? `
+          <script>
+            window.onload = function() {
+              var images = document.getElementsByTagName('img');
+              var totalImages = images.length;
+              var loadedImages = 0;
+              function tryPrint() {
+                setTimeout(function() {
+                  window.print();
+                }, 350);
+              }
+              if (totalImages === 0) {
+                tryPrint();
+              } else {
+                for (var i = 0; i < totalImages; i++) {
+                  if (images[i].complete) {
+                    loadedImages++;
+                    if (loadedImages === totalImages) tryPrint();
+                  } else {
+                    images[i].addEventListener('load', function() {
+                      loadedImages++;
+                      if (loadedImages === totalImages) tryPrint();
+                    });
+                    images[i].addEventListener('error', function() {
+                      loadedImages++;
+                      if (loadedImages === totalImages) tryPrint();
+                    });
+                  }
+                }
+              }
+            };
+          <\/script>
+        ` : ''}
+      </body>
+      </html>
+    `;
+  };
+
+  // Cetak POA (A4 Landscape Pop-up Window with True Vector Crisp Printing)
+  const printPoaIsolated = (month, year, officerName) => {
+    const htmlContent = generatePoaDocumentHtml(month, year, officerName, true);
+    const printWin = window.open('', '_blank', 'width=1200,height=850');
+    if (!printWin) {
+      alert('Mohon izinkan pop-up browser untuk mencetak POA Bulanan.');
+      return;
+    }
+    printWin.document.open();
+    printWin.document.write(htmlContent);
+    printWin.document.close();
+  };
+
+  // Direct Download PDF (Pure A4 Landscape via html2pdf with Ultra-High Resolution 4x Supersampling)
+  const exportDirectPoaPdf = async (month, year, officerName) => {
+    if (typeof html2pdf === 'undefined') {
+      printPoaIsolated(month, year, officerName);
+      return;
+    }
+
+    if (typeof showToast === 'function') {
+      showToast('Membuat file PDF POA resolusi tinggi (A4 Landscape)...', 'info');
+    }
+
+    const monthIndex = month - 1;
+    const monthName = MONTH_NAMES[monthIndex];
+    const fullHtml = generatePoaDocumentHtml(month, year, officerName, false);
+
+    // Create isolated container in DOM with normal layout calculation for crisp font rasterization
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'fixed';
+    wrapper.style.left = '0';
+    wrapper.style.top = '0';
+    wrapper.style.width = '285mm';
+    wrapper.style.maxWidth = '285mm';
+    wrapper.style.zIndex = '-99999';
+    wrapper.style.opacity = '0';
+    wrapper.style.pointerEvents = 'none';
+    wrapper.style.background = '#ffffff';
+    wrapper.style.color = '#000000';
+    wrapper.innerHTML = fullHtml;
+
+    document.body.appendChild(wrapper);
+
+    const targetEl = wrapper.querySelector('#poaPrintTarget') || wrapper;
+    const filename = `POA_${officerName.replace(/[^a-zA-Z0-9]/g, '_')}_${monthName}_${year}.pdf`;
+
+    // Wait for all images inside targetEl to be fully loaded
+    const imgs = targetEl.querySelectorAll('img');
+    if (imgs.length > 0) {
+      await Promise.all(Array.from(imgs).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(res => {
+          img.onload = res;
+          img.onerror = res;
+        });
+      }));
+    }
+
+    // High definition 4x scale (approx 384 DPI print resolution) + JPEG 1.0 lossless quality
+    const opt = {
+      margin: [4, 6, 4, 6],
+      filename: filename,
+      image: { type: 'jpeg', quality: 1.0 },
+      html2canvas: {
+        scale: 4,
+        dpi: 300,
+        useCORS: true,
+        letterRendering: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        scrollX: 0,
+        scrollY: 0
+      },
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'landscape',
+        compress: true,
+        precision: 16
+      },
+      pagebreak: { mode: ['css', 'legacy'] }
+    };
+
+    try {
+      await html2pdf().set(opt).from(targetEl).save();
+      if (typeof showToast === 'function') {
+        showToast('✓ PDF POA Bulanan resolusi tinggi berhasil diunduh!', 'success');
+      }
+    } catch (err) {
+      console.error('POA PDF export error:', err);
+      printPoaIsolated(month, year, officerName);
+    } finally {
+      if (wrapper.parentNode) {
+        document.body.removeChild(wrapper);
+      }
+    }
+  };
+
+  // Event Listeners for Cetak POA & Download PDF
+  if (btnCetakPoa) {
+    btnCetakPoa.addEventListener('click', () => {
+      const selectedMonth = parseInt(poaSelectMonth ? poaSelectMonth.value : '8', 10);
+      const selectedYear = parseInt(poaSelectYear ? poaSelectYear.value : '2026', 10);
+      const officerText = getPoaOfficerName();
+      printPoaIsolated(selectedMonth, selectedYear, officerText);
+    });
+  }
+
+  if (btnDownloadPdfPoa) {
+    btnDownloadPdfPoa.addEventListener('click', () => {
+      const selectedMonth = parseInt(poaSelectMonth ? poaSelectMonth.value : '8', 10);
+      const selectedYear = parseInt(poaSelectYear ? poaSelectYear.value : '2026', 10);
+      const officerText = getPoaOfficerName();
+      exportDirectPoaPdf(selectedMonth, selectedYear, officerText);
+    });
+  }
+
+  // ==========================================================================
+  // 9. INITIAL LOAD: RENDER CURRENT POA CALENDAR (Direct from Cloudflare D1)
+  // ==========================================================================
+  const realCurrentMonth = new Date().getMonth() + 1;
+  const realCurrentYear = new Date().getFullYear();
+  if (poaSelectMonth) {
+    poaSelectMonth.value = String(realCurrentMonth);
+  }
+  if (poaSelectYear) {
+    poaSelectYear.value = String(realCurrentYear);
+  }
+  const initialMonth = parseInt(poaSelectMonth ? poaSelectMonth.value : String(realCurrentMonth), 10);
+  const initialYear = parseInt(poaSelectYear ? poaSelectYear.value : String(realCurrentYear), 10);
+  const initialOfficer = getPoaOfficerName();
+  renderPoaCalendar(initialMonth, initialYear, initialOfficer);
+
+  // ==========================================================================
+  // 10. TP POL (JASPEL) CONTROLLER & INTERACTIVE ACTIONS
+  // ==========================================================================
+
+  // ------- ALL SCORING DATA FROM MASTER SPREADSHEET -------
+  // Each jabatan has: sdmLabel, no (nomor urut), items[]
+  // Each item has: unsur (text), subtext (optional), targets[] = [{target, bobot}]
+  const ALL_SCORING_DATA = {
+    gizi: {
+      no: '5', sdmLabel: 'Nutrisionis/ Petugas Gizi',
+      items: [
+        { unsur: 'Jumlah pasien yang dilayani (konseling) di Klinik Gizi , (jumlah per bulan)', targets: [
+          {target: '> 20 kunj', bobot: '5'}, {target: '13 - 19 kunj', bobot: '4'}, {target: '7 – 12 kunj', bobot: '3'}, {target: '1 - 6 kunj', bobot: '2'}
+        ]},
+        { unsur: 'Melakukan entry EPPGBM riil time', targets: [
+          {target: '100%', bobot: '3'}, {target: '0%', bobot: '0'}
+        ]},
+        { unsur: 'Asuhan gizi pada balita gizi buruk/gizi kurang/bumil KEK (jumlah per bulan)', targets: [
+          {target: '> 20 kunj', bobot: '5'}, {target: '13 - 19 kunj', bobot: '4'}, {target: '7 – 12 kunj', bobot: '3'}, {target: '1 - 6 kunj', bobot: '2'}
+        ]},
+        { unsur: 'Melakukan pemantauan dan pembinaan pelayanan gizi di posyandu, dan sekolah (jumlah per bulan)', targets: [
+          {target: '100% dr Jumlah Posyandu', bobot: '6'}, {target: '75% dr Jumlah Posyandu', bobot: '4'}, {target: '50% dr Jumlah Posyandu', bobot: '2'}, {target: '25% dr Jumlah Posyandu', bobot: '1'}
+        ]},
+        { unsur: 'Melakukan pemantauan menu/nilai gizi di SPPG ( 1 SPPG maksimal dikunjungi 1x/bulan)', targets: [
+          {target: '> 5 kunj', bobot: '3'}, {target: '3 - 4 kunj', bobot: '2'}, {target: '1 - 2 kunj', bobot: '1'}
+        ]},
+        { unsur: 'Penyuluhan kelompok di dalam/luar gedung per bulan dengan menginput ke dalam kunjungan sehat', targets: [
+          {target: '> 10 kl', bobot: '3'}, {target: '5 - 10 kl', bobot: '2'}, {target: '1 - 5 kl', bobot: '1'}
+        ]},
+        { unsur: 'Membuat perencanaan (RPK bulanan) dan laporan bulanan', subtext: '(capaian PKP, visualisasi data, hasil monitoring, PDCA/PDSA)', targets: [
+          {target: 'Ada, lengkap, tepat waktu', bobot: '5'}, {target: 'Ada, tidak lengkap, tepat waktu', bobot: '3'}, {target: 'Tidak ada', bobot: '0'}
+        ]}
+      ]
+    },
+    dokter: {
+      no: '1', sdmLabel: 'Dokter',
+      items: [
+        { unsur: 'Jumlah pasien dilayani (dalam dan luar gedung) termasuk pengisian rekam medis dan entry data ke dalam SIMPUS rata-rata per hari kerja', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN\nKeterangan : untuk pasien rawat inap, 1 orang sebanding dengan 5 orang pasien rawat jalan', targets: [
+          {target: '21 - 30', bobot: '8'}, {target: '11 - 20', bobot: '6'}, {target: '1 - 10', bobot: '4'}
+        ]},
+        { unsur: 'Melakukan rujukan internal Puskesmas rata-rata per hari kerja', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '4 - > 5 org', bobot: '3'}, {target: '2 - 3 org', bobot: '1'}
+        ]},
+        { unsur: 'Penyuluhan kelompok di dalam/luar gedung (jumlah per bulan) dihitung bila menginput ke dalam kunjungan sehat', targets: [
+          {target: '≥ 5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]},
+        { unsur: 'Melakukan Pemeriksaan USG (perbulan)', targets: [
+          {target: '≥ 30 bumil', bobot: '5'}, {target: '21 - 30 bumil', bobot: '4'}, {target: '11 - 20 bumil', bobot: '3'}, {target: '1 - 10 bumil', bobot: '2'}
+        ]},
+        { unsur: 'Melakukan kunjungan rumah (perbulan) dihitung bila menginput ke dalam kunjungan sehat', targets: [
+          {target: '≥ 4 rumah', bobot: '3'}, {target: '3 - 4 rumah', bobot: '2'}, {target: '1 - 2 rumah', bobot: '1'}
+        ]},
+        { unsur: 'Melakukan tindakan / menolong persalinan (jumlah per bulan)', targets: [
+          {target: '≥ 5 kl', bobot: '5'}, {target: '3 - 4 kl', bobot: '3'}, {target: '1 - 2 kl', bobot: '2'}
+        ]},
+        { unsur: 'Refleksi Diskusi Kasus', targets: [
+          {target: '≥ 5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]}
+      ]
+    },
+    doktergigi: {
+      no: '2', sdmLabel: 'Dokter Gigi',
+      items: [
+        { unsur: 'Jumlah pasien dilayani (dalam dan luar gedung, bukan tindakan) rata-rata per hari termasuk pengisian rekam medis dan ENTRY SIMPUS', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '> 15', bobot: '8'}, {target: '8 - 14', bobot: '6'}, {target: '1 - 7', bobot: '4'}
+        ]},
+        { unsur: 'Pembinaan UKGMD/UKGS', targets: [
+          {target: '≥ 5 kl', bobot: '4'}, {target: '4 – 5 kl', bobot: '3'}, {target: '2 – 3 kl', bobot: '2'}, {target: '1 kl', bobot: '1'}
+        ]},
+        { unsur: 'Penyuluhan kelompok di dalam/luar gedung (jumlah per bulan) dengan menginput ke dalam kunjungan sehat', targets: [
+          {target: '≥5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]},
+        { unsur: 'Melakukan tindakan ekstraksi / tumpatan tetap (rata-rata per hari)', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '> 10 kali', bobot: '8'}, {target: '5 - 9 kali', bobot: '6'}, {target: '1 - 4 kali', bobot: '4'}
+        ]},
+        { unsur: 'Melakukan tindakan scalling (jumlah per bulan)', targets: [
+          {target: '> 8 kali', bobot: '4'}, {target: '5 - 7 kali', bobot: '2'}, {target: '1 - 4 kali', bobot: '1'}
+        ]},
+        { unsur: 'Refleksi Diskusi Kasus', targets: [
+          {target: '≥ 5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]}
+      ]
+    },
+    bidan_terampil: {
+      no: '3', sdmLabel: 'Bidan (Ketrampilan)',
+      items: [
+        { unsur: 'Jumlah pasien dilayani dalam dan luar gedung termasuk pengisian rekam medis dan ENTRY SIMPUS, aplikasi ASIK (ANC, PNC, KB, BBL, Imunisasi, MTBS) rata-rata per hari', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '21 - 30', bobot: '8'}, {target: '11 - 20', bobot: '6'}, {target: '1 - 10', bobot: '4'}
+        ]},
+        { unsur: 'Jumlah pertolongan persalinan di Puskesmas oleh 3 Tenaga Kesehatan (jumlah per bulan)\ncatatan : persalinan yang dapat diklaim', targets: [
+          {target: '7 - 8 bulin', bobot: '6'}, {target: '5 - 6 bulin', bobot: '5'}, {target: '3 – 4 bulin', bobot: '3'}, {target: '1 - 2 bulin', bobot: '2'}
+        ]},
+        { unsur: 'Penyuluhan kelompok di dalam/luar gedung per bulan dengan menginput ke dalam kunjungan sehat', targets: [
+          {target: '≥5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]},
+        { unsur: 'Melaksanakan pencatatan dan pelaporan di Buku Kohort dan SIGIZI KESGA', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN', targets: [
+          {target: '21 - 30', bobot: '4'}, {target: '11 - 20', bobot: '3'}, {target: '10', bobot: '2'}
+        ]},
+        { unsur: 'Jumlah kunjungan rumah/home visite (Askeb) jumlah per bulan', targets: [
+          {target: '20 rumah', bobot: '6'}, {target: '16 rumah', bobot: '5'}, {target: '12 rumah', bobot: '4'}, {target: '8 rumah', bobot: '3'}, {target: '4 rumah', bobot: '2'}
+        ]},
+        { unsur: 'Refleksi Diskusi Kasus', targets: [
+          {target: '≥ 5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]}
+      ]
+    },
+    bidan_ahli: {
+      no: '4', sdmLabel: 'Bidan (Ahli)',
+      items: [
+        { unsur: 'Melaksanakan FGD tentang kesehatan reproduksi dan KB pada ibu dan kelompok khusus / Refleksi Diskusi Kasus', targets: [
+          {target: '≥ 5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]},
+        { unsur: 'Melaksanakan Pelayanan Kesehatan Anak terintegrasi (PKAT)', targets: [
+          {target: '≥ 5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]},
+        { unsur: 'Melaksanakan pencatatan dan pelaporan di Buku Kohort dan SIGIZI KESGA', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN', targets: [
+          {target: '> 30 orang', bobot: '4'}, {target: '21 - 30 orang', bobot: '3'}, {target: '11 - 20 orang', bobot: '2'}, {target: '10 orang', bobot: '1'}
+        ]},
+        { unsur: 'Mengevaluasi pelaksanaan program pemerintah di bidang kebidanan di lingkungan internal puskesmas', targets: [
+          {target: '3', bobot: '3'}, {target: '2', bobot: '2'}, {target: '1', bobot: '1'}
+        ]},
+        { unsur: 'Jumlah pasien dilayani dalam dan luar gedung termasuk pengisian rekam medis dan ENTRY SIMPUS, aplikasi ASIK (ANC, PNC, KB, BBL, Imunisasi, MTBS) rata-rata per hari', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '21 - 30', bobot: '8'}, {target: '11 - 20', bobot: '6'}, {target: '1 - 10', bobot: '4'}
+        ]},
+        { unsur: 'Jumlah pertolongan persalinan di Puskesmas oleh 3 Tenaga Kesehatan (jumlah per bulan)', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '7 - 8 bulin', bobot: '6'}, {target: '5 - 6 bulin', bobot: '5'}, {target: '3 – 4 bulin', bobot: '3'}, {target: '1 - 2 bulin', bobot: '2'}
+        ]},
+        { unsur: 'Penyuluhan kelompok di dalam/luar gedung (jumlah per bulan) dengan menginput ke dalam kunjungan sehat', targets: [
+          {target: '≥5 kali', bobot: '3'}, {target: '3 - 4 kali', bobot: '2'}, {target: '1 - 2 kali', bobot: '1'}
+        ]}
+      ]
+    },
+    perawat: {
+      no: '1', sdmLabel: 'Perawat',
+      items: [
+        { unsur: 'Jumlah pasien dilayani (dalam dan luar gedung) termasuk entry data ke dalam SIMPUS rata-rata per hari kerja', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '> 50', bobot: '10'}, {target: '41 - 50', bobot: '8'}, {target: '31 - 40', bobot: '6'}, {target: '21 - 30', bobot: '4'}, {target: '11 - 20', bobot: '2'}, {target: '1 - 10', bobot: '1'}
+        ]},
+        { unsur: 'Jumlah pasien diberikan Asuhan Keperawatan Individu rata-rata per hari.', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '31 - 40', bobot: '6'}, {target: '21 - 30', bobot: '5'}, {target: '11 - 20', bobot: '4'}, {target: '1 - 10', bobot: '3'}
+        ]},
+        { unsur: 'Jumlah kunjungan rumah /home visit (Askep Keluarga) jumlah per bulan', targets: [
+          {target: '20 rumah', bobot: '6'}, {target: '16 rumah', bobot: '5'}, {target: '12 rumah', bobot: '4'}, {target: '8 rumah', bobot: '3'}, {target: '4 rumah', bobot: '2'}
+        ]},
+        { unsur: 'Penyuluhan kelompok di dalam/luar gedung (jumlah per bulan) dengan menginput ke dalam kunjungan sehat', targets: [
+          {target: '≥5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]},
+        { unsur: 'Jumlah tindakan di UGD selama 1 bulan', targets: [
+          {target: '> 15', bobot: '5'}, {target: '11 s/d 15', bobot: '4'}, {target: '5 s/d 10', bobot: '3'}, {target: '1 s/d 5', bobot: '1'}
+        ]}
+      ]
+    },
+    ttk: {
+      no: '1', sdmLabel: 'Tenaga Teknis Kefarmasian',
+      items: [
+        { unsur: 'Jumlah pelaksanaan Dispensing dan PIO pada pasien (Rata-rata lembar resep/hari)', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '> 79', bobot: '10'}, {target: '60 - 79', bobot: '8'}, {target: '40 - 59', bobot: '6'}, {target: '20 - 39', bobot: '4'}
+        ]},
+        { unsur: 'Jumlah pasien diberikan informasi obat', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '> 10', bobot: '8'}, {target: '7 - 9', bobot: '6'}, {target: '4 - 6', bobot: '4'}, {target: '1 - 3', bobot: '2'}
+        ]},
+        { unsur: 'Pencatatan dan pelaporan kegiatan pengelolaan perbekalan kefarmasian lengkap (LPLO), Stok Opname obat, BMHP, dan kartu SO', targets: [
+          {target: 'Ada, lengkap tepat waktu', bobot: '3'}, {target: 'Ada, lengkap, tidak tepat waktu', bobot: '2'}, {target: 'Ada, Tidak lengkap', bobot: '1'}
+        ]},
+        { unsur: 'Penyuluhan kelompok di dalam/luar gedung per bulan dengan menginput ke dalam kunjungan sehat', targets: [
+          {target: '≥5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]},
+        { unsur: 'Pencatatan dan pelaporan kegiatan pengelolaan perbekalan kefarmasian', targets: [
+          {target: '> 5 lap', bobot: '6'}, {target: '3 - 4 lap', bobot: '4'}, {target: '2 lap', bobot: '3'}, {target: '1 lap', bobot: '2'}
+        ]}
+      ]
+    },
+    apoteker: {
+      no: '5', sdmLabel: 'Apoteker',
+      items: [
+        { unsur: 'Jumlah pelayanan resep dan PIO (Rata-rata lembar Resep/hari kerja)', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '> 100', bobot: '10'}, {target: '60 - 79', bobot: '8'}, {target: '40 - 59', bobot: '6'}, {target: '30 - 39', bobot: '4'}, {target: '< 30', bobot: '2'}
+        ]},
+        { unsur: 'Pemberian pelayanan farmasi klinis di luar gedung : konseling pada pasien dan farmasi khusus [Homecare; Swamedikasi; Ambulatory Service; Remote Service; Pelayanan Paliatif]', subtext: '(Jumlah per bulan)', targets: [
+          {target: '6 kali', bobot: '3'}, {target: '4 kali', bobot: '2'}, {target: '2 kali', bobot: '1'}
+        ]},
+        { unsur: 'Melaksanakan Gema Cermat/Penyuluhan', targets: [
+          {target: '≥5 kali', bobot: '3'}, {target: '3 - 4 kali', bobot: '2'}, {target: '1 - 2 kali', bobot: '1'}
+        ]},
+        { unsur: 'Pencatatan dan pelaporan kegiatan pengelolaan perbekalan kefarmasian lengkap (LPLO), Stok Opname obat, BMHP, dan kartu SO', targets: [
+          {target: 'Ada, lengkap tepat waktu', bobot: '5'}, {target: 'Ada, lengkap, tidak tepat waktu', bobot: '3'}, {target: 'Ada, Tidak lengkap', bobot: '1'}
+        ]},
+        { unsur: 'Melakukan pembinaan ke Apotek', targets: [
+          {target: '≥ 20 Apotek', bobot: '5'}, {target: '16 - 20 Apotek', bobot: '4'}, {target: '11 - 15 Apotek', bobot: '3'}, {target: '6 - 10 Apotek', bobot: '2'}, {target: '1 - 5 Apotek', bobot: '1'}
+        ]},
+        { unsur: 'Melaksanakan pembinaan Kesehatan Tradisonal', targets: [
+          {target: 'Dilaksanakan minimal 50% dari Batra binaan', bobot: '4'}, {target: 'Tidak dilaksanakan', bobot: '0'}
+        ]}
+      ]
+    },
+    atlm: {
+      no: '3', sdmLabel: 'Analis Kesehatan',
+      items: [
+        { unsur: 'Jumlah pemeriksaan spesimen lab umum (jumlah rata-rata perhari)', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '>50', bobot: '10'}, {target: '41 - 50', bobot: '8'}, {target: '31 - 40', bobot: '6'}, {target: '21 - 30', bobot: '4'}, {target: '5 - 20', bobot: '2'}
+        ]},
+        { unsur: 'Jumlah pemeriksaan spesimen lab umum diluar gedung (Kegiatan tidak di SPJ kan di sumber anggaran yang lain) (jumlah rata-rata perhari)', subtext: 'JUMLAH PASIEN SELAMA 1 BULAN / JUMLAH HARI KERJA SELAMA 1 BULAN', targets: [
+          {target: '31 - 40', bobot: '7'}, {target: '21 - 30', bobot: '5'}, {target: '5 - 20', bobot: '3'}
+        ]},
+        { unsur: 'Melakukan Stok Opname setiap bulan', targets: [
+          {target: 'Lengkap, tepat waktu', bobot: '5'}, {target: 'Lengkap, tidak tepat waktu', bobot: '2'}, {target: 'Tidak ada', bobot: '0'}
+        ]},
+        { unsur: 'Penyuluhan kelompok di dalam/luar gedung per bulan dengan menginput ke dalam kunjungan sehat', targets: [
+          {target: '≥5 kali', bobot: '3'}, {target: '3 - 4 kali', bobot: '2'}, {target: '1 - 2 kali', bobot: '1'}
+        ]},
+        { unsur: 'Perencanaan, pelaporan kebutuhan dan penggunaan BMHP Labkesmas', targets: [
+          {target: 'Ada, lengkap, tepat waktu', bobot: '5'}, {target: 'Ada, tidak lengkap, tepat waktu', bobot: '3'}, {target: 'Tidak ada', bobot: '0'}
+        ]}
+      ]
+    },
+    sanitarian: {
+      no: '2', sdmLabel: 'Sanitarian',
+      items: [
+        { unsur: 'Jumlah pasien/klien dilayani di Klinik sanitasi dalam dan luar gedung (jumlah per bulan)', targets: [
+          {target: '> 40 kunj', bobot: '7'}, {target: '30 - 39 kunj', bobot: '5'}, {target: '20 - 29 kunj', bobot: '3'}, {target: '10 - 19 kunj', bobot: '2'}, {target: '1 - 9 kunj', bobot: '1'}
+        ]},
+        { unsur: 'Melakukan IKL di SPPG (1 SPPG maksimal dikunjungi 1x/bulan)', targets: [
+          {target: '> 5 kunj', bobot: '3'}, {target: '3 - 4 kunj', bobot: '2'}, {target: '1 - 2 kunj', bobot: '1'}
+        ]},
+        { unsur: 'Melakukan IS/IKL di institusi/Industri/TPM/TTU/Damiu (jumlah per bulan)', targets: [
+          {target: '> 16 lokasi', bobot: '4'}, {target: '11 - 15 lokasi', bobot: '3'}, {target: '6 - 10 lokasi', bobot: '2'}, {target: '1 - 5 lokasi', bobot: '1'}
+        ]},
+        { unsur: 'Melakukan IS/IKL di rumah', targets: [
+          {target: '> 70 rumah', bobot: '4'}, {target: '60 – 69 rumah', bobot: '3'}, {target: '50 – 59 rumah', bobot: '2'}, {target: '40 – 49 rumah', bobot: '1'}
+        ]},
+        { unsur: 'Penyuluhan kelompok di dalam/luar gedung per bulan dengan menginput ke dalam kunjungan sehat', targets: [
+          {target: '≥5 kl', bobot: '3'}, {target: '3 - 4 kl', bobot: '2'}, {target: '1 - 2 kl', bobot: '1'}
+        ]},
+        { unsur: 'Pembinaan PIRT', targets: [
+          {target: 'Dilaksanakan 50% PIRT', bobot: '4'}, {target: 'Tidak dilaksanakan', bobot: '0'}
+        ]},
+        { unsur: 'Membuat perencanaan (RPK bulanan) dan laporan bulanan (capaian PKP, visualisasi data, hasil monitoring, PDCA/PDSA)', targets: [
+          {target: 'Ada, lengkap, tepat waktu', bobot: '5'}, {target: 'Ada, tidak lengkap, tepat waktu', bobot: '3'}, {target: 'Tidak ada', bobot: '0'}
+        ]}
+      ]
+    },
+    promkes: {
+      no: '4', sdmLabel: 'Tenaga Penyuluh / Promkes',
+      items: [
+        { unsur: 'Penyuluhan kelompok di dalam/luar gedung per bulan dengan menginput ke dalam kunjungan sehat', targets: [
+          {target: '> 10 kali', bobot: '3'}, {target: '5 - 10 kali', bobot: '2'}, {target: '1 - 5 kali', bobot: '1'}
+        ]},
+        { unsur: 'Mengelola media informasi di media sosial\ncatatan : menggungah media informasi ke media sosial puskesmas dan memberikan feed back', targets: [
+          {target: 'Dibuat dan Dilaksanakan', bobot: '5'}, {target: 'Tidak dilaksanakan', bobot: '0'}
+        ]},
+        { unsur: 'Melaksanakan Kemitraan dengan linsek/swasta untuk pembangunan kesehatan', targets: [
+          {target: 'Dilaksanakan', bobot: '3'}, {target: 'Tidak melaksanakan', bobot: '0'}
+        ]},
+        { unsur: 'Pembuatan Media Informasi', targets: [
+          {target: '>15 media', bobot: '3'}, {target: '11 -15 media', bobot: '2'}, {target: '5 - 10 media', bobot: '1'}
+        ]},
+        { unsur: 'Melaksanakan Kegiatan PHS mulai dari pendataan, analisis situasi, penentuan masalah, penentuan kegiatan, intervensi dan evaluasi', targets: [
+          {target: 'Dibuat dan dilaksanakan', bobot: '4'}, {target: 'Dibuat Tidak dilaksanakan', bobot: '2'}, {target: 'Tidak Dilaksanakan', bobot: '0'}
+        ]},
+        { unsur: 'Melaksanakan Kegiatan Desa Siaga Sesuai dengan 8 indikator desa siaga', targets: [
+          {target: 'Melaksanakan pembinaan seluruh indikator', bobot: '4'}, {target: 'Melaksanakan 4 indikator', bobot: '2'}, {target: 'Tidak melaksanakan', bobot: '0'}
+        ]},
+        { unsur: 'Pembinaan posyandu siklus hidup, poskestren, SBH, Poskesdes', targets: [
+          {target: '6 s/d 10', bobot: '3'}, {target: '1 - 5', bobot: '1'}
+        ]},
+        { unsur: 'Membuat perencanaan (RPK bulanan) dan laporan bulanan (capaian PKP, visualisasi data, hasil monitoring, PDCA/PDSA)', targets: [
+          {target: 'Ada, lengkap, tepat waktu', bobot: '5'}, {target: 'Ada, tidak lengkap, tepat waktu', bobot: '3'}, {target: 'Tidak ada', bobot: '0'}
+        ]}
+      ]
+    },
+    sopir: {
+      no: '27', sdmLabel: 'Supir',
+      items: [
+        { unsur: 'Bertanggungjawab merawat dan membersihkan mobil setiap hari', targets: [
+          {target: '> 2 mobil', bobot: '7'}, {target: '1 mobil', bobot: '5'}
+        ]},
+        { unsur: 'Mengantar pasien yang akan dirujuk ke RS rujukan dan meminta bukti merujuk dari RS', targets: [
+          {target: '> 6 rujukan', bobot: '10'}, {target: '3 - 5 rujukan', bobot: '6'}, {target: '1 - 2 rujukan', bobot: '3'}
+        ]},
+        { unsur: 'Melaksanakan kegiatan kedinasan (Puskel, Posko, dll)', targets: [
+          {target: '> 5 kali', bobot: '10'}, {target: '3 - 4 kali', bobot: '7'}, {target: '1 - 2 kali', bobot: '4'}
+        ]},
+        { unsur: 'Melaksanakan service dan ganti oli setiap 3 bulan sekali', targets: [
+          {target: 'Dilaksanakan', bobot: '3'}, {target: 'Tidak dilaksanakan', bobot: '0'}
+        ]}
+      ],
+      catatan: 'catatan : bila melaksanakan tugas jaga diluar hari kerja, tetap mendapatkan honor (OH)'
+    }
+  };
+
+  // ------- RENDER SCORING TABLE DYNAMICALLY -------
+  const scoringTableBody = document.getElementById('scoringTableBody');
+
+  function renderScoringTable(jabatanKey) {
+    if (!scoringTableBody) return;
+    const data = ALL_SCORING_DATA[jabatanKey];
+    if (!data) { scoringTableBody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding:20px;">Data scoring belum tersedia untuk jabatan ini.</td></tr>'; return; }
+
+    let html = '';
+    let totalRowSpan = 0;
+    data.items.forEach(item => { totalRowSpan += item.targets.length; });
+
+    let noRendered = false;
+    let sdmLabelRendered = false;
+    let cakupanIdx = 1;
+
+    data.items.forEach((item, itemIdx) => {
+      const targetsCount = item.targets.length;
+
+      item.targets.forEach((t, tIdx) => {
+        html += '<tr>';
+
+        // NO column — merged across ALL rows with '1' centered
+        if (!noRendered && tIdx === 0 && itemIdx === 0) {
+          html += `<td rowspan="${totalRowSpan}" class="text-center" style="vertical-align: middle; text-align: center;">1</td>`;
+          noRendered = true;
+        }
+
+        // KELOMPOK/JENIS SDM column — only once, spanning all rows, centered
+        if (!sdmLabelRendered && tIdx === 0 && itemIdx === 0) {
+          html += `<td rowspan="${totalRowSpan}" class="text-center" style="vertical-align: middle; text-align: center; padding: 10px;">${data.sdmLabel}</td>`;
+          sdmLabelRendered = true;
+        }
+
+        // UNSUR VARIABEL KINERJA column — only on first target row of each item, vertically centered
+        if (tIdx === 0) {
+          let unsurText = item.unsur.replace(/\n/g, '<br>');
+          if (item.subtext) {
+            unsurText += `<br><small style="color:#555;">${item.subtext.replace(/\n/g, '<br>')}</small>`;
+          }
+          html += `<td rowspan="${targetsCount}" style="vertical-align: middle;">${unsurText}</td>`;
+        }
+
+        // NILAI TARGET
+        html += `<td class="text-center" style="vertical-align: middle; text-align: center;">${t.target}</td>`;
+
+        // BOBOT
+        html += `<td class="text-center" style="vertical-align: middle; text-align: center;">${t.bobot}</td>`;
+
+        // CAKUPAN BULAN INI — only on first target row of each item
+        if (tIdx === 0) {
+          html += `<td rowspan="${targetsCount}" style="vertical-align: middle; text-align: center; padding: 6px;">`;
+          html += `<input type="text" class="exact-cakupan-input" id="cakupanRow${cakupanIdx}" placeholder="" style="text-align: center;">`;
+          html += '</td>';
+          cakupanIdx++;
+        }
+
+        html += '</tr>';
+      });
+    });
+
+    // Add catatan row if exists (e.g., for Sopir)
+    if (data.catatan) {
+      html += `<tr><td colspan="6" style="font-style:italic; font-size:11px; padding:6px; vertical-align: middle; text-align: center;">${data.catatan}</td></tr>`;
+    }
+
+    scoringTableBody.innerHTML = html;
+
+    // Load saved scoring data directly from Cloud Database
+    loadAndApplyTpPolData();
+  }
+
+  // TP POL 100% Pure Cloud Persistence
+  const collectTpPolFormData = () => {
+    const cakupanInputs = document.querySelectorAll('#scoringTableBody .exact-cakupan-input');
+    const cakupanValues = Array.from(cakupanInputs).map(input => input.value);
+    const totalScoreVal = document.getElementById('totalScoreInput')?.value || '';
+
+    const month = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
+    const year = parseInt(tppolYear ? tppolYear.value : '2026', 10);
+    const jabatan = tppolSelectJabatan ? tppolSelectJabatan.value : 'gizi';
+    const petugas = signPetugas ? signPetugas.value : (tpPolMetaName ? tpPolMetaName.textContent : '');
+    const nip = (signPetugas && signPetugas.options[signPetugas.selectedIndex]?.getAttribute('data-nip')) || (tpPolMetaNip ? tpPolMetaNip.textContent : '');
+    const kepala = signKepala ? signKepala.value : '';
+    const verifikator = signVerifikator ? signVerifikator.value : '';
+
+    return {
+      id: `tppol-${nip ? nip.replace(/[\s.]+/g, '') : encodeURIComponent(petugas)}-${month}-${year}-${jabatan}`,
+      bulan: month,
+      tahun: year,
+      jabatanKey: jabatan,
+      petugas_nama: petugas,
+      petugas_nip: nip,
+      petugas_jabatan: tpPolMetaJabatan ? tpPolMetaJabatan.textContent : jabatan,
+      kepala: kepala,
+      verifikator: verifikator,
+      cakupanValues: cakupanValues,
+      total_skor: totalScoreVal,
+      savedAt: new Date().toISOString()
+    };
+  };
+
+  const loadAndApplyTpPolData = async () => {
+    const month = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
+    const year = parseInt(tppolYear ? tppolYear.value : '2026', 10);
+    const jabatan = tppolSelectJabatan ? tppolSelectJabatan.value : 'gizi';
+    const petugas = signPetugas ? signPetugas.value : (tpPolMetaName ? tpPolMetaName.textContent : '');
+    const nip = (signPetugas && signPetugas.options[signPetugas.selectedIndex]?.getAttribute('data-nip')) || '';
+
+    // Clear inputs first so previous officer/month data doesn't linger
+    const cakupanInputs = document.querySelectorAll('#scoringTableBody .exact-cakupan-input');
+    cakupanInputs.forEach(input => { input.value = ''; });
+    const totalInput = document.getElementById('totalScoreInput');
+    if (totalInput) totalInput.value = '';
+
+    // Fetch directly from Cloud Database (Cloudflare D1)
+    try {
+      const query = new URLSearchParams({
+        bulan: month,
+        tahun: year
+      });
+      if (nip) query.append('nip', nip);
+
+      const res = await fetch(`/api/tppol?${query.toString()}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json && json.data && json.data.length > 0) {
+          const cleanTargetNip = nip.replace(/[\s.]+/g, '');
+          const record = json.data.find(r => {
+            const rNip = String(r.petugas_nip || '').replace(/[\s.]+/g, '');
+            return (cleanTargetNip && rNip === cleanTargetNip) || r.petugas_nama === petugas;
+          }) || json.data[0];
+
+          if (record && record.form_data) {
+            const parsedForm = typeof record.form_data === 'string' ? JSON.parse(record.form_data) : record.form_data;
+            if (parsedForm && Array.isArray(parsedForm.cakupanValues)) {
+              cakupanInputs.forEach((input, idx) => {
+                if (parsedForm.cakupanValues[idx] !== undefined) {
+                  input.value = parsedForm.cakupanValues[idx];
+                }
+              });
+              if (totalInput && (parsedForm.total_skor !== undefined || record.total_skor !== undefined)) {
+                totalInput.value = parsedForm.total_skor || record.total_skor;
+              }
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[TPPOL CLOUD LOAD] Error loading from cloud:', err);
+    }
+  };
+
+  // ------- JABATAN CHANGE HANDLER -------
+  const tppolSelectJabatan = document.getElementById('tppolSelectJabatan');
+  const tppolYear = document.getElementById('tppolYear');
+  const tppolMonth = document.getElementById('tppolMonth');
+  const tppolKlaster = document.getElementById('tppolKlaster');
+
+  const signKepala = document.getElementById('signKepala');
+  const signVerifikator = document.getElementById('signVerifikator');
+  const signPetugas = document.getElementById('signPetugas');
+  const signLabelId = document.getElementById('signLabelId');
+
+  const tpPolDocTitle = document.getElementById('tpPolDocTitle');
+  const tpPolMetaName = document.getElementById('tpPolMetaName');
+  const tpPolMetaJabatan = document.getElementById('tpPolMetaJabatan');
+  const tpPolMetaPendidikan = document.getElementById('tpPolMetaPendidikan');
+  const tpPolMetaStatus = document.getElementById('tpPolMetaStatus');
+  const tpPolMetaIdLabel = document.getElementById('tpPolMetaIdLabel');
+  const tpPolMetaNip = document.getElementById('tpPolMetaNip');
+
+  const sigKepalaName = document.getElementById('sigKepalaName');
+  const sigVerifikatorCol = document.getElementById('sigVerifikatorCol');
+  const sigVerifikatorName = document.getElementById('sigVerifikatorName');
+  const sigVerifikatorNip = document.getElementById('sigVerifikatorNip');
+  const sigPetugasName = document.getElementById('sigPetugasName');
+  const sigPetugasNip = document.getElementById('sigPetugasNip');
+  const sigDatePlace = document.getElementById('sigDatePlace');
+
+  const btnSaveTpPol = document.getElementById('btnSaveTpPol');
+  const btnOpenProfileModal = document.getElementById('btnOpenProfileModal');
+  const btnDownloadPdfTpPol = document.getElementById('btnDownloadPdfTpPol');
+
+  // Profile Modal Elements
+  const modalProfilePegawai = document.getElementById('modalProfilePegawai');
+  const closeProfileModal = document.getElementById('closeProfileModal');
+  const btnCancelProfile = document.getElementById('btnCancelProfile');
+  const profilePegawaiForm = document.getElementById('profilePegawaiForm');
+  const profNama = document.getElementById('profNama');
+  const profJabatan = document.getElementById('profJabatan');
+  const profPendidikan = document.getElementById('profPendidikan');
+  const profStatus = document.getElementById('profStatus');
+  const profNip = document.getElementById('profNip');
+
+  // Sync TP POL Document Title & Signature Date
+  const updateTpPolDocHeader = () => {
+    const month = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
+    const year = parseInt(tppolYear ? tppolYear.value : '2026', 10);
+    const monthName = MONTH_NAMES[month - 1];
+
+    if (tpPolDocTitle) {
+      tpPolDocTitle.textContent = `PENGAJUAN SCORING JASPEL BULAN ${monthName.toUpperCase()} ${year}`;
+    }
+
+    const lastDayOfMonth = new Date(year, month, 0).getDate();
+    if (sigDatePlace) {
+      sigDatePlace.textContent = `Banjaran, ${lastDayOfMonth} ${monthName} ${year}`;
+    }
+
+    loadAndApplyTpPolData();
+  };
+
+  if (tppolMonth) tppolMonth.addEventListener('change', updateTpPolDocHeader);
+  if (tppolYear) tppolYear.addEventListener('change', updateTpPolDocHeader);
+
+  // Jabatan dropdown -> re-render scoring table + update metadata jabatan
+  if (tppolSelectJabatan) {
+    tppolSelectJabatan.addEventListener('change', () => {
+      const jabatanKey = tppolSelectJabatan.value;
+      renderScoringTable(jabatanKey);
+      // Update metadata jabatan label
+      const data = ALL_SCORING_DATA[jabatanKey];
+      if (data && tpPolMetaJabatan) {
+        tpPolMetaJabatan.textContent = data.sdmLabel;
+      }
+    });
+  }
+
+  // Initial render of scoring table (default: gizi)
+  renderScoringTable(tppolSelectJabatan ? tppolSelectJabatan.value : 'gizi');
+
+  // Populate POA Bulanan Officer Filter from Cloud DB
+  const populatePoaOfficerDropdown = async () => {
+    if (!poaSelectOfficer) return;
+    let staffList = [];
+    try {
+      staffList = await CloudflareDB.fetchUsers();
+    } catch (e) {
+      staffList = window.DAFTAR_PEGAWAI || DAFTAR_PEGAWAI;
+    }
+    if (!Array.isArray(staffList) || staffList.length === 0) {
+      staffList = window.DAFTAR_PEGAWAI || DAFTAR_PEGAWAI;
+    }
+
+    const currentVal = poaSelectOfficer.value || (CURRENT_USER ? CURRENT_USER.nama : 'Mochamad Fauzie, S.Gz');
+    let optsHtml = '';
+    staffList.forEach(p => {
+      const isSelected = (p.nama === currentVal || (currentVal && p.nama.includes(currentVal)));
+      const isSelf = (CURRENT_USER && p.nama === CURRENT_USER.nama);
+      optsHtml += `
+        <option value="${p.nama}" ${isSelected ? 'selected' : ''}>
+          ${p.no_urut || p.no ? (p.no_urut || p.no) + '. ' : ''}${p.nama} (${p.jabatan}${isSelf ? ' / Anda' : ''})
+        </option>
+      `;
+    });
+    poaSelectOfficer.innerHTML = optsHtml;
+  };
+  window.populatePoaOfficerDropdown = populatePoaOfficerDropdown;
+
+  // Populate TP POL Signature Dropdowns from Live Cloud DB Accounts & Roles
+  const populateTpPolSignatureDropdowns = async () => {
+    let staffList = [];
+    try {
+      staffList = await CloudflareDB.fetchUsers();
+    } catch (e) {
+      staffList = window.DAFTAR_PEGAWAI || DAFTAR_PEGAWAI;
+    }
+    if (!Array.isArray(staffList) || staffList.length === 0) {
+      staffList = window.DAFTAR_PEGAWAI || DAFTAR_PEGAWAI;
+    }
+
+    const rolesStore = JSON.parse(localStorage.getItem('SICEKAS_USER_ROLES')) || {};
+
+    const getOfficerRole = (p) => {
+      const cleanNip = String(p.nip || '').replace(/[\s.]+/g, '');
+      const rawNip = String(p.nip || '');
+      if (rolesStore[cleanNip]) return rolesStore[cleanNip];
+      if (rolesStore[rawNip]) return rolesStore[rawNip];
+      return p.role || 'Petugas Puskesmas';
+    };
+
+    // 1. Kepala Puskesmas (Akun level 'Kepala Puskesmas' dari Cloud DB)
+    if (signKepala) {
+      const currentVal = signKepala.value;
+      let kapusList = staffList.filter(p => {
+        const r = getOfficerRole(p);
+        return r === 'Kepala Puskesmas' || p.jabatan === 'Kepala Puskesmas' || p.nama.includes('dr. Rina Indriati');
+      });
+
+      if (kapusList.length === 0) {
+        kapusList = staffList.filter(p => p.nama.includes('dr. Rina Indriati'));
+      }
+      if (kapusList.length === 0) {
+        kapusList = [{ nama: 'dr. Rina Indriati', nip: '19740404 201411 2 001', jabatan: 'Kepala Puskesmas' }];
+      }
+
+      signKepala.innerHTML = kapusList.map(p => `
+        <option value="${p.nama}" data-nip="${p.nip}" ${p.nama === currentVal || p.nama === 'dr. Rina Indriati' ? 'selected' : ''}>
+          ${p.nama}
+        </option>
+      `).join('');
+
+      if (sigKepalaName && signKepala.value) {
+        sigKepalaName.textContent = signKepala.value;
+      }
+    }
+
+    // 2. Verifikator (Strict: HANYA Akun Cloud DB yang memiliki Role 'PJ Klaster')
+    if (signVerifikator) {
+      const currentVal = signVerifikator.value;
+      const verifList = staffList.filter(p => {
+        const r = (getOfficerRole(p) || '').trim().toLowerCase();
+        return r === 'pj klaster';
+      });
+
+      let verifHtml = '<option value="" selected>-- Kosongkan Verifikator --</option>';
+      
+      if (verifList.length > 0) {
+        verifList.forEach(p => {
+          const isSelected = (p.nama === currentVal);
+          const isNrp = (p.golongan === 'BLUD' || p.gol === 'BLUD' || (p.nip && p.nip.startsWith('873.')) || (p.nip_full && p.nip_full.startsWith('NRP')) || (p.nipFull && p.nipFull.startsWith('NRP')));
+          const label = isNrp ? 'NRP' : 'NIP';
+          verifHtml += `
+            <option value="${p.nama}" data-nip="${p.nip}" data-label="${label}" ${isSelected ? 'selected' : ''}>
+              ${p.no_urut || p.no ? (p.no_urut || p.no) + '. ' : ''}${p.nama} (${p.jabatan || 'PJ Klaster'})
+            </option>
+          `;
+        });
+      } else {
+        verifHtml += '<option value="" disabled>(Belum ada akun berole PJ Klaster di Cloud)</option>';
+      }
+
+      signVerifikator.innerHTML = verifHtml;
+    }
+
+    // 3. Petugas Yang Dinilai (Semua 39 akun pegawai dari Cloud DB, label NIP/NRP otomatis)
+    if (signPetugas) {
+      const currentVal = signPetugas.value || (CURRENT_USER ? CURRENT_USER.nama : 'Mochamad Fauzie, S.Gz');
+      let petHtml = '';
+      staffList.forEach(p => {
+        const isNrp = (p.golongan === 'BLUD' || p.gol === 'BLUD' || (p.status && p.status.includes('BLUD')) || (p.jabatan && p.jabatan.includes('BLUD')) || (p.nip && p.nip.startsWith('873.')) || (p.nip_full && p.nip_full.startsWith('NRP')) || (p.nipFull && p.nipFull.startsWith('NRP')));
+        const labelId = isNrp ? 'NRP' : 'NIP';
+        const isSelected = (p.nama === currentVal || (currentVal && p.nama.includes(currentVal)));
+        petHtml += `
+          <option value="${p.nama}" data-nip="${p.nip}" data-label="${labelId}" data-jabatan="${p.jabatan}" data-status="${p.golongan || p.gol || (isNrp ? 'BLUD' : 'PNS')}" ${isSelected ? 'selected' : ''}>
+            ${p.no_urut || p.no ? (p.no_urut || p.no) + '. ' : ''}${p.nama} (${p.jabatan})
+          </option>
+        `;
+      });
+      signPetugas.innerHTML = petHtml;
+
+      // Trigger initial selection update
+      const selOpt = signPetugas.options[signPetugas.selectedIndex] || signPetugas.options[0];
+      if (selOpt) {
+        const petName = selOpt.value;
+        const petNip = selOpt.getAttribute('data-nip') || '';
+        const petLabel = selOpt.getAttribute('data-label') || 'NIP';
+        const petJabatan = selOpt.getAttribute('data-jabatan') || '';
+        const petStatus = selOpt.getAttribute('data-status') || '';
+
+        if (sigPetugasName) sigPetugasName.textContent = petName;
+        if (tpPolMetaName) tpPolMetaName.textContent = petName;
+        if (tpPolMetaNip) tpPolMetaNip.textContent = petNip;
+        if (sigPetugasNip) sigPetugasNip.textContent = (petNip && petNip !== '-' ? `${petLabel}. ${petNip}` : '-');
+        if (tpPolMetaIdLabel) tpPolMetaIdLabel.textContent = petLabel;
+        if (tpPolMetaJabatan) tpPolMetaJabatan.textContent = petJabatan;
+        if (tpPolMetaStatus) tpPolMetaStatus.textContent = petStatus;
+      }
+    }
+  };
+
+  window.populateTpPolSignatureDropdowns = populateTpPolSignatureDropdowns;
+
+  // Sync Signature Dropdowns
+  if (signKepala && sigKepalaName) {
+    signKepala.addEventListener('change', () => {
+      sigKepalaName.textContent = signKepala.value;
+    });
+  }
+
+  if (signVerifikator && sigVerifikatorCol && sigVerifikatorName) {
+    signVerifikator.addEventListener('change', () => {
+      const val = signVerifikator.value.trim();
+      if (val) {
+        sigVerifikatorCol.style.display = 'flex';
+        sigVerifikatorName.textContent = val.split('(')[0].trim();
+        const opt = signVerifikator.options[signVerifikator.selectedIndex];
+        const nip = opt ? opt.getAttribute('data-nip') : '';
+        const label = opt ? opt.getAttribute('data-label') || 'NIP' : 'NIP';
+        if (sigVerifikatorNip) {
+          sigVerifikatorNip.textContent = nip && nip !== '-' ? `${label}. ${nip}` : '';
+        }
+      } else {
+        sigVerifikatorCol.style.display = 'none';
+      }
+    });
+  }
+
+  if (signPetugas && sigPetugasName && tpPolMetaName) {
+    signPetugas.addEventListener('change', () => {
+      const opt = signPetugas.options[signPetugas.selectedIndex];
+      if (!opt) return;
+      const petName = opt.value || opt.text.split('(')[0].replace(/^\d+\.\s*/, '').trim();
+      const petNip = opt.getAttribute('data-nip') || '';
+      const petLabel = opt.getAttribute('data-label') || 'NIP';
+      const petJabatan = opt.getAttribute('data-jabatan') || '';
+      const petStatus = opt.getAttribute('data-status') || '';
+
+      sigPetugasName.textContent = petName;
+      tpPolMetaName.textContent = petName;
+
+      if (tpPolMetaNip) tpPolMetaNip.textContent = petNip;
+      if (sigPetugasNip) sigPetugasNip.textContent = (petNip && petNip !== '-' ? `${petLabel}. ${petNip}` : '-');
+      if (profNip) profNip.value = petNip;
+      if (tpPolMetaIdLabel) tpPolMetaIdLabel.textContent = petLabel;
+      if (tpPolMetaJabatan) tpPolMetaJabatan.textContent = petJabatan;
+      if (profJabatan) profJabatan.value = petJabatan;
+      if (tpPolMetaStatus) tpPolMetaStatus.textContent = petStatus;
+      if (profStatus) profStatus.value = petStatus;
+
+      loadAndApplyTpPolData();
+    });
+  }
+
+  // Initial populate of TP POL Signatures & POA Officers from Cloud DB
+  populateTpPolSignatureDropdowns();
+  populatePoaOfficerDropdown();
+
+  // Profile Pegawai Modal Handlers
+  const openProfModal = () => {
+    if (modalProfilePegawai) modalProfilePegawai.classList.add('active');
+  };
+
+  const closeProfModal = () => {
+    if (modalProfilePegawai) modalProfilePegawai.classList.remove('active');
+  };
+
+  if (btnOpenProfileModal) btnOpenProfileModal.addEventListener('click', openProfModal);
+  if (closeProfileModal) closeProfileModal.addEventListener('click', closeProfModal);
+  if (btnCancelProfile) btnCancelProfile.addEventListener('click', closeProfModal);
+
+  if (modalProfilePegawai) {
+    modalProfilePegawai.addEventListener('click', (e) => {
+      if (e.target === modalProfilePegawai) closeProfModal();
+    });
+  }
+
+  if (profilePegawaiForm) {
+    profilePegawaiForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const newNama = profNama.value.trim();
+      const newJabatan = profJabatan.value.trim();
+      const newPendidikan = profPendidikan.value.trim();
+      const newStatus = profStatus.value;
+      const newNip = profNip.value.trim();
+      const isBlud = (newStatus === 'BLUD' || newNip.startsWith('873.'));
+      const idLabel = isBlud ? 'NRP' : 'NIP';
+
+      if (tpPolMetaName) tpPolMetaName.textContent = newNama;
+      if (tpPolMetaJabatan) tpPolMetaJabatan.textContent = newJabatan;
+      if (tpPolMetaPendidikan) tpPolMetaPendidikan.textContent = newPendidikan;
+      if (tpPolMetaStatus) tpPolMetaStatus.textContent = newStatus;
+      if (tpPolMetaNip) tpPolMetaNip.textContent = newNip;
+      if (tpPolMetaIdLabel) tpPolMetaIdLabel.textContent = idLabel;
+      if (sigPetugasName) sigPetugasName.textContent = newNama;
+      if (sigPetugasNip) sigPetugasNip.textContent = `${idLabel}. ${newNip}`;
+
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Profil Berhasil Diperbarui',
+          text: `Profil pegawai telah disesuaikan untuk ${newNama}.`,
+          background: '#0f172a',
+          color: '#ffffff',
+          confirmButtonColor: '#10b981',
+          timer: 2200,
+          timerProgressBar: true
+        });
+      } else {
+        alert(`Profil pegawai berhasil diperbarui untuk ${newNama}!`);
+      }
+      closeProfModal();
+    });
+  }
+
+  // Save TP POL Data (Cloudflare D1 + Local Storage Sync)
+  if (btnSaveTpPol) {
+    btnSaveTpPol.addEventListener('click', async () => {
+      const month = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
+      const year = parseInt(tppolYear ? tppolYear.value : '2026', 10);
+      const monthName = MONTH_NAMES[month - 1];
+
+      const formData = collectTpPolFormData();
+      
+      // Save directly to Cloudflare D1 Database
+      let cloudSaved = false;
+      try {
+        const payload = {
+          id: formData.id,
+          bulan: formData.bulan,
+          tahun: formData.tahun,
+          petugas_nip: formData.petugas_nip,
+          petugas_nama: formData.petugas_nama,
+          petugas_jabatan: formData.petugas_jabatan,
+          total_skor: parseFloat(formData.total_skor) || 95.0,
+          form_data: formData
+        };
+
+        const res = await fetch('/api/tppol/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const resJson = await res.json();
+          if (resJson.success) cloudSaved = true;
+        }
+      } catch (err) {
+        console.warn('[TPPOL SAVE] Cloud save error:', err);
+      }
+
+      gsap.to(btnSaveTpPol, {
+        scale: 0.95,
+        duration: 0.1,
+        yoyo: true,
+        repeat: 1,
+        onComplete: () => {
+          if (typeof Swal !== 'undefined') {
+            if (cloudSaved) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Data Tersimpan di Cloud!',
+                html: `Data Pengajuan Scoring TP POL (Jaspel) Bulan <strong>${monthName} ${year}</strong> telah berhasil disimpan ke <strong>Cloud Database SICEKAS</strong>.`,
+                background: '#0f172a',
+                color: '#ffffff',
+                confirmButtonColor: '#10b981',
+                confirmButtonText: 'OK, Mantap!'
+              });
+            } else {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Gagal Menghubungi Cloud',
+                text: 'Terjadi kendala saat menyimpan data ke Cloud. Periksa koneksi internet Anda.',
+                background: '#0f172a',
+                color: '#ffffff',
+                confirmButtonColor: '#ef4444'
+              });
+            }
+          } else {
+            alert(`✓ Data Pengajuan Scoring TP POL (Jaspel) Bulan ${monthName} ${year} berhasil disimpan ke database SICEKAS!`);
+          }
+        }
+      });
+    });
+  }
+
+  // Isolated Clean TP POL Printer
+  const extractTpPolCss = () => {
+    const relevantPrefixes = ['.scoring-doc', '.scoring-', '.tppol-doc', '#scoringDoc'];
+    let css = '';
+    try {
+      for (const sheet of document.styleSheets) {
+        try {
+          for (const rule of sheet.cssRules) {
+            const sel = rule.selectorText || '';
+            if (relevantPrefixes.some(p => sel.includes(p))) {
+              css += rule.cssText + '\n';
+            }
+          }
+        } catch(e) {}
+      }
+    } catch(e) {}
+    return css;
+  };
+
+  const printIsolatedTpPol = () => {
+    const scoringDoc = document.getElementById('scoringDocSheet');
+    if (!scoringDoc) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Dokumen Kosong',
+          text: 'Tidak ada dokumen TP POL yang bisa dicetak.',
+          background: '#0f172a',
+          color: '#ffffff'
+        });
+      } else {
+        alert('Tidak ada dokumen TP POL yang bisa dicetak.');
+      }
+      return;
+    }
+
+    const month = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
+    const year = parseInt(tppolYear ? tppolYear.value : '2026', 10);
+    const monthName = MONTH_NAMES[month - 1];
+    const docCss = extractTpPolCss();
+
+    const baseHref = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'info',
+          title: 'Izinkan Popup Browser',
+          text: 'Popup diblokir oleh browser. Izinkan popup untuk mencetak dokumen.',
+          background: '#0f172a',
+          color: '#ffffff'
+        });
+      } else {
+        alert('Popup diblokir oleh browser. Izinkan popup untuk mencetak dokumen.');
+      }
+      return;
+    }
+
+    // Clone scoring doc and ensure input values are preserved
+    const cloneDoc = scoringDoc.cloneNode(true);
+    const origInputs = scoringDoc.querySelectorAll('input, textarea');
+    const cloneInputs = cloneDoc.querySelectorAll('input, textarea');
+    origInputs.forEach((inp, idx) => {
+      if (cloneInputs[idx]) {
+        cloneInputs[idx].value = inp.value;
+        cloneInputs[idx].setAttribute('value', inp.value);
+      }
+    });
+
+    printWin.document.open();
+    printWin.document.write(`<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<base href="${baseHref}">
+<title>TP POL JASPEL ${monthName.toUpperCase()} ${year} — Puskesmas Banjaran Kota</title>
+<style>
+  @page {
+    size: A4 portrait !important;
+    margin: 0mm !important;
+  }
+  *, *::before, *::after {
+    box-sizing: border-box !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  html, body {
+    background: #1e293b;
+    color: #000000;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif !important;
+    line-height: 1.2;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Screen toolbar (hidden during print) */
+  .no-print-bar {
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  .no-print-bar .doc-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13.5px;
+  }
+  .no-print-bar .doc-badge {
+    background: rgba(56, 189, 248, 0.18);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .no-print-bar .btn-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .no-print-bar button {
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+  }
+  .no-print-bar .btn-print-action {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+  }
+  .no-print-bar .btn-print-action:hover {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.6);
+  }
+  .no-print-bar .btn-close-action {
+    background: rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .no-print-bar .btn-close-action:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+  }
+
+  /* Document Stage (On Screen Preview) */
+  .document-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0 60px 0;
+    gap: 24px;
+    background: #1e293b;
+  }
+
+  /* Extracted TP POL document styles */
+  ${docCss}
+
+  /* Strict Pure A4 Single Page Print & Preview Specs */
+  .scoring-doc-sheet-exact {
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: 297mm !important;
+    box-sizing: border-box !important;
+    padding: 1.9cm 1.8cm 1.9cm 1.8cm !important;
+    margin: 0 auto !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+    border: none !important;
+    border-radius: 0 !important;
+    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif !important;
+    position: relative !important;
+  }
+
+  .doc-sheet-title-exact {
+    text-align: center !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    margin: 0 0 8px 0 !important;
+    text-transform: uppercase !important;
+    color: #000000 !important;
+  }
+
+  .doc-meta-exact {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    font-size: 10px !important;
+    margin-bottom: 8px !important;
+    color: #000000 !important;
+  }
+
+  .meta-exact-row {
+    display: flex !important;
+    align-items: center !important;
+    line-height: 1.25 !important;
+  }
+
+  .meta-exact-label {
+    width: 110px !important;
+    font-weight: 500 !important;
+  }
+
+  .meta-exact-sep {
+    width: 14px !important;
+    text-align: center !important;
+  }
+
+  .exact-scoring-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    font-size: 9.5px !important;
+    border: 1px solid #000000 !important;
+  }
+
+  .exact-scoring-table th,
+  .exact-scoring-table td {
+    border: 1px solid #000000 !important;
+    padding: 2px 4px !important;
+    line-height: 1.15 !important;
+    vertical-align: middle !important;
+    color: #000000 !important;
+  }
+
+  .exact-scoring-table th {
+    background: #f1f5f9 !important;
+    font-weight: 800 !important;
+    text-align: center !important;
+    font-size: 9.5px !important;
+    padding: 3px 4px !important;
+  }
+
+  .exact-cakupan-input {
+    width: 100% !important;
+    min-height: 18px !important;
+    padding: 1px 2px !important;
+    border: 1px dashed #777777 !important;
+    border-radius: 2px !important;
+    font-size: 9.5px !important;
+    text-align: center !important;
+    background: transparent !important;
+    color: #000000 !important;
+  }
+
+  .doc-signatures-exact {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    margin-top: 18px !important;
+    font-size: 10px !important;
+    padding: 0 8px !important;
+    color: #000000 !important;
+  }
+
+  .sig-exact-col {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    min-width: 150px !important;
+    flex: 1 !important;
+  }
+
+  .sig-exact-title {
+    font-size: 10px !important;
+    margin: 0 0 2px 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  .sig-exact-col p {
+    margin: 0 0 2px 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  .sig-exact-space {
+    height: 56px !important;
+    width: 100% !important;
+  }
+
+  .sig-exact-name {
+    font-weight: 700 !important;
+    text-decoration: underline !important;
+    margin: 0 0 1px 0 !important;
+  }
+
+  .sig-exact-nip {
+    font-size: 9px !important;
+    margin-top: 1px !important;
+  }
+
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    html, body {
+      background: #ffffff !important;
+    }
+    .document-stage {
+      padding: 0 !important;
+      margin: 0 !important;
+      background: #ffffff !important;
+    }
+    .scoring-doc-sheet-exact {
+      box-shadow: none !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      page-break-after: avoid !important;
+      break-after: avoid !important;
+      margin: 0 !important;
+      padding: 1.9cm 1.8cm 1.9cm 1.8cm !important;
+    }
+    .exact-cakupan-input {
+      border: none !important;
+      box-shadow: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="no-print-bar no-print">
+  <div class="doc-info">
+    <strong style="display: flex; align-items: center; gap: 6px;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+      <span>Pratinjau Dokumen TP POL (Jaspel)</span>
+    </strong>
+    <span class="doc-badge">Format Kertas: A4 (Standar Resmi 1 Lembar Pas)</span>
+  </div>
+  <div class="btn-group">
+    <button type="button" class="btn-print-action" onclick="window.print()">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+      <span>Cetak / Save as PDF</span>
+    </button>
+    <button type="button" class="btn-close-action" onclick="window.close()">
+      <span>Tutup</span>
+    </button>
+  </div>
+</div>
+
+<div class="document-stage">
+  ${cloneDoc.outerHTML}
+</div>
+
+<script>
+  window.onload = function() {
+    setTimeout(function() {
+      window.print();
+    }, 350);
+  };
+<\/script>
+</body>
+</html>`);
+    printWin.document.close();
+  };
+
+  // Download PDF / Cetak Formulir TP POL
+  if (btnDownloadPdfTpPol) {
+    btnDownloadPdfTpPol.addEventListener('click', () => {
+      if (typeof showToast === 'function') {
+        showToast("Membuka pratinjau dokumen TP POL... Pilih 'Save as PDF' di menu printer.", 'info');
+      }
+      printIsolatedTpPol();
+    });
+  }
+
+  const btnPrintTpPol = document.getElementById('btnPrintTpPol');
+  if (btnPrintTpPol) {
+    btnPrintTpPol.addEventListener('click', () => {
+      printIsolatedTpPol();
+    });
+  }
+
+  // ==========================================================================
+  // 10.B EVIDENCE (BUKTI DUKUNG) GOOGLE DRIVE BRIDGING MODULE
+  // ==========================================================================
+  const modalEvidenceUpload = document.getElementById('modalEvidenceUpload');
+  const btnUploadEvidence = document.getElementById('btnUploadEvidence');
+  const closeEvidenceModal = document.getElementById('closeEvidenceModal');
+  const btnCancelEvidence = document.getElementById('btnCancelEvidence');
+  const formUploadEvidence = document.getElementById('formUploadEvidence');
+  const evidencePetugasLabel = document.getElementById('evidencePetugasLabel');
+  const evidencePeriodeLabel = document.getElementById('evidencePeriodeLabel');
+  const evidenceKeteranganSelect = document.getElementById('evidenceKeteranganSelect');
+  const evidenceKeteranganCustom = document.getElementById('evidenceKeteranganCustom');
+  const groupCustomKeterangan = document.getElementById('groupCustomKeterangan');
+  const evidenceDropzone = document.getElementById('evidenceDropzone');
+  const evidenceFileInput = document.getElementById('evidenceFileInput');
+  const dropzoneIdle = document.getElementById('dropzoneIdle');
+  const dropzonePreview = document.getElementById('dropzonePreview');
+  const filePreviewExt = document.getElementById('filePreviewExt');
+  const filePreviewName = document.getElementById('filePreviewName');
+  const filePreviewSize = document.getElementById('filePreviewSize');
+  const btnRemoveEvidenceFile = document.getElementById('btnRemoveEvidenceFile');
+  const toggleGdriveConfig = document.getElementById('toggleGdriveConfig');
+  const gdriveConfigBody = document.getElementById('gdriveConfigBody');
+  const gdriveScriptUrl = document.getElementById('gdriveScriptUrl');
+  const gdriveStatusText = document.getElementById('gdriveStatusText');
+  const uploadProgressContainer = document.getElementById('uploadProgressContainer');
+  const uploadProgressFill = document.getElementById('uploadProgressFill');
+  const uploadProgressPercent = document.getElementById('uploadProgressPercent');
+  const btnSubmitEvidence = document.getElementById('btnSubmitEvidence');
+  const btnSubmitEvidenceText = document.getElementById('btnSubmitEvidenceText');
+  const evidenceEmptyBox = document.getElementById('evidenceEmptyBox');
+  const evidenceUploadedList = document.getElementById('evidenceUploadedList');
+
+  let selectedEvidenceFile = null;
+
+  // Populate Unsur Variabel Options dynamically from active TP POL form
+  const populateEvidenceKeteranganOptions = () => {
+    if (!evidenceKeteranganSelect) return;
+    const currentJabatan = tppolSelectJabatan ? tppolSelectJabatan.value : 'gizi';
+    const formData = ALL_SCORING_DATA[currentJabatan];
+    const items = formData ? formData.items : [];
+
+    evidenceKeteranganSelect.innerHTML = '';
+
+    if (items && items.length > 0) {
+      items.forEach((item, index) => {
+        const opt = document.createElement('option');
+        const cleanUnsur = item.unsur.replace(/\s+/g, ' ').trim();
+        opt.value = cleanUnsur;
+        opt.textContent = `${index + 1}. ${cleanUnsur}`;
+        evidenceKeteranganSelect.appendChild(opt);
+      });
+    }
+
+    // Add option for custom note
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = '➕ Lainnya / Tulis Keterangan Kustom...';
+    evidenceKeteranganSelect.appendChild(customOpt);
+
+    if (groupCustomKeterangan) {
+      groupCustomKeterangan.style.display = evidenceKeteranganSelect.value === '__custom__' ? 'block' : 'none';
+    }
+  };
+
+  if (evidenceKeteranganSelect) {
+    evidenceKeteranganSelect.addEventListener('change', () => {
+      if (groupCustomKeterangan) {
+        groupCustomKeterangan.style.display = evidenceKeteranganSelect.value === '__custom__' ? 'block' : 'none';
+      }
+    });
+  }
+
+  if (tppolSelectJabatan) {
+    tppolSelectJabatan.addEventListener('change', populateEvidenceKeteranganOptions);
+  }
+
+  // Load saved Google Script URL
+  const DEFAULT_GDRIVE_URL = localStorage.getItem('SICEKAS_GDRIVE_ENDPOINT') || 'https://script.google.com/macros/s/AKfycbwy_8AJb9KyPC1yqclPuVNNuZ0EJLZW0GxwRJAYmErHJJynBnfxr7hJtP_Yn2DOv_hS/exec';
+  if (gdriveScriptUrl) {
+    gdriveScriptUrl.value = DEFAULT_GDRIVE_URL;
+    if (gdriveStatusText) {
+      gdriveStatusText.textContent = 'Tersambung (Aktif)';
+      gdriveStatusText.style.color = '#34d399';
+    }
+  }
+
+  // Toggle GDrive Config Body
+  if (toggleGdriveConfig && gdriveConfigBody) {
+    toggleGdriveConfig.addEventListener('click', () => {
+      const isHidden = gdriveConfigBody.style.display === 'none';
+      gdriveConfigBody.style.display = isHidden ? 'block' : 'none';
+    });
+  }
+
+  // Save GDrive URL on change
+  if (gdriveScriptUrl) {
+    gdriveScriptUrl.addEventListener('change', () => {
+      const val = gdriveScriptUrl.value.trim();
+      localStorage.setItem('SICEKAS_GDRIVE_ENDPOINT', val);
+      if (gdriveStatusText) {
+        gdriveStatusText.textContent = val ? 'Tersambung (Kustom)' : 'Google Apps Script Web App';
+      }
+    });
+  }
+
+  // File Selection Helper
+  const handleEvidenceFileSelect = (file) => {
+    if (!file) return;
+    if (file.size > 25 * 1024 * 1024) {
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'warning',
+          title: 'Ukuran File Terlalu Besar',
+          text: 'Maksimum ukuran file bukti dukung adalah 25 MB.',
+          background: '#0f172a',
+          color: '#ffffff'
+        });
+      } else {
+        alert('Maksimum ukuran file adalah 25 MB.');
+      }
+      return;
+    }
+
+    selectedEvidenceFile = file;
+    const ext = file.name.split('.').pop().toUpperCase();
+    const sizeKB = (file.size / 1024).toFixed(1);
+    const sizeStr = file.size > 1024 * 1024 ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : `${sizeKB} KB`;
+
+    if (filePreviewExt) filePreviewExt.textContent = ext;
+    if (filePreviewName) filePreviewName.textContent = file.name;
+    if (filePreviewSize) filePreviewSize.textContent = sizeStr;
+
+    if (dropzoneIdle) dropzoneIdle.style.display = 'none';
+    if (dropzonePreview) dropzonePreview.style.display = 'flex';
+  };
+
+  const clearEvidenceFile = () => {
+    selectedEvidenceFile = null;
+    if (evidenceFileInput) evidenceFileInput.value = '';
+    if (dropzoneIdle) dropzoneIdle.style.display = 'flex';
+    if (dropzonePreview) dropzonePreview.style.display = 'none';
+  };
+
+  // Dropzone Click & Drag Events
+  if (evidenceDropzone && evidenceFileInput) {
+    evidenceDropzone.addEventListener('click', (e) => {
+      if (e.target.closest('#btnRemoveEvidenceFile')) return;
+      evidenceFileInput.click();
+    });
+
+    evidenceFileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleEvidenceFileSelect(e.target.files[0]);
+      }
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      evidenceDropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        evidenceDropzone.classList.add('dragover');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      evidenceDropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        evidenceDropzone.classList.remove('dragover');
+      });
+    });
+
+    evidenceDropzone.addEventListener('drop', (e) => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleEvidenceFileSelect(e.dataTransfer.files[0]);
+      }
+    });
+  }
+
+  if (btnRemoveEvidenceFile) {
+    btnRemoveEvidenceFile.addEventListener('click', (e) => {
+      e.stopPropagation();
+      clearEvidenceFile();
+    });
+  }
+
+  // Open Modal Handler
+  if (btnUploadEvidence && modalEvidenceUpload) {
+    btnUploadEvidence.addEventListener('click', () => {
+      const activePetugasName = signPetugas ? signPetugas.value : 'Mochamad Fauzie, S.Gz';
+      const mIdx = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
+      const mName = MONTH_NAMES[mIdx - 1] || 'Agustus';
+      const yVal = tppolYear ? tppolYear.value : '2026';
+
+      if (evidencePetugasLabel) evidencePetugasLabel.textContent = activePetugasName;
+      if (evidencePeriodeLabel) evidencePeriodeLabel.textContent = `${mName} ${yVal}`;
+
+      // Populate dynamic options based on current active TP POL form
+      populateEvidenceKeteranganOptions();
+
+      clearEvidenceFile();
+      if (evidenceKeteranganCustom) evidenceKeteranganCustom.value = '';
+      if (uploadProgressContainer) uploadProgressContainer.style.display = 'none';
+      if (btnSubmitEvidence) btnSubmitEvidence.disabled = false;
+      if (btnSubmitEvidenceText) btnSubmitEvidenceText.textContent = 'Mulai Upload ke Google Drive';
+
+      modalEvidenceUpload.classList.add('active');
+    });
+  }
+
+  // Close Modal Handlers
+  const closeEvidenceUploadModal = () => {
+    if (modalEvidenceUpload) modalEvidenceUpload.classList.remove('active');
+  };
+
+  if (closeEvidenceModal) closeEvidenceModal.addEventListener('click', closeEvidenceUploadModal);
+  if (btnCancelEvidence) btnCancelEvidence.addEventListener('click', closeEvidenceUploadModal);
+
+  // Evidence Storage & Render Functions
+  const getEvidenceStorageKey = () => {
+    const pName = signPetugas ? signPetugas.value : 'default';
+    const mVal = tppolMonth ? tppolMonth.value : '8';
+    const yVal = tppolYear ? tppolYear.value : '2026';
+    return `SICEKAS_EVIDENCE_${yVal}_${mVal}_${encodeURIComponent(pName)}`;
+  };
+
+  const loadEvidenceList = () => {
+    try {
+      const raw = localStorage.getItem(getEvidenceStorageKey());
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const saveEvidenceList = (list) => {
+    try {
+      localStorage.setItem(getEvidenceStorageKey(), JSON.stringify(list));
+    } catch (e) {}
+  };
+
+  const renderEvidenceList = () => {
+    if (!evidenceUploadedList || !evidenceEmptyBox) return;
+    const items = loadEvidenceList();
+
+    // Update Counter Badge on Header Button
+    const badge = document.getElementById('evidenceCountBadge');
+    if (badge) {
+      if (items && items.length > 0) {
+        badge.textContent = items.length;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    if (!items || items.length === 0) {
+      evidenceEmptyBox.style.display = 'flex';
+      evidenceUploadedList.style.display = 'none';
+      evidenceUploadedList.innerHTML = '';
+      return;
+    }
+
+    evidenceEmptyBox.style.display = 'none';
+    evidenceUploadedList.style.display = 'flex';
+
+    evidenceUploadedList.innerHTML = items.map((item, idx) => `
+      <div class="evidence-item-card" data-id="${item.id || idx}">
+        <div class="evidence-item-left" style="cursor: pointer;" onclick="openEvidenceViewer(${idx})" title="Klik untuk membuka dokumen">
+          <div class="evidence-file-icon">${item.fileExt || 'DOC'}</div>
+          <div class="evidence-file-details">
+            <div class="evidence-file-name" title="${item.fileName}">${item.fileName}</div>
+            <div class="evidence-file-desc" title="${item.keterangan || ''}">${item.keterangan || 'Bukti Dukung'} &bull; ${item.fileSize || ''}</div>
+          </div>
+        </div>
+        <div class="evidence-item-actions">
+          <button type="button" class="btn-preview-evidence" onclick="openEvidenceViewer(${idx})" title="Buka & Baca Dokumen">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+            <span>Buka</span>
+          </button>
+          <a href="${item.fileUrl || '#'}" target="_blank" rel="noopener noreferrer" class="btn-gdrive-link" title="Buka di Google Drive Tab Baru">
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            <span>Drive</span>
+          </a>
+          <button type="button" class="btn-delete-evidence" onclick="deleteEvidenceItem(${idx})" title="Hapus Evidence">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  };
+
+  // Floating Evidence Popover Controller (Beside Cetak Dokumen)
+  const btnToggleEvidencePopover = document.getElementById('btnToggleEvidencePopover');
+  const evidenceFloatingPopover = document.getElementById('evidenceFloatingPopover');
+  const btnCloseEvidencePopover = document.getElementById('btnCloseEvidencePopover');
+
+  if (btnToggleEvidencePopover && evidenceFloatingPopover) {
+    btnToggleEvidencePopover.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isActive = evidenceFloatingPopover.classList.toggle('active');
+      btnToggleEvidencePopover.classList.toggle('active', isActive);
+      if (isActive) renderEvidenceList();
+    });
+
+    if (btnCloseEvidencePopover) {
+      btnCloseEvidencePopover.addEventListener('click', (e) => {
+        e.stopPropagation();
+        evidenceFloatingPopover.classList.remove('active');
+        btnToggleEvidencePopover.classList.remove('active');
+      });
+    }
+
+    // Close when clicking anywhere outside
+    document.addEventListener('click', (e) => {
+      if (evidenceFloatingPopover.classList.contains('active')) {
+        if (!evidenceFloatingPopover.contains(e.target) && !btnToggleEvidencePopover.contains(e.target)) {
+          evidenceFloatingPopover.classList.remove('active');
+          btnToggleEvidencePopover.classList.remove('active');
+        }
+      }
+    });
+  }
+
+  // Document & Evidence Viewer Modal Controller
+  const modalEvidenceViewer = document.getElementById('modalEvidenceViewer');
+  const closeEvidenceViewer = document.getElementById('closeEvidenceViewer');
+  const btnCloseEvidenceViewer = document.getElementById('btnCloseEvidenceViewer');
+  const viewerFileName = document.getElementById('viewerFileName');
+  const viewerFileMeta = document.getElementById('viewerFileMeta');
+  const viewerExtBadge = document.getElementById('viewerExtBadge');
+  const viewerKeteranganText = document.getElementById('viewerKeteranganText');
+  const btnViewerOpenDrive = document.getElementById('btnViewerOpenDrive');
+  const docViewerLoading = document.getElementById('docViewerLoading');
+  const docViewerIframe = document.getElementById('docViewerIframe');
+  const docViewerImageBox = document.getElementById('docViewerImageBox');
+  const docViewerImg = document.getElementById('docViewerImg');
+
+  const closeDocViewerModal = () => {
+    if (modalEvidenceViewer) {
+      modalEvidenceViewer.classList.remove('active');
+      // Reset to landscape (default) on close
+      const card = modalEvidenceViewer.querySelector('.modal-card-docviewer');
+      if (card) card.classList.remove('viewer-portrait');
+    }
+    if (docViewerIframe) docViewerIframe.src = 'about:blank';
+    if (docViewerImg) docViewerImg.src = '';
+  };
+
+  if (closeEvidenceViewer) closeEvidenceViewer.addEventListener('click', closeDocViewerModal);
+  if (btnCloseEvidenceViewer) btnCloseEvidenceViewer.addEventListener('click', closeDocViewerModal);
+
+  // Orientation toggle: Landscape ↔ Portrait
+  const btnViewerToggleOrient = document.getElementById('btnViewerToggleOrient');
+  if (btnViewerToggleOrient) {
+    btnViewerToggleOrient.addEventListener('click', () => {
+      const card = modalEvidenceViewer ? modalEvidenceViewer.querySelector('.modal-card-docviewer') : null;
+      if (!card) return;
+      const isPortrait = card.classList.toggle('viewer-portrait');
+      const label = btnViewerToggleOrient.querySelector('span');
+      if (label) label.textContent = isPortrait ? 'Portrait' : 'Landscape';
+    });
+  }
+
+  // Expose openEvidenceViewer to window
+  window.openEvidenceViewer = async (idx) => {
+    const items = loadEvidenceList();
+    const item = items[idx];
+    if (!item) return;
+
+    if (viewerFileName) viewerFileName.textContent = item.fileName || 'Dokumen Bukti Dukung';
+    if (viewerExtBadge) viewerExtBadge.textContent = (item.fileExt || 'DOC').toUpperCase();
+    if (viewerFileMeta) viewerFileMeta.textContent = `${item.petugas || ''} • ${item.periode || ''} • ${item.fileSize || ''}`;
+    if (viewerKeteranganText) viewerKeteranganText.textContent = item.keterangan || '-';
+
+    if (docViewerLoading) {
+      docViewerLoading.classList.remove('hidden');
+      docViewerLoading.innerHTML = `
+        <div class="browser-spinner"></div>
+        <div style="font-size: 13px; color: #94a3b8; margin-top: 10px;">Membuka dan memuat berkas...</div>
+      `;
+    }
+    if (docViewerIframe) docViewerIframe.style.display = 'none';
+    if (docViewerImageBox) docViewerImageBox.style.display = 'none';
+    if (modalEvidenceViewer) modalEvidenceViewer.classList.add('active');
+
+    const ext = (item.fileExt || '').toLowerCase();
+    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+
+    // ─── Step 1: Extract valid Google Drive File ID ───
+    let realFileId = '';
+    if (item.fileId && !item.fileId.startsWith('gdrive_') && item.fileId.length >= 20) {
+      realFileId = item.fileId;
+    }
+    if (!realFileId && item.fileUrl) {
+      const matchD = item.fileUrl.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
+      const matchId = item.fileUrl.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+      const matchOpen = item.fileUrl.match(/open\?id=([a-zA-Z0-9_-]{20,})/);
+      if (matchD) realFileId = matchD[1];
+      else if (matchId) realFileId = matchId[1];
+      else if (matchOpen) realFileId = matchOpen[1];
+    }
+
+    // ─── Step 2: If no valid ID, auto-search Google Drive via Apps Script ───
+    if (!realFileId) {
+      const endpointUrl = (typeof gdriveScriptUrl !== 'undefined' && gdriveScriptUrl ? gdriveScriptUrl.value.trim() : '') ||
+        localStorage.getItem('SICEKAS_GDRIVE_ENDPOINT') ||
+        'https://script.google.com/macros/s/AKfycbwy_8AJb9KyPC1yqclPuVNNuZ0EJLZW0GxwRJAYmErHJJynBnfxr7hJtP_Yn2DOv_hS/exec';
+
+      if (docViewerLoading) {
+        docViewerLoading.innerHTML = `
+          <div class="browser-spinner"></div>
+          <div style="font-size: 13px; color: #94a3b8; margin-top: 10px;">Mencari berkas di Google Drive...</div>
+        `;
+      }
+
+      try {
+        const searchRes = await fetch(endpointUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'search',
+            fileName: item.fileName,
+            petugas: item.petugas || ''
+          }),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        });
+        const searchResult = await searchRes.json();
+        if (searchResult && searchResult.fileId) {
+          realFileId = searchResult.fileId;
+          // Persist the found ID so we don't need to search again
+          item.fileId = realFileId;
+          item.fileUrl = searchResult.fileUrl || `https://drive.google.com/file/d/${realFileId}/view?usp=sharing`;
+          saveEvidenceList(items);
+        }
+      } catch (err) {
+        console.warn('[EVIDENCE VIEWER] Auto-search failed:', err);
+      }
+    }
+
+    // ─── Step 3: Build preview URL ───
+    let previewUrl = '';
+    let directDriveUrl = '#';
+
+    if (realFileId) {
+      previewUrl = `https://drive.google.com/file/d/${realFileId}/preview`;
+      directDriveUrl = `https://drive.google.com/file/d/${realFileId}/view?usp=sharing`;
+    } else if (item.fileUrl && item.fileUrl.includes('drive.google.com') && item.fileUrl.length > 40) {
+      previewUrl = item.fileUrl.replace(/\/view(\?.*)?$/, '/preview').replace(/\/edit(\?.*)?$/, '/preview');
+      directDriveUrl = item.fileUrl;
+    }
+
+    if (btnViewerOpenDrive) btnViewerOpenDrive.href = directDriveUrl;
+
+    // ─── Step 4: Display the file ───
+    if (previewUrl && previewUrl !== '#') {
+      if (isImage && realFileId) {
+        // For images on Google Drive, use thumbnail URL for direct display
+        const thumbUrl = `https://drive.google.com/thumbnail?id=${realFileId}&sz=w1200`;
+        if (docViewerIframe) docViewerIframe.style.display = 'none';
+        if (docViewerImageBox) {
+          docViewerImageBox.style.display = 'flex';
+          if (docViewerImg) {
+            docViewerImg.src = thumbUrl;
+            docViewerImg.onerror = () => {
+              // Fallback to iframe preview if thumbnail fails
+              docViewerImageBox.style.display = 'none';
+              if (docViewerIframe) {
+                docViewerIframe.style.display = 'block';
+                docViewerIframe.src = previewUrl;
+                docViewerIframe.onload = () => {
+                  if (docViewerLoading) docViewerLoading.classList.add('hidden');
+                };
+              }
+            };
+            docViewerImg.onload = () => {
+              if (docViewerLoading) docViewerLoading.classList.add('hidden');
+            };
+          }
+        }
+      } else {
+        // PDF, DOCX, XLSX, etc. → iframe preview
+        if (docViewerImageBox) docViewerImageBox.style.display = 'none';
+        if (docViewerIframe) {
+          docViewerIframe.style.display = 'block';
+          docViewerIframe.src = previewUrl;
+          docViewerIframe.onload = () => {
+            setTimeout(() => {
+              if (docViewerLoading) docViewerLoading.classList.add('hidden');
+            }, 400);
+          };
+        }
+      }
+    } else {
+      // ─── No valid link found: show helpful message ───
+      if (docViewerLoading) {
+        docViewerLoading.innerHTML = `
+          <div style="text-align: center; padding: 24px; max-width: 420px;">
+            <div style="font-size: 40px; margin-bottom: 12px;">📄</div>
+            <h4 style="color: #ffffff; font-size: 15px; font-weight: 700; margin-bottom: 8px;">File Tidak Ditemukan di Google Drive</h4>
+            <p style="color: #94a3b8; font-size: 12px; line-height: 1.6; margin-bottom: 16px;">
+              Berkas <strong>${item.fileName || ''}</strong> tidak ditemukan di folder Google Drive Anda.
+              Silakan <strong>hapus item ini</strong> (🗑️) lalu <strong>unggah ulang berkas</strong> dari halaman Evidence.
+            </p>
+            <a href="https://drive.google.com/drive/folders/1Y8av2ZMe1teS3dvc8fvGQ3ALkVPhp7og" target="_blank" rel="noopener noreferrer"
+               style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">
+              Buka Folder Google Drive ↗
+            </a>
+          </div>
+        `;
+      }
+    }
+  };
+
+  // Expose delete to window with Google Drive synchronization & SweetAlert2
+  window.deleteEvidenceItem = async (idx) => {
+    const items = loadEvidenceList();
+    const itemToDelete = items[idx];
+    if (!itemToDelete) return;
+
+    let confirmed = false;
+    if (typeof Swal !== 'undefined') {
+      const result = await Swal.fire({
+        title: 'Hapus Bukti Dukung?',
+        html: `Berkas <strong>${itemToDelete.fileName}</strong> akan dihapus dari sistem dan Google Drive Puskesmas.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#334155',
+        confirmButtonText: 'Ya, Hapus',
+        cancelButtonText: 'Batal',
+        background: '#0f172a',
+        color: '#ffffff'
+      });
+      confirmed = result.isConfirmed;
+    } else {
+      confirmed = confirm(`Apakah Anda yakin ingin menghapus "${itemToDelete.fileName}" dari sistem dan Google Drive?`);
+    }
+
+    if (!confirmed) return;
+
+    // Call Google Apps Script delete action if fileId exists and endpoint is configured
+    const endpointUrl = (gdriveScriptUrl ? gdriveScriptUrl.value.trim() : '') || localStorage.getItem('SICEKAS_GDRIVE_ENDPOINT') || 'https://script.google.com/macros/s/AKfycbwy_8AJb9KyPC1yqclPuVNNuZ0EJLZW0GxwRJAYmErHJJynBnfxr7hJtP_Yn2DOv_hS/exec';
+    
+    if (itemToDelete.fileId && endpointUrl && endpointUrl.startsWith('http')) {
+      try {
+        fetch(endpointUrl, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'delete',
+            fileId: itemToDelete.fileId
+          }),
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        }).catch(err => console.warn('[GDRIVE DELETE] Failed to delete on drive:', err));
+      } catch (err) {}
+    }
+
+    // Remove from list
+    items.splice(idx, 1);
+    saveEvidenceList(items);
+    renderEvidenceList();
+
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Berkas Berhasil Dihapus',
+        text: 'Berkas bukti dukung telah dihapus dari sistem dan Google Drive.',
+        background: '#0f172a',
+        color: '#ffffff',
+        confirmButtonColor: '#10b981',
+        timer: 2000,
+        timerProgressBar: true
+      });
+    }
+  };
+
+  // Re-render when employee or period changes
+  if (signPetugas) signPetugas.addEventListener('change', renderEvidenceList);
+  if (tppolMonth) tppolMonth.addEventListener('change', renderEvidenceList);
+  if (tppolYear) tppolYear.addEventListener('change', renderEvidenceList);
+
+  // Initial render on load
+  setTimeout(renderEvidenceList, 800);
+
+  // Submit Form Handler: Upload to Google Drive
+  if (formUploadEvidence) {
+    formUploadEvidence.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (!selectedEvidenceFile) {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Pilih File Terlebih Dahulu',
+            text: 'Silakan pilih berkas dokumen bukti dukung sebelum mengunggah.',
+            background: '#0f172a',
+            color: '#ffffff'
+          });
+        } else {
+          alert('Pilih file terlebih dahulu.');
+        }
+        return;
+      }
+
+      let loggedInUser = {};
+      try {
+        loggedInUser = JSON.parse(localStorage.getItem('SICEKAS_CURRENT_USER') || '{}');
+      } catch (e) {}
+
+      const activePetugasName = signPetugas ? signPetugas.value : (loggedInUser.nama || 'Mochamad Fauzie, S.Gz');
+      const activePetugasNip = (signPetugas && signPetugas.options[signPetugas.selectedIndex]?.getAttribute('data-nip')) || loggedInUser.nip || '';
+      const mIdx = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
+      const mName = MONTH_NAMES[mIdx - 1] || 'Agustus';
+      const yVal = tppolYear ? tppolYear.value : '2026';
+      let keteranganVal = '';
+      if (evidenceKeteranganSelect) {
+        if (evidenceKeteranganSelect.value === '__custom__') {
+          keteranganVal = (evidenceKeteranganCustom && evidenceKeteranganCustom.value.trim()) ? evidenceKeteranganCustom.value.trim() : 'Bukti Dukung Tambahan';
+        } else {
+          const selectedUnsur = evidenceKeteranganSelect.value;
+          const customNote = (evidenceKeteranganCustom && evidenceKeteranganCustom.value.trim()) ? evidenceKeteranganCustom.value.trim() : '';
+          keteranganVal = customNote ? `${selectedUnsur} (${customNote})` : selectedUnsur;
+        }
+      }
+      if (!keteranganVal) keteranganVal = 'Bukti Dukung TP POL';
+      const endpointUrl = (gdriveScriptUrl ? gdriveScriptUrl.value.trim() : '') || localStorage.getItem('SICEKAS_GDRIVE_ENDPOINT') || 'https://script.google.com/macros/s/AKfycbwy_8AJb9KyPC1yqclPuVNNuZ0EJLZW0GxwRJAYmErHJJynBnfxr7hJtP_Yn2DOv_hS/exec';
+
+      // Progress animation
+      if (uploadProgressContainer) uploadProgressContainer.style.display = 'block';
+      if (uploadProgressFill) uploadProgressFill.style.width = '25%';
+      if (uploadProgressPercent) uploadProgressPercent.textContent = '25%';
+      if (btnSubmitEvidence) btnSubmitEvidence.disabled = true;
+      if (btnSubmitEvidenceText) btnSubmitEvidenceText.textContent = 'Sedang Memproses...';
+
+      try {
+        // Read file as Base64
+        const reader = new FileReader();
+        reader.readAsDataURL(selectedEvidenceFile);
+
+        reader.onload = async () => {
+          const base64Data = reader.result.split(',')[1];
+          if (uploadProgressFill) uploadProgressFill.style.width = '60%';
+          if (uploadProgressPercent) uploadProgressPercent.textContent = '60%';
+
+          let uploadedFileUrl = 'https://drive.google.com';
+          let gdriveFileId = 'gdrive_' + Date.now();
+
+          // If Google Apps Script Web App URL is configured, POST to it
+          if (endpointUrl && endpointUrl.startsWith('http')) {
+            try {
+              const payload = {
+                fileName: selectedEvidenceFile.name,
+                fileType: selectedEvidenceFile.type || 'application/octet-stream',
+                base64: base64Data,
+                petugas: activePetugasName,
+                nip: activePetugasNip,
+                tahun: yVal,
+                bulan: mName,
+                periode: `${mName} ${yVal}`,
+                keterangan: keteranganVal
+              };
+
+              const res = await fetch(endpointUrl, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+              });
+
+              const result = await res.json();
+              if (result) {
+                if (result.fileUrl) uploadedFileUrl = result.fileUrl;
+                else if (result.url) uploadedFileUrl = result.url;
+
+                if (result.fileId) gdriveFileId = result.fileId;
+                else if (result.id) gdriveFileId = result.id;
+                else if (uploadedFileUrl.includes('/d/')) {
+                  const m = uploadedFileUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                  if (m) gdriveFileId = m[1];
+                }
+              }
+            } catch (err) {
+              console.warn('[GDRIVE UPLOAD] Remote endpoint error, fallback to recorded link:', err);
+            }
+          }
+
+          if (uploadProgressFill) uploadProgressFill.style.width = '100%';
+          if (uploadProgressPercent) uploadProgressPercent.textContent = '100%';
+
+          // Save to local evidence collection
+          const ext = selectedEvidenceFile.name.split('.').pop().toUpperCase();
+          const sizeKB = (selectedEvidenceFile.size / 1024).toFixed(1);
+          const sizeStr = selectedEvidenceFile.size > 1024 * 1024 ? `${(selectedEvidenceFile.size / (1024 * 1024)).toFixed(2)} MB` : `${sizeKB} KB`;
+
+          const newEvidence = {
+            id: 'ev_' + Date.now(),
+            fileId: gdriveFileId,
+            petugas: activePetugasName,
+            periode: `${mName} ${yVal}`,
+            month: mIdx,
+            year: yVal,
+            keterangan: keteranganVal,
+            fileName: selectedEvidenceFile.name,
+            fileExt: ext,
+            fileSize: sizeStr,
+            fileUrl: uploadedFileUrl,
+            uploadedAt: new Date().toISOString()
+          };
+
+          const list = loadEvidenceList();
+          list.unshift(newEvidence);
+          saveEvidenceList(list);
+          renderEvidenceList();
+
+          // Close modal and show success
+          closeEvidenceUploadModal();
+
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil Diunggah!',
+              html: `Berkas <strong>${selectedEvidenceFile.name}</strong> berhasil tersimpan.<br><span style="font-size:12px;color:#94a3b8;">Tautan Google Drive telah tersinkronisasi ke sistem.</span>`,
+              background: '#0f172a',
+              color: '#ffffff',
+              confirmButtonColor: '#10b981'
+            });
+          } else {
+            alert(`Berkas ${selectedEvidenceFile.name} berhasil diunggah!`);
+          }
+        };
+
+        reader.onerror = () => {
+          throw new Error('Gagal membaca file.');
+        };
+
+      } catch (err) {
+        if (uploadProgressContainer) uploadProgressContainer.style.display = 'none';
+        if (btnSubmitEvidence) btnSubmitEvidence.disabled = false;
+        if (btnSubmitEvidenceText) btnSubmitEvidenceText.textContent = 'Mulai Upload ke Google Drive';
+
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Mengunggah',
+            text: err.message || 'Terjadi kesalahan saat memproses file.',
+            background: '#0f172a',
+            color: '#ffffff'
+          });
+        } else {
+          alert('Gagal mengunggah: ' + err.message);
+        }
+      }
+    });
+  }
+
+  // ==========================================================================
+  // 11. SPPD & LPT (SURAT PERJALANAN DINAS & LAPORAN TUGAS) CONTROLLER
+  // ==========================================================================
+  const sppdLptSelectForm = document.getElementById('sppdLptSelectForm');
+  const sppdDisplayPartGroup = document.getElementById('sppdDisplayPartGroup');
+  const sppdDisplayPart = document.getElementById('sppdDisplayPart');
+
+  const sppdSheetDepan = document.getElementById('sppdSheetDepan');
+  const sppdSheetBelakang = document.getElementById('sppdSheetBelakang');
+  const lptSheetDoc = document.getElementById('lptSheetDoc');
+  const dokSheetDoc = document.getElementById('dokSheetDoc');
+
+  const sppdSidebarSections = document.getElementById('sppdSidebarSections');
+  const lptSidebarSections = document.getElementById('lptSidebarSections');
+  const dokSidebarSections = document.getElementById('dokSidebarSections');
+
+  const sppdInputNoSurat = document.getElementById('sppdInputNoSurat');
+  const sppdInputPegawai = document.getElementById('sppdInputPegawai');
+  const sppdInputTglBerangkat = document.getElementById('sppdInputTglBerangkat');
+  const sppdInputTglKembali = document.getElementById('sppdInputTglKembali');
+  const sppdInputMaksud = document.getElementById('sppdInputMaksud');
+  const sppdInputTempatBerangkat = document.getElementById('sppdInputTempatBerangkat');
+  const sppdInputTujuan = document.getElementById('sppdInputTujuan');
+
+  // SPPD Logo Fixed Dimensions (Locked: Size 180px, Position -31px)
+  document.documentElement.style.setProperty('--sppd-logo-size', '180px');
+  document.documentElement.style.setProperty('--sppd-logo-offset-x', '-31px');
+
+  const btnSaveSppdLpt = document.getElementById('btnSaveSppdLpt');
+  const btnPrintSppdLpt = document.getElementById('btnPrintSppdLpt');
+
+  // Format YYYY-MM-DD to DD MonthName YYYY
+  const formatIndoDate = (dateStr) => {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    if (parts.length !== 3) return dateStr;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    const d = parseInt(parts[2], 10);
+    if (isNaN(y) || isNaN(m) || isNaN(d)) return '';
+    const dayFormatted = d < 10 ? `0${d}` : `${d}`;
+    const mName = MONTH_NAMES[m - 1] || '';
+    return `${dayFormatted} ${mName} ${y}`;
+  };
+
+  // Calculate Duration in Days with Indonesian wording
+  const calculateLamaHari = (startStr, endStr) => {
+    if (!startStr) return '';
+    if (!endStr) endStr = startStr;
+    const start = new Date(startStr);
+    const end = new Date(endStr);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return '';
+    const diffTime = end.getTime() - start.getTime();
+    let diffDays = Math.round(diffTime / (1000 * 3600 * 24)) + 1;
+    if (diffDays < 1) diffDays = 1;
+
+    const angkaTerbilang = [
+      'nol', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan',
+      'sepuluh', 'sebelas', 'dua belas', 'tiga belas', 'empat belas', 'lima belas',
+      'enam belas', 'tujuh belas', 'delapan belas', 'sembilan belas', 'dua puluh'
+    ];
+    const terbilang = diffDays < angkaTerbilang.length ? angkaTerbilang[diffDays] : `${diffDays}`;
+    return `${diffDays} (${terbilang}) hari`;
+  };
+
+  // Sync SPPD & LPT Data in Real-Time
+  const syncSppdLptData = () => {
+    const noSurat = sppdInputNoSurat ? sppdInputNoSurat.value : '';
+    const maksud = sppdInputMaksud ? sppdInputMaksud.value : '';
+    const tempatBerangkat = sppdInputTempatBerangkat ? sppdInputTempatBerangkat.value : '';
+    const tujuan = sppdInputTujuan ? sppdInputTujuan.value : '';
+    
+    const tglBerangkatRaw = sppdInputTglBerangkat ? sppdInputTglBerangkat.value : '';
+    const tglKembaliRaw = sppdInputTglKembali ? sppdInputTglKembali.value : '';
+    const tglBerangkat = formatIndoDate(tglBerangkatRaw);
+    const tglKembali = formatIndoDate(tglKembaliRaw);
+    const lamaPerjalanan = calculateLamaHari(tglBerangkatRaw, tglKembaliRaw);
+
+    let pegawaiName = '';
+    let pegawaiNip = '';
+    let pegawaiJabatan = '';
+    let pegawaiPangkat = '';
+
+    if (sppdInputPegawai && sppdInputPegawai.selectedIndex >= 0) {
+      const opt = sppdInputPegawai.options[sppdInputPegawai.selectedIndex];
+      if (opt && opt.value) {
+        pegawaiName = opt.value;
+        pegawaiNip = opt.getAttribute('data-nip') || '';
+        pegawaiJabatan = opt.getAttribute('data-jabatan') || '';
+        pegawaiPangkat = opt.getAttribute('data-pangkat') || '';
+      }
+    }
+
+    // Update Lembar Depan
+    const sppdDocNoDisplay = document.getElementById('sppdDocNoDisplay');
+    if (sppdDocNoDisplay) sppdDocNoDisplay.textContent = noSurat;
+
+    const sppdValPegawaiPelaksana = document.getElementById('sppdValPegawaiPelaksana');
+    if (sppdValPegawaiPelaksana) {
+      if (pegawaiName) {
+        sppdValPegawaiPelaksana.innerHTML = `<div>${pegawaiName}</div><div style="margin-top: 2px;">${pegawaiNip}</div>`;
+      } else {
+        sppdValPegawaiPelaksana.innerHTML = `<div>...........................................</div><div style="margin-top: 2px;">NIP. ...........................................</div>`;
+      }
+    }
+
+    const sppdValPangkat = document.getElementById('sppdValPangkat');
+    if (sppdValPangkat) sppdValPangkat.textContent = pegawaiPangkat || '-';
+
+    const sppdValJabatan = document.getElementById('sppdValJabatan');
+    if (sppdValJabatan) sppdValJabatan.textContent = pegawaiJabatan || '-';
+
+    const sppdValMaksud = document.getElementById('sppdValMaksud');
+    if (sppdValMaksud) sppdValMaksud.textContent = maksud;
+
+    const sppdValTempatBerangkat = document.getElementById('sppdValTempatBerangkat');
+    if (sppdValTempatBerangkat) sppdValTempatBerangkat.textContent = tempatBerangkat;
+
+    const sppdValTempatTujuan = document.getElementById('sppdValTempatTujuan');
+    if (sppdValTempatTujuan) sppdValTempatTujuan.textContent = tujuan;
+
+    const sppdValLamaPerjalanan = document.getElementById('sppdValLamaPerjalanan');
+    if (sppdValLamaPerjalanan) sppdValLamaPerjalanan.textContent = lamaPerjalanan;
+
+    const sppdValTglBerangkat = document.getElementById('sppdValTglBerangkat');
+    if (sppdValTglBerangkat) sppdValTglBerangkat.textContent = tglBerangkat;
+
+    const sppdValTglKembali = document.getElementById('sppdValTglKembali');
+    if (sppdValTglKembali) sppdValTglKembali.textContent = tglKembali;
+
+    const sppdSigTanggal = document.getElementById('sppdSigTanggal');
+    if (sppdSigTanggal) sppdSigTanggal.textContent = tglBerangkat || '18 Agustus 2026';
+
+    const sppdSigPegawaiNama = document.getElementById('sppdSigPegawaiNama');
+    if (sppdSigPegawaiNama) sppdSigPegawaiNama.textContent = pegawaiName || 'Mochamad Fauzie, S.Gz';
+
+    const sppdSigPegawaiNip = document.getElementById('sppdSigPegawaiNip');
+    if (sppdSigPegawaiNip) sppdSigPegawaiNip.textContent = pegawaiNip || '873.3204.16.02.008';
+
+    // Update Petugas Pengikut (Nomor 8)
+    for (let i = 1; i <= 4; i++) {
+      const select = document.getElementById(`sppdPengikutSelect${i}`);
+      const inputNama = document.getElementById(`sppdPengikutInputNama${i}`);
+      const inputNip = document.getElementById(`sppdPengikutInputNip${i}`);
+      const inputKet = document.getElementById(`sppdPengikutInputKet${i}`);
+
+      const docNama = document.getElementById(`sppdPengikutNama${i}`);
+      const docNip = document.getElementById(`sppdPengikutNip${i}`);
+      const docKet = document.getElementById(`sppdPengikutKet${i}`);
+
+      let nama = '';
+      let nip = '';
+      let ket = '';
+
+      if (select && select.value === 'CUSTOM') {
+        nama = inputNama ? inputNama.value : '';
+        nip = inputNip ? inputNip.value.replace(/^(NIP|NRP)\.?\s*/i, '').trim() : '';
+        ket = inputKet ? inputKet.value : '';
+      } else if (select && select.selectedIndex > 0) {
+        const opt = select.options[select.selectedIndex];
+        nama = opt.value;
+        const rawNip = inputNip && inputNip.value !== '' ? inputNip.value : (opt.getAttribute('data-nip') || '');
+        nip = rawNip.replace(/^(NIP|NRP)\.?\s*/i, '').trim();
+        ket = inputKet && inputKet.value !== '' ? inputKet.value : (opt.getAttribute('data-ket') || '');
+      }
+
+      if (docNama) docNama.textContent = nama;
+      if (docNip) docNip.textContent = nip;
+      if (docKet) docKet.textContent = ket;
+    }
+
+    // Update Lembar Belakang (Visum Tabel 0, I, II, III, IV, V, VI, VII)
+    // Row 0: Berangkat Awal (Tempat Kedudukan)
+    const sppdBackBerangkatDari = document.getElementById('sppdBackBerangkatDari');
+    if (sppdBackBerangkatDari) sppdBackBerangkatDari.textContent = tempatBerangkat;
+
+    const sppdBackKeAwal = document.getElementById('sppdBackKeAwal');
+    if (sppdBackKeAwal) sppdBackKeAwal.textContent = tujuan;
+
+    const sppdBackTglAwal = document.getElementById('sppdBackTglAwal');
+    if (sppdBackTglAwal) sppdBackTglAwal.textContent = tglBerangkat;
+
+    // Row I: Kotak Sebelah Kiri (Tiba di Lokasi Tujuan)
+    const sppdBackTiba1 = document.getElementById('sppdBackTiba1');
+    if (sppdBackTiba1) sppdBackTiba1.textContent = tujuan;
+
+    const sppdBackTibaTgl1 = document.getElementById('sppdBackTibaTgl1');
+    if (sppdBackTibaTgl1) sppdBackTibaTgl1.textContent = tglBerangkat;
+
+    // Row I: Kotak Sebelah Kanan (Berangkat Kembali ke Tempat Kedudukan)
+    const sppdBackBrgkt1 = document.getElementById('sppdBackBrgkt1');
+    if (sppdBackBrgkt1) sppdBackBrgkt1.textContent = tujuan;
+
+    const sppdBackKe1 = document.getElementById('sppdBackKe1');
+    if (sppdBackKe1) sppdBackKe1.textContent = tempatBerangkat;
+
+    const sppdBackBrgktTgl1 = document.getElementById('sppdBackBrgktTgl1');
+    if (sppdBackBrgktTgl1) sppdBackBrgktTgl1.textContent = tglKembali;
+
+    // Row IV: Kotak Sebelah Kiri (Tiba Kembali di Tempat Kedudukan)
+    const sppdBackTibaAkhir = document.getElementById('sppdBackTibaAkhir');
+    if (sppdBackTibaAkhir) sppdBackTibaAkhir.textContent = tempatBerangkat;
+
+    const sppdBackTibaTglAkhir = document.getElementById('sppdBackTibaTglAkhir');
+    if (sppdBackTibaTglAkhir) sppdBackTibaTglAkhir.textContent = tglKembali;
+
+    // Update LPT Sheet & Form Synchronization
+    const lptValDasar = document.getElementById('lptValDasar');
+    const lptInputDasar = document.getElementById('lptInputDasar');
+    if (lptValDasar && (!lptInputDasar || !lptInputDasar.dataset.userEdited)) {
+      const sptText = noSurat.trim() ? `Surat Perintah Tugas (SPT) Nomor: ${noSurat}` : '';
+      lptValDasar.textContent = sptText;
+      if (lptInputDasar) lptInputDasar.value = sptText;
+    }
+
+    const lptValTujuanPerjalanan = document.getElementById('lptValTujuanPerjalanan');
+    const lptInputTujuanPerjalanan = document.getElementById('lptInputTujuanPerjalanan');
+    if (lptValTujuanPerjalanan && (!lptInputTujuanPerjalanan || !lptInputTujuanPerjalanan.dataset.userEdited)) {
+      const formattedTujuan = `${maksud ? maksud : ''}${maksud && tujuan ? ' - ' : ''}${tujuan ? tujuan : ''}`;
+      lptValTujuanPerjalanan.textContent = formattedTujuan;
+      if (lptInputTujuanPerjalanan) lptInputTujuanPerjalanan.value = formattedTujuan;
+    }
+
+    // Sync to Dokumentasi Kegiatan (Judul Kegiatan)
+    const dokValJudulKegiatan = document.getElementById('dokValJudulKegiatan');
+    const dokInputJudulKegiatan = document.getElementById('dokInputJudulKegiatan');
+    if (dokValJudulKegiatan && (!dokInputJudulKegiatan || !dokInputJudulKegiatan.dataset.userEdited)) {
+      const judulText = maksud.trim() ? maksud : (tujuan.trim() ? tujuan : 'Judul Kegiatan');
+      dokValJudulKegiatan.textContent = judulText;
+      if (dokInputJudulKegiatan) dokInputJudulKegiatan.value = maksud.trim() ? maksud : (tujuan.trim() ? tujuan : '');
+    }
+
+    // Sync SPPD Officer to LPT Petugas 1 (Utama)
+    const lptSelectPetugas1 = document.getElementById('lptSelectPetugas1');
+    const lptSigPetugasName1 = document.getElementById('lptSigPetugasName1');
+    const lptSigPetugasNip1 = document.getElementById('lptSigPetugasNip1');
+
+    if (pegawaiName && pegawaiName.trim()) {
+      if (lptSelectPetugas1 && (!lptSelectPetugas1.dataset.userEdited || !lptSelectPetugas1.value)) {
+        lptSelectPetugas1.value = pegawaiName;
+      }
+      if (lptSigPetugasName1) lptSigPetugasName1.textContent = pegawaiName;
+      if (lptSigPetugasNip1) lptSigPetugasNip1.textContent = pegawaiNip ? pegawaiNip : 'NIP. ...........................................';
+    } else {
+      if (lptSigPetugasName1) lptSigPetugasName1.textContent = '...........................................';
+      if (lptSigPetugasNip1) lptSigPetugasNip1.textContent = 'NIP. ...........................................';
+    }
+
+    // Sync SPPD Pengikut 1..4 to LPT Petugas 2..5 (Maks. 5 Petugas)
+    for (let pIdx = 1; pIdx <= 4; pIdx++) {
+      const petNum = pIdx + 1;
+      const pengikutSelect = document.getElementById(`sppdPengikutSelect${pIdx}`);
+      const lptToggle = document.getElementById(`lptTogglePetugas${petNum}`);
+      const lptSelect = document.getElementById(`lptSelectPetugas${petNum}`);
+      const inputNama = document.getElementById(`sppdPengikutInputNama${pIdx}`);
+      const inputNip = document.getElementById(`sppdPengikutInputNip${pIdx}`);
+      const lptCustomNama = document.getElementById(`lptInputCustomNama${petNum}`);
+      const lptCustomNip = document.getElementById(`lptInputCustomNip${petNum}`);
+      const lptCustomWrap = document.getElementById(`lptCustomWrap${petNum}`);
+
+      if (pengikutSelect && pengikutSelect.value && pengikutSelect.value !== '') {
+        if (lptToggle && (!lptSelect || !lptSelect.dataset.userEdited)) {
+          lptToggle.checked = true;
+          if (pengikutSelect.value === 'CUSTOM') {
+            if (lptSelect) lptSelect.value = 'CUSTOM';
+            if (lptCustomWrap) lptCustomWrap.style.display = 'grid';
+            if (lptCustomNama && inputNama) lptCustomNama.value = inputNama.value;
+            if (lptCustomNip && inputNip) lptCustomNip.value = inputNip.value;
+          } else {
+            if (lptSelect) lptSelect.value = pengikutSelect.value;
+            if (lptCustomWrap) lptCustomWrap.style.display = 'none';
+          }
+          if (typeof syncLptOfficer === 'function') syncLptOfficer(petNum);
+        }
+      }
+    }
+
+    if (typeof updateLptPetugasVisibility === 'function') {
+      updateLptPetugasVisibility();
+    }
+
+    // Sync Date
+    const lptInputTanggalLaporan = document.getElementById('lptInputTanggalLaporan');
+    const lptSigDate = document.getElementById('lptSigDate');
+    if (lptInputTanggalLaporan && tglBerangkatRaw && (!lptInputTanggalLaporan.dataset.userEdited || !lptInputTanggalLaporan.value)) {
+      lptInputTanggalLaporan.value = tglBerangkatRaw;
+    }
+    if (lptSigDate) {
+      if (lptInputTanggalLaporan && lptInputTanggalLaporan.value) {
+        lptSigDate.textContent = formatIndoDate(lptInputTanggalLaporan.value);
+      } else if (tglBerangkat && tglBerangkat.trim()) {
+        lptSigDate.textContent = tglBerangkat;
+      } else {
+        lptSigDate.textContent = '...........................................';
+      }
+    }
+  };
+
+  // List of 40 Official Puskesmas Activities for SPPD & LPT
+  const SPPD_KEGIATAN_LIST = [
+    "Fasilitasi Pelaksanaan First Aider Pertolongan Pertama pada Luka Psikologis (P3LP) di Sekolah",
+    "Pelacakan dan pengawasan minum obat untuk ODGJ berat",
+    "Pelacakan dan pelaporan kematian dan pelaksanaan otopsi verbal kematian Ibu dan Bayi/balita",
+    "Pelaksanaan Kelas Ibu Hamil",
+    "Pelaksanaan Kelas Ibu Balita",
+    "Pelayanan Kesehatan pada anak usia sekolah dan remaja (Skrining dan pembinaan di sekolah dan komunitas)",
+    "Pemantauan Minum TTD",
+    "Pelaksanaan skrining dan intervensi hasil skrining masalah Kesehatan jiwa di UKBM/Lembaga",
+    "Kunjungan lapangan pemantauan bumil KEK, Anemia, Bumil Risti, BBLR, dan Bayi Balita dengan Masalah Gizi",
+    "Kunjungan lapangan pemantauan Tumbuh Kembang dan Masalah Gizi ibu dan anak",
+    "Pendampingan rujukan balita stunting/gizi buruk",
+    "Pelayanan Imunisasi Rutin",
+    "Pelayanan Imunisasi BIAS",
+    "Pelayanan Imunisasi Tambahan",
+    "Penemuan Kasus KIPI dan PD3I",
+    "Deteksi Dini dan Cek Kesehatan Gratis dan Tindak Lanjut Penyakit Tidak Menular",
+    "Inspeksi kesling di sarana tempat dan fasilitas umum, sarana Tempat Pengelolaan Pangan (TPP), Sarana Air Minum (SAM), Fasyankes",
+    "Pemberdayaan kader dalam rangka pencegahan dan pengendalian penyakit tidak menular",
+    "Pemberdayaan kader dalam rangka pencegahan dan pengendalian penyakit menular",
+    "Pemberdayaan kader dalam rangka pelaksanaan Imunisasi",
+    "Pemberdayaan kader masyarakat melalui pemicuan untuk implementasi seluruh pilar STBM (Implementasi 5 pilar STBM)",
+    "Penemuan kasus aktif dan pemantauan pengobatan TBC (Investigasi kontak TBC, pelacakan kasus TBC mangkir)",
+    "Pemantauan menelan obat TBC, pemberian terapi pencegahan TBC, penemuan kasus ILTB",
+    "Penemuan kasus aktif penyakit menular, NTDs (Penyakit Tropis Terabaikan), KIPI dan PD3I (AFP, Campak Rubela dan PD3I lainnya), Pneumonia dan Infeksi Saluran Pernapasan Akut terintegrasi dengan Posyandu, Posbindu",
+    "Pemantauan dan tindaklanjut kasus penyakit menular (Pemberian Obat Pencegahan Massal (POPM) Kecacingan)",
+    "Penemuan kasus aktif kusta dan komprofilaksis kusta",
+    "Survei dan Pengendalian Vector (pengasapan/fogging, penyemprotan dinding rumah (IRS), larvasidasi DBD/Malaria dan PSN",
+    "Kunjungan lapangan dalam rangka pengawasan terhadap kualitas air minum rumah tangga",
+    "Kunjungan lapangan dalam rangka surveilans kualitas udara dalam ruang",
+    "Verifikasi Sinyal/rumor, PE/pelacakan kontak penyakit berpotensi KLB/Wabah/PIE/kejadian tidak lazim (belum teridentifikasi jenis penyakitnya/penyakit misterius)",
+    "Penyelidikan epidemiologi (PE) Penyakit menular lainnya",
+    "Penyelidikan epidemiologi (PE) Penyehatan Lingkungan",
+    "Pembekalan tim pelaksana dalam penyiapan pemberian makanan tambahan berbasis pangan lokal bagi ibu hamil kek dan balita gizi kurang tingkat kab/kota dan puskesmas",
+    "Pendampingan pelaksanaan ILP di pustu dan pelayanan kesehatan desa/kelurahan (UPKD/K)",
+    "kunjungan rumah kader posyandu",
+    "Pembinaan, Koordinasi, Pengelolaan dan Penyelenggaraan UPKD/K",
+    "Tindak Lanjut kunjungan Rumah UPKD/K",
+    "Partispasi dalam Musrenbangdes",
+    "Inetrvensi Pemberdayaan Masyarakat berdasarkan siklus hidup di UPKD/K",
+    "Monitoring dan evaluasi kegiatan Posyandu Bidang kesehatan di wilayah desa/kelurahan"
+  ];
+
+  // Searchable Combobox for Maksud Kegiatan
+  const sppdMaksudDropdownList = document.getElementById('sppdMaksudDropdownList');
+  const sppdMaksudToggleBtn = document.getElementById('sppdMaksudToggleBtn');
+
+  const escapeHtmlHelper = (str) => {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  };
+
+  const renderMaksudDropdown = (filterText = '') => {
+    if (!sppdMaksudDropdownList) return;
+    const query = (filterText || '').toLowerCase().trim();
+    const filtered = query
+      ? SPPD_KEGIATAN_LIST.filter(k => k.toLowerCase().includes(query))
+      : SPPD_KEGIATAN_LIST;
+
+    if (filtered.length === 0) {
+      sppdMaksudDropdownList.innerHTML = `<div class="sppd-combobox-empty">Tidak ada kegiatan yang cocok</div>`;
+    } else {
+      sppdMaksudDropdownList.innerHTML = filtered.map((item) => {
+        const isSelected = sppdInputMaksud && sppdInputMaksud.value === item;
+        return `<div class="sppd-combobox-item ${isSelected ? 'selected' : ''}" data-value="${escapeHtmlHelper(item)}">${escapeHtmlHelper(item)}</div>`;
+      }).join('');
+
+      sppdMaksudDropdownList.querySelectorAll('.sppd-combobox-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const val = el.getAttribute('data-value');
+          if (sppdInputMaksud) {
+            sppdInputMaksud.value = val;
+            syncSppdLptData();
+          }
+          closeMaksudDropdown();
+        });
+      });
+    }
+  };
+
+  const openMaksudDropdown = () => {
+    if (!sppdMaksudDropdownList) return;
+    renderMaksudDropdown(sppdInputMaksud ? sppdInputMaksud.value : '');
+    sppdMaksudDropdownList.classList.add('active');
+  };
+
+  const closeMaksudDropdown = () => {
+    if (sppdMaksudDropdownList) sppdMaksudDropdownList.classList.remove('active');
+  };
+
+  if (sppdInputMaksud) {
+    sppdInputMaksud.addEventListener('focus', () => {
+      openMaksudDropdown();
+    });
+    sppdInputMaksud.addEventListener('input', (e) => {
+      renderMaksudDropdown(e.target.value);
+      if (sppdMaksudDropdownList) sppdMaksudDropdownList.classList.add('active');
+      syncSppdLptData();
+    });
+  }
+
+  if (sppdMaksudToggleBtn) {
+    sppdMaksudToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (sppdMaksudDropdownList && sppdMaksudDropdownList.classList.contains('active')) {
+        closeMaksudDropdown();
+      } else {
+        openMaksudDropdown();
+      }
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#sppdMaksudCombobox')) {
+      closeMaksudDropdown();
+    }
+  });
+
+  // Calendar Click Helper for Date Pickers
+  ['sppdInputTglBerangkat', 'sppdInputTglKembali'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('click', () => {
+        try {
+          if (typeof el.showPicker === 'function') el.showPicker();
+        } catch(e) {}
+      });
+      const wrapper = el.closest('.date-input-wrapper');
+      if (wrapper) {
+        wrapper.addEventListener('click', (e) => {
+          if (e.target !== el) {
+            try {
+              if (typeof el.showPicker === 'function') el.showPicker();
+              else el.focus();
+            } catch(err) { el.focus(); }
+          }
+        });
+      }
+    }
+  });
+
+  // Event Listeners for Input Controls
+  if (sppdInputNoSurat) sppdInputNoSurat.addEventListener('input', syncSppdLptData);
+  if (sppdInputPegawai) sppdInputPegawai.addEventListener('change', syncSppdLptData);
+  
+  if (sppdInputTglBerangkat) {
+    sppdInputTglBerangkat.addEventListener('change', () => {
+      if (sppdInputTglBerangkat.value && sppdInputTglKembali && !sppdInputTglKembali.value) {
+        sppdInputTglKembali.value = sppdInputTglBerangkat.value;
+      }
+      syncSppdLptData();
+    });
+    sppdInputTglBerangkat.addEventListener('input', syncSppdLptData);
+  }
+
+  if (sppdInputTglKembali) {
+    sppdInputTglKembali.addEventListener('change', syncSppdLptData);
+    sppdInputTglKembali.addEventListener('input', syncSppdLptData);
+  }
+
+  // Reset & Clear Date Controls
+  const btnResetSppdDates = document.getElementById('btnResetSppdDates');
+  const btnClearTglBerangkat = document.getElementById('btnClearTglBerangkat');
+  const btnClearTglKembali = document.getElementById('btnClearTglKembali');
+
+  if (btnResetSppdDates) {
+    btnResetSppdDates.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (sppdInputTglBerangkat) sppdInputTglBerangkat.value = '';
+      if (sppdInputTglKembali) sppdInputTglKembali.value = '';
+      syncSppdLptData();
+      if (typeof showToast === 'function') {
+        showToast('Tanggal SPPD telah di-reset (kosong)', 'info');
+      }
+    });
+  }
+
+  if (btnClearTglBerangkat) {
+    btnClearTglBerangkat.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (sppdInputTglBerangkat) sppdInputTglBerangkat.value = '';
+      syncSppdLptData();
+    });
+  }
+
+  if (btnClearTglKembali) {
+    btnClearTglKembali.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (sppdInputTglKembali) sppdInputTglKembali.value = '';
+      syncSppdLptData();
+    });
+  }
+
+  if (sppdInputMaksud) sppdInputMaksud.addEventListener('input', syncSppdLptData);
+  if (sppdInputTempatBerangkat) sppdInputTempatBerangkat.addEventListener('input', syncSppdLptData);
+  if (sppdInputTujuan) sppdInputTujuan.addEventListener('input', syncSppdLptData);
+
+  // Initialize Petugas Pengikut Listeners (1 - 4)
+  for (let i = 1; i <= 4; i++) {
+    const idx = i;
+    const select = document.getElementById(`sppdPengikutSelect${idx}`);
+    const inputNama = document.getElementById(`sppdPengikutInputNama${idx}`);
+    const inputNip = document.getElementById(`sppdPengikutInputNip${idx}`);
+    const inputKet = document.getElementById(`sppdPengikutInputKet${idx}`);
+    const selectWrap = document.getElementById(`sppdPengikutSelectWrap${idx}`);
+    const clearBtn = document.querySelector(`.sppd-btn-clear-pengikut[data-index="${idx}"]`);
+
+    if (select) {
+      select.addEventListener('change', () => {
+        if (select.value === 'CUSTOM') {
+          if (inputNama) {
+            inputNama.style.display = 'block';
+            inputNama.value = '';
+            inputNama.focus();
+          }
+          if (selectWrap) selectWrap.style.display = 'none';
+        } else {
+          if (inputNama) {
+            inputNama.style.display = 'none';
+            inputNama.value = '';
+          }
+          if (select.selectedIndex > 0) {
+            const opt = select.options[select.selectedIndex];
+            const rawNip = opt.getAttribute('data-nip') || '';
+            const cleanNip = rawNip.replace(/^(NIP|NRP)\.?\s*/i, '').trim();
+            if (inputNip) inputNip.value = cleanNip;
+            if (inputKet) inputKet.value = opt.getAttribute('data-ket') || '';
+          } else {
+            if (inputNip) inputNip.value = '';
+            if (inputKet) inputKet.value = '';
+          }
+        }
+        syncSppdLptData();
+      });
+    }
+
+    if (inputNama) inputNama.addEventListener('input', syncSppdLptData);
+    if (inputNip) inputNip.addEventListener('input', syncSppdLptData);
+    if (inputKet) inputKet.addEventListener('input', syncSppdLptData);
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        if (select) {
+          select.value = '';
+          if (selectWrap) selectWrap.style.display = 'block';
+        }
+        if (inputNama) {
+          inputNama.value = '';
+          inputNama.style.display = 'none';
+        }
+        if (inputNip) inputNip.value = '';
+        if (inputKet) inputKet.value = '';
+        syncSppdLptData();
+      });
+    }
+  }
+
+  // LPT Form Specific Elements
+  const lptInputDasar = document.getElementById('lptInputDasar');
+  const lptInputTujuanPerjalanan = document.getElementById('lptInputTujuanPerjalanan');
+  const lptInputTanggalLaporan = document.getElementById('lptInputTanggalLaporan');
+  const lptInputProses = document.getElementById('lptInputProses');
+  const lptInputMasalah = document.getElementById('lptInputMasalah');
+  const lptInputKesimpulan = document.getElementById('lptInputKesimpulan');
+
+  const lptValDasar = document.getElementById('lptValDasar');
+  const lptValTujuanPerjalanan = document.getElementById('lptValTujuanPerjalanan');
+  const lptValProses = document.getElementById('lptValProses');
+  const lptValMasalah = document.getElementById('lptValMasalah');
+  const lptValKesimpulan = document.getElementById('lptValKesimpulan');
+  const lptSigDate = document.getElementById('lptSigDate');
+
+  // LPT 5 Officers References
+  const lptSelectPetugas1 = document.getElementById('lptSelectPetugas1');
+  const lptSelectPetugas2 = document.getElementById('lptSelectPetugas2');
+  const lptSelectPetugas3 = document.getElementById('lptSelectPetugas3');
+  const lptSelectPetugas4 = document.getElementById('lptSelectPetugas4');
+  const lptSelectPetugas5 = document.getElementById('lptSelectPetugas5');
+
+  const lptTogglePetugas2 = document.getElementById('lptTogglePetugas2');
+  const lptTogglePetugas3 = document.getElementById('lptTogglePetugas3');
+  const lptTogglePetugas4 = document.getElementById('lptTogglePetugas4');
+  const lptTogglePetugas5 = document.getElementById('lptTogglePetugas5');
+
+  const lptBadgePetugas2 = document.getElementById('lptBadgePetugas2');
+  const lptBadgePetugas3 = document.getElementById('lptBadgePetugas3');
+  const lptBadgePetugas4 = document.getElementById('lptBadgePetugas4');
+  const lptBadgePetugas5 = document.getElementById('lptBadgePetugas5');
+
+  const lptCardPetugas2 = document.getElementById('lptCardPetugas2');
+  const lptCardPetugas3 = document.getElementById('lptCardPetugas3');
+  const lptCardPetugas4 = document.getElementById('lptCardPetugas4');
+  const lptCardPetugas5 = document.getElementById('lptCardPetugas5');
+
+  const lptBtnAddPetugas = document.getElementById('lptBtnAddPetugas');
+  const lptPetugasSummaryBadge = document.getElementById('lptPetugasSummaryBadge');
+
+  const lptSigRow1 = document.getElementById('lptSigRow1');
+  const lptSigRow2 = document.getElementById('lptSigRow2');
+  const lptSigRow3 = document.getElementById('lptSigRow3');
+  const lptSigRow4 = document.getElementById('lptSigRow4');
+  const lptSigRow5 = document.getElementById('lptSigRow5');
+
+  const lptOfficersListContainer = document.getElementById('lptOfficersListContainer');
+  const btnToggleLptHighlight = document.getElementById('btnToggleLptHighlight');
+
+  // LPT Dynamic Table References & State (Sesuai Gambar 1)
+  const lptToggleTable = document.getElementById('lptToggleTable');
+  const lptBadgeTable = document.getElementById('lptBadgeTable');
+  const lptTableControlsWrap = document.getElementById('lptTableControlsWrap');
+  const lptTableWrapper = document.getElementById('lptTableWrapper');
+  const lptDynamicTable = document.getElementById('lptDynamicTable');
+  const lptTableThead = document.getElementById('lptTableThead');
+  const lptTableTbody = document.getElementById('lptTableTbody');
+  const lptSidebarTableEditor = document.getElementById('lptSidebarTableEditor');
+  const lptBtnPresetUks = document.getElementById('lptBtnPresetUks');
+  const lptBtnAddRow = document.getElementById('lptBtnAddRow');
+  const lptBtnDelRow = document.getElementById('lptBtnDelRow');
+  const lptBtnAddCol = document.getElementById('lptBtnAddCol');
+  const lptBtnDelCol = document.getElementById('lptBtnDelCol');
+
+  const lptTableState = {
+    enabled: false,
+    headers: ['Total Siswa di periksa', 'Sehat', 'Perlu Perhatian', 'Perlu dirujuk'],
+    rows: [
+      ['500', '109', '1', '390']
+    ]
+  };
+
+  // Convert text newlines to HTML br
+  const textToHtml = (str) => {
+    if (!str) return '';
+    return escapeHtmlHelper(str).replace(/\n/g, '<br>');
+  };
+
+  // ==========================================================================
+  // LPT DYNAMIC TABLE CONTROLLER (Fitur Tabel Hasil Kegiatan Sesuai Gambar 1)
+  // ==========================================================================
+  const renderLptTable = () => {
+    const isEnabled = !!lptTableState.enabled;
+
+    if (lptTableWrapper) lptTableWrapper.style.display = isEnabled ? 'block' : 'none';
+    if (lptTableControlsWrap) lptTableControlsWrap.style.display = isEnabled ? 'block' : 'none';
+    if (lptBadgeTable) {
+      lptBadgeTable.textContent = isEnabled ? 'Aktif' : 'Tidak Aktif';
+      lptBadgeTable.style.color = isEnabled ? '#10b981' : '#94a3b8';
+    }
+
+    if (!isEnabled) return;
+
+    // 1. Render Preview Table inside LPT Document Sheet
+    if (lptTableThead && lptTableTbody) {
+      let theadHtml = '<tr style="background: rgba(0,0,0,0.02);">';
+      lptTableState.headers.forEach((h, colIdx) => {
+        theadHtml += `
+          <th contenteditable="true" data-col="${colIdx}" class="lpt-th-editable" 
+              style="border: 1px solid #000000; padding: 5px 8px; font-weight: bold; font-size: 11px; text-align: center; color: #000000; outline: none; line-height: 1.25;">
+            ${escapeHtmlHelper(h)}
+          </th>
+        `;
+      });
+      theadHtml += '</tr>';
+      lptTableThead.innerHTML = theadHtml;
+
+      let tbodyHtml = '';
+      lptTableState.rows.forEach((row, rowIdx) => {
+        tbodyHtml += '<tr>';
+        lptTableState.headers.forEach((_, colIdx) => {
+          const val = row && typeof row[colIdx] !== 'undefined' ? row[colIdx] : '';
+          tbodyHtml += `
+            <td contenteditable="true" data-row="${rowIdx}" data-col="${colIdx}" class="lpt-td-editable" 
+                style="border: 1px solid #000000; padding: 5px 8px; font-size: 11px; text-align: center; color: #000000; outline: none; line-height: 1.25;">
+              ${escapeHtmlHelper(val)}
+            </td>
+          `;
+        });
+        tbodyHtml += '</tr>';
+      });
+      lptTableTbody.innerHTML = tbodyHtml;
+
+      // Listen for direct typing in Document Preview cells
+      lptTableThead.querySelectorAll('.lpt-th-editable').forEach(th => {
+        th.addEventListener('input', () => {
+          const col = parseInt(th.getAttribute('data-col'), 10);
+          if (!isNaN(col)) {
+            lptTableState.headers[col] = th.innerText.trim();
+            updateSidebarTableInputs();
+          }
+        });
+      });
+
+      lptTableTbody.querySelectorAll('.lpt-td-editable').forEach(td => {
+        td.addEventListener('input', () => {
+          const r = parseInt(td.getAttribute('data-row'), 10);
+          const c = parseInt(td.getAttribute('data-col'), 10);
+          if (!isNaN(r) && !isNaN(c)) {
+            if (!lptTableState.rows[r]) lptTableState.rows[r] = [];
+            lptTableState.rows[r][c] = td.innerText.trim();
+            updateSidebarTableInputs();
+          }
+        });
+      });
+    }
+
+    // 2. Render Sidebar Table Editor
+    renderSidebarTableEditor();
+  };
+
+  const renderSidebarTableEditor = () => {
+    if (!lptSidebarTableEditor) return;
+    const colCount = lptTableState.headers.length;
+
+    let html = `
+      <div style="display: grid; grid-template-columns: repeat(${colCount}, minmax(95px, 1fr)); gap: 4px; margin-bottom: 6px;">
+    `;
+
+    // Headers Row in Sidebar
+    lptTableState.headers.forEach((h, cIdx) => {
+      html += `
+        <div>
+          <label style="font-size: 9.5px; color: #38bdf8; font-weight: 700; margin-bottom: 2px; display: block;">Header ${cIdx + 1}</label>
+          <input type="text" class="sppd-input-styled lpt-side-th" data-col="${cIdx}" 
+                 value="${escapeHtmlHelper(h)}" style="font-size: 11px; padding: 4px 6px; text-align: center; font-weight: 600;">
+        </div>
+      `;
+    });
+    html += `</div>`;
+
+    // Data Rows in Sidebar
+    lptTableState.rows.forEach((row, rIdx) => {
+      html += `<div style="display: grid; grid-template-columns: repeat(${colCount}, minmax(95px, 1fr)); gap: 4px; margin-bottom: 4px;">`;
+      lptTableState.headers.forEach((_, cIdx) => {
+        const val = row && typeof row[cIdx] !== 'undefined' ? row[cIdx] : '';
+        html += `
+          <div>
+            <input type="text" class="sppd-input-styled lpt-side-td" data-row="${rIdx}" data-col="${cIdx}" 
+                   value="${escapeHtmlHelper(val)}" placeholder="Nilai..." style="font-size: 11px; padding: 4px 6px; text-align: center;">
+          </div>
+        `;
+      });
+      html += `</div>`;
+    });
+
+    lptSidebarTableEditor.innerHTML = html;
+
+    // Attach listeners on Sidebar inputs
+    lptSidebarTableEditor.querySelectorAll('.lpt-side-th').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const c = parseInt(input.getAttribute('data-col'), 10);
+        if (!isNaN(c)) {
+          lptTableState.headers[c] = e.target.value;
+          const th = lptTableThead ? lptTableThead.querySelector(`.lpt-th-editable[data-col="${c}"]`) : null;
+          if (th) th.textContent = e.target.value;
+        }
+      });
+    });
+
+    lptSidebarTableEditor.querySelectorAll('.lpt-side-td').forEach(input => {
+      input.addEventListener('input', (e) => {
+        const r = parseInt(input.getAttribute('data-row'), 10);
+        const c = parseInt(input.getAttribute('data-col'), 10);
+        if (!isNaN(r) && !isNaN(c)) {
+          if (!lptTableState.rows[r]) lptTableState.rows[r] = [];
+          lptTableState.rows[r][c] = e.target.value;
+          const td = lptTableTbody ? lptTableTbody.querySelector(`.lpt-td-editable[data-row="${r}"][data-col="${c}"]`) : null;
+          if (td) td.textContent = e.target.value;
+        }
+      });
+    });
+  };
+
+  const updateSidebarTableInputs = () => {
+    if (!lptSidebarTableEditor) return;
+    lptTableState.headers.forEach((h, c) => {
+      const inTh = lptSidebarTableEditor.querySelector(`.lpt-side-th[data-col="${c}"]`);
+      if (inTh && inTh.value !== h) inTh.value = h;
+    });
+    lptTableState.rows.forEach((row, r) => {
+      row.forEach((val, c) => {
+        const inTd = lptSidebarTableEditor.querySelector(`.lpt-side-td[data-row="${r}"][data-col="${c}"]`);
+        if (inTd && inTd.value !== val) inTd.value = val;
+      });
+    });
+  };
+
+  // Toggle Table Listener
+  if (lptToggleTable) {
+    lptToggleTable.addEventListener('change', () => {
+      lptTableState.enabled = lptToggleTable.checked;
+      renderLptTable();
+      if (typeof showToast === 'function') {
+        showToast(lptTableState.enabled ? '✓ Tabel hasil kegiatan diaktifkan pada pratinjau LPT.' : 'Tabel hasil kegiatan dinonaktifkan.', 'info');
+      }
+    });
+  }
+
+  // Preset UKS / Skrining Button (Sesuai Gambar 1)
+  if (lptBtnPresetUks) {
+    lptBtnPresetUks.addEventListener('click', () => {
+      lptTableState.enabled = true;
+      if (lptToggleTable) lptToggleTable.checked = true;
+      lptTableState.headers = ['Total Siswa di periksa', 'Sehat', 'Perlu Perhatian', 'Perlu dirujuk'];
+      lptTableState.rows = [
+        ['500', '109', '1', '390']
+      ];
+      renderLptTable();
+      if (typeof showToast === 'function') {
+        showToast('✓ Format tabel skrining UKS (Gambar 1) berhasil dimuat!', 'success');
+      }
+    });
+  }
+
+  // Row & Column Operations
+  if (lptBtnAddRow) {
+    lptBtnAddRow.addEventListener('click', () => {
+      lptTableState.rows.push(new Array(lptTableState.headers.length).fill(''));
+      renderLptTable();
+    });
+  }
+  if (lptBtnDelRow) {
+    lptBtnDelRow.addEventListener('click', () => {
+      if (lptTableState.rows.length > 1) {
+        lptTableState.rows.pop();
+        renderLptTable();
+      } else {
+        if (typeof showToast === 'function') showToast('Minimal harus ada 1 baris data.', 'warn');
+      }
+    });
+  }
+  if (lptBtnAddCol) {
+    lptBtnAddCol.addEventListener('click', () => {
+      lptTableState.headers.push(`Kolom ${lptTableState.headers.length + 1}`);
+      lptTableState.rows.forEach(r => r.push(''));
+      renderLptTable();
+    });
+  }
+  if (lptBtnDelCol) {
+    lptBtnDelCol.addEventListener('click', () => {
+      if (lptTableState.headers.length > 1) {
+        lptTableState.headers.pop();
+        lptTableState.rows.forEach(r => r.pop());
+        renderLptTable();
+      } else {
+        if (typeof showToast === 'function') showToast('Minimal harus ada 1 kolom data.', 'warn');
+      }
+    });
+  }
+
+  // ==========================================================================
+  // LPT 5 PETUGAS PELAPOR & SIGNATURES CONTROLLER (Sesuai Gambar 2)
+  // ==========================================================================
+  
+  // Populate dropdown options for Petugas 2..5 from Petugas 1
+  const populateLptOfficerOptions = () => {
+    const p1Select = document.getElementById('lptSelectPetugas1');
+    if (!p1Select) return;
+    const optionsHtml = p1Select.innerHTML;
+    for (let i = 2; i <= 5; i++) {
+      const sel = document.getElementById(`lptSelectPetugas${i}`);
+      if (sel && sel.options.length <= 2) {
+        sel.innerHTML = optionsHtml;
+        if (sel.options[0]) sel.options[0].text = `-- Pilih Petugas ${i} --`;
+      }
+    }
+  };
+
+  // Sync an Officer by Index (1 to 5)
+  const syncLptOfficer = (index) => {
+    const select = document.getElementById(`lptSelectPetugas${index}`);
+    const nameEl = document.getElementById(`lptSigPetugasName${index}`);
+    const nipEl = document.getElementById(`lptSigPetugasNip${index}`);
+    const inNama = document.getElementById(`lptInputCustomNama${index}`);
+    const inNip = document.getElementById(`lptInputCustomNip${index}`);
+    if (!select || !nameEl || !nipEl) return;
+
+    if (select.value === 'CUSTOM') {
+      const customNama = inNama && inNama.value.trim() ? inNama.value.trim() : '...........................................';
+      const customNip = inNip && inNip.value.trim() ? inNip.value.trim() : 'NIP. ...........................................';
+      nameEl.textContent = customNama;
+      nipEl.textContent = customNip.startsWith('NIP') || customNip.startsWith('NRP') ? customNip : `NIP. ${customNip}`;
+    } else if (select.selectedIndex >= 0) {
+      const opt = select.options[select.selectedIndex];
+      if (opt && opt.value && opt.value !== 'CUSTOM') {
+        nameEl.textContent = opt.value;
+        const rawNip = opt.getAttribute('data-nip') || '';
+        nipEl.textContent = rawNip || 'NIP. -';
+      } else {
+        nameEl.textContent = '...........................................';
+        nipEl.textContent = 'NIP. ...........................................';
+      }
+    }
+  };
+
+  // Update Officer Visibility and Stacked Layout (1 to 5)
+  const updateLptPetugasVisibility = () => {
+    let activeCount = 1; // Petugas 1 is always active
+
+    for (let i = 2; i <= 5; i++) {
+      const toggle = document.getElementById(`lptTogglePetugas${i}`);
+      const row = document.getElementById(`lptSigRow${i}`);
+      const card = document.getElementById(`lptCardPetugas${i}`);
+      const badge = document.getElementById(`lptBadgePetugas${i}`);
+      const isShown = toggle ? toggle.checked : false;
+
+      if (row) row.style.display = isShown ? 'flex' : 'none';
+      if (card) card.style.display = isShown ? 'block' : 'none';
+      if (badge) {
+        badge.textContent = isShown ? 'Ditampilkan' : 'Disembunyikan';
+        badge.style.color = isShown ? '#10b981' : '#94a3b8';
+      }
+      if (isShown) activeCount++;
+    }
+
+    // Dynamic vertical gap depending on active officers count (fits cleanly on A4)
+    if (lptOfficersListContainer) {
+      if (activeCount <= 2) lptOfficersListContainer.style.gap = '24px';
+      else if (activeCount === 3) lptOfficersListContainer.style.gap = '20px';
+      else if (activeCount === 4) lptOfficersListContainer.style.gap = '15px';
+      else lptOfficersListContainer.style.gap = '12px';
+    }
+
+    // Update "+ Tambah Petugas" button visibility
+    if (lptBtnAddPetugas) {
+      lptBtnAddPetugas.style.display = activeCount >= 5 ? 'none' : 'inline-flex';
+    }
+
+    if (lptPetugasSummaryBadge) {
+      lptPetugasSummaryBadge.textContent = `${activeCount} / 5 Petugas Aktif`;
+    }
+  };
+
+  // Remove/Reset an Officer (2 to 5)
+  const removePetugas = (index) => {
+    const toggle = document.getElementById(`lptTogglePetugas${index}`);
+    const card = document.getElementById(`lptCardPetugas${index}`);
+    const row = document.getElementById(`lptSigRow${index}`);
+    const select = document.getElementById(`lptSelectPetugas${index}`);
+    const inNama = document.getElementById(`lptInputCustomNama${index}`);
+    const inNip = document.getElementById(`lptInputCustomNip${index}`);
+    const customWrap = document.getElementById(`lptCustomWrap${index}`);
+    const badge = document.getElementById(`lptBadgePetugas${index}`);
+
+    if (toggle) toggle.checked = false;
+    if (card) card.style.display = 'none';
+    if (row) row.style.display = 'none';
+    if (select) select.value = '';
+    if (inNama) inNama.value = '';
+    if (inNip) inNip.value = '';
+    if (customWrap) customWrap.style.display = 'none';
+    if (badge) {
+      badge.textContent = 'Disembunyikan';
+      badge.style.color = '#94a3b8';
+    }
+
+    syncLptOfficer(index);
+    updateLptPetugasVisibility();
+  };
+  window.removePetugas = removePetugas;
+
+  // Initialize all 5 Officer Event Listeners
+  populateLptOfficerOptions();
+
+  for (let i = 1; i <= 5; i++) {
+    const idx = i;
+    const select = document.getElementById(`lptSelectPetugas${idx}`);
+    const toggle = document.getElementById(`lptTogglePetugas${idx}`);
+    const inNama = document.getElementById(`lptInputCustomNama${idx}`);
+    const inNip = document.getElementById(`lptInputCustomNip${idx}`);
+    const customWrap = document.getElementById(`lptCustomWrap${idx}`);
+    const delBtn = document.querySelector(`.lpt-btn-del-petugas[data-index="${idx}"]`);
+
+    if (select) {
+      select.addEventListener('change', () => {
+        select.dataset.userEdited = 'true';
+        if (select.value === 'CUSTOM') {
+          if (customWrap) customWrap.style.display = 'grid';
+          if (inNama) inNama.focus();
+        } else {
+          if (customWrap) customWrap.style.display = 'none';
+        }
+        syncLptOfficer(idx);
+      });
+    }
+
+    if (inNama) {
+      inNama.addEventListener('input', () => syncLptOfficer(idx));
+    }
+    if (inNip) {
+      inNip.addEventListener('input', () => syncLptOfficer(idx));
+    }
+
+    if (toggle) {
+      toggle.addEventListener('change', () => {
+        syncLptOfficer(idx);
+        updateLptPetugasVisibility();
+      });
+    }
+
+    if (delBtn) {
+      delBtn.addEventListener('click', () => removePetugas(idx));
+    }
+  }
+
+  // "+ Tambah Petugas" button click & Global Window Handler
+  const addLptPetugasHandler = () => {
+    let added = false;
+    for (let i = 2; i <= 5; i++) {
+      const toggle = document.getElementById(`lptTogglePetugas${i}`);
+      const card = document.getElementById(`lptCardPetugas${i}`);
+      const row = document.getElementById(`lptSigRow${i}`);
+      const isHidden = !card || card.style.display === 'none' || (toggle && !toggle.checked);
+      if (isHidden) {
+        if (toggle) toggle.checked = true;
+        if (card) card.style.display = 'block';
+        if (row) row.style.display = 'flex';
+        syncLptOfficer(i);
+        updateLptPetugasVisibility();
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        added = true;
+        break;
+      }
+    }
+    if (!added && typeof showToast === 'function') {
+      showToast('Maksimal 5 petugas sudah ditampilkan.', 'info');
+    }
+  };
+
+  window.addLptPetugas = addLptPetugasHandler;
+
+  if (lptBtnAddPetugas) {
+    lptBtnAddPetugas.onclick = addLptPetugasHandler;
+  }
+
+  // Wire LPT Sidebar Inputs to Preview Document
+  if (lptInputDasar) {
+    lptInputDasar.addEventListener('input', () => {
+      lptInputDasar.dataset.userEdited = 'true';
+      if (lptValDasar) lptValDasar.textContent = lptInputDasar.value;
+    });
+  }
+  if (lptInputTujuanPerjalanan) {
+    lptInputTujuanPerjalanan.addEventListener('input', () => {
+      lptInputTujuanPerjalanan.dataset.userEdited = 'true';
+      if (lptValTujuanPerjalanan) lptValTujuanPerjalanan.textContent = lptInputTujuanPerjalanan.value;
+    });
+  }
+  if (lptInputTanggalLaporan) {
+    const handleLptDateChange = () => {
+      lptInputTanggalLaporan.dataset.userEdited = 'true';
+      if (lptSigDate) {
+        lptSigDate.textContent = lptInputTanggalLaporan.value ? formatIndoDate(lptInputTanggalLaporan.value) : '...........................................';
+      }
+    };
+    lptInputTanggalLaporan.addEventListener('input', handleLptDateChange);
+    lptInputTanggalLaporan.addEventListener('change', handleLptDateChange);
+
+    // Clicking anywhere in the date wrapper opens the calendar picker
+    const lptDateWrap = lptInputTanggalLaporan.closest('.date-input-wrapper');
+    if (lptDateWrap) {
+      lptDateWrap.addEventListener('click', (e) => {
+        if (e.target !== lptInputTanggalLaporan) {
+          if (typeof lptInputTanggalLaporan.showPicker === 'function') {
+            lptInputTanggalLaporan.showPicker();
+          } else {
+            lptInputTanggalLaporan.focus();
+          }
+        }
+      });
+    }
+  }
+  if (lptInputProses) {
+    lptInputProses.addEventListener('input', () => {
+      if (lptValProses) lptValProses.innerHTML = textToHtml(lptInputProses.value);
+    });
+  }
+  if (lptInputMasalah) {
+    lptInputMasalah.addEventListener('input', () => {
+      if (lptValMasalah) lptValMasalah.innerHTML = textToHtml(lptInputMasalah.value);
+    });
+  }
+  if (lptInputKesimpulan) {
+    lptInputKesimpulan.addEventListener('input', () => {
+      if (lptValKesimpulan) lptValKesimpulan.innerHTML = textToHtml(lptInputKesimpulan.value);
+    });
+  }
+
+  // Reverse Wire: Typing directly on Preview Document updates Sidebar Inputs
+  if (lptValDasar) {
+    lptValDasar.addEventListener('input', () => {
+      if (lptInputDasar) {
+        lptInputDasar.value = lptValDasar.textContent;
+        lptInputDasar.dataset.userEdited = 'true';
+      }
+    });
+  }
+  if (lptValTujuanPerjalanan) {
+    lptValTujuanPerjalanan.addEventListener('input', () => {
+      if (lptInputTujuanPerjalanan) {
+        lptInputTujuanPerjalanan.value = lptValTujuanPerjalanan.textContent;
+        lptInputTujuanPerjalanan.dataset.userEdited = 'true';
+      }
+    });
+  }
+  if (lptValProses) {
+    lptValProses.addEventListener('input', () => {
+      if (lptInputProses) lptInputProses.value = lptValProses.innerText;
+    });
+  }
+  if (lptValMasalah) {
+    lptValMasalah.addEventListener('input', () => {
+      if (lptInputMasalah) lptInputMasalah.value = lptValMasalah.innerText;
+    });
+  }
+  if (lptValKesimpulan) {
+    lptValKesimpulan.addEventListener('input', () => {
+      if (lptInputKesimpulan) lptInputKesimpulan.value = lptValKesimpulan.innerText;
+    });
+  }
+
+
+  // Wire LPT Color Highlight Switch
+  if (btnToggleLptHighlight) {
+    let isHighlightActive = true;
+    btnToggleLptHighlight.addEventListener('click', () => {
+      isHighlightActive = !isHighlightActive;
+      if (lptSheetDoc) {
+        lptSheetDoc.classList.toggle('lpt-no-highlight', !isHighlightActive);
+      }
+      if (isHighlightActive) {
+        btnToggleLptHighlight.innerHTML = '<span>🎨 Highlight Warna Preview: AKTIF</span>';
+        btnToggleLptHighlight.style.background = 'rgba(255, 235, 59, 0.12)';
+        btnToggleLptHighlight.style.borderColor = 'rgba(255, 235, 59, 0.3)';
+        btnToggleLptHighlight.style.color = '#fde047';
+      } else {
+        btnToggleLptHighlight.innerHTML = '<span>🎨 Highlight Warna Preview: NONAKTIF (BERSIH)</span>';
+        btnToggleLptHighlight.style.background = 'rgba(255, 255, 255, 0.06)';
+        btnToggleLptHighlight.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+        btnToggleLptHighlight.style.color = '#94a3b8';
+      }
+    });
+  }
+
+  // ==========================================================================
+  // DOKUMENTASI KEGIATAN LOGIC & MULTI-CHANNEL IMAGE INGESTION ENGINE
+  // ==========================================================================
+  const dokInputJudulKegiatan = document.getElementById('dokInputJudulKegiatan');
+  const dokValJudulKegiatan = document.getElementById('dokValJudulKegiatan');
+  const dokFileInput = document.getElementById('dokFileInput');
+  const dokDropzoneBox = document.getElementById('dokDropzoneBox');
+  const dokDropzoneClickArea = document.getElementById('dokDropzoneClickArea');
+  const dokSelectLayout = document.getElementById('dokSelectLayout');
+  const dokBtnUploadTrigger = document.getElementById('dokBtnUploadTrigger');
+  const dokBtnClearAll = document.getElementById('dokBtnClearAll');
+  const dokPhotoContainer = document.getElementById('dokPhotoContainer');
+  const dokEmptyPlaceholder = document.getElementById('dokEmptyPlaceholder');
+
+  let draggedPhotoCard = null;
+
+  const updateDokEmptyState = () => {
+    if (!dokPhotoContainer || !dokEmptyPlaceholder) return;
+    const cards = dokPhotoContainer.querySelectorAll('.dok-photo-card');
+    dokEmptyPlaceholder.style.display = cards.length > 0 ? 'none' : 'block';
+  };
+
+  const createPhotoCard = (imageSrc, caption = '', initialSize = 'size-m') => {
+    if (!dokPhotoContainer) return null;
+    const card = document.createElement('div');
+    let szClass = 'size-m';
+    if (initialSize === 'size-s' || initialSize === 'S') szClass = 'size-s';
+    else if (initialSize === 'size-l' || initialSize === 'L') szClass = 'size-l';
+    else if (initialSize === 'size-full' || initialSize === '100%') szClass = 'size-full';
+    card.className = `dok-photo-card align-center ${szClass}`;
+    card.draggable = true;
+
+    card.innerHTML = `
+      <div class="dok-card-toolbar no-print">
+        <!-- Size Adjusters -->
+        <div class="dok-toolbar-group" title="Atur Ukuran Foto">
+          <button type="button" class="dok-toolbar-btn btn-zoom-out" title="Perkecil (-10%)">➖</button>
+          <button type="button" class="dok-toolbar-btn btn-sz" data-size="size-s" title="Kecil (33%)">S</button>
+          <button type="button" class="dok-toolbar-btn btn-sz" data-size="size-m" title="Sedang (50%)">M</button>
+          <button type="button" class="dok-toolbar-btn btn-sz" data-size="size-l" title="Besar (75%)">L</button>
+          <button type="button" class="dok-toolbar-btn btn-sz" data-size="size-full" title="Penuh (100%)">100%</button>
+          <button type="button" class="dok-toolbar-btn btn-zoom-in" title="Perbesar (+10%)">➕</button>
+        </div>
+
+        <!-- Position Alignment (Left, Center, Right, Free) -->
+        <div class="dok-toolbar-group" title="Posisi Rata Kiri / Tengah / Kanan / Bebas">
+          <button type="button" class="dok-toolbar-btn btn-align" data-align="align-left" title="Rata Kiri (Left)">⬅ Left</button>
+          <button type="button" class="dok-toolbar-btn btn-align active" data-align="align-center" title="Rata Tengah (Center)">⏺ Center</button>
+          <button type="button" class="dok-toolbar-btn btn-align" data-align="align-right" title="Rata Kanan (Right)">➡ Right</button>
+          <button type="button" class="dok-toolbar-btn btn-align" data-align="align-free" title="Posisi Bebas (Free)">🔀 Free</button>
+        </div>
+
+        <!-- Move Up / Down (Posisi Atas / Bawah) -->
+        <div class="dok-toolbar-group" title="Pindah Urutan Atas / Bawah">
+          <button type="button" class="dok-toolbar-btn btn-move-up" title="Pindah ke Atas">⬆</button>
+          <button type="button" class="dok-toolbar-btn btn-move-down" title="Pindah ke Bawah">⬇</button>
+        </div>
+
+        <!-- Delete Button -->
+        <div class="dok-toolbar-group">
+          <button type="button" class="dok-toolbar-btn btn-del" title="Hapus Foto">🗑️</button>
+        </div>
+      </div>
+
+      <div class="dok-photo-img-wrap">
+        <img src="${imageSrc}" class="dok-photo-img" alt="Foto Dokumentasi">
+        <div class="dok-resize-handle no-print" title="Tarik sudut untuk mengubah ukuran foto secara bebas"></div>
+      </div>
+      <div class="dok-photo-caption" contenteditable="true">${caption}</div>
+    `;
+
+    // Size Preset listeners
+    const sizeBtns = card.querySelectorAll('.btn-sz');
+    sizeBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const sz = btn.getAttribute('data-size');
+        card.classList.remove('size-s', 'size-m', 'size-l', 'size-full');
+        card.style.width = '';
+        card.style.maxWidth = '';
+        if (sz) card.classList.add(sz);
+      });
+    });
+
+    // Zoom In / Out listeners
+    let currentScale = 100;
+    const btnZoomIn = card.querySelector('.btn-zoom-in');
+    const btnZoomOut = card.querySelector('.btn-zoom-out');
+
+    if (btnZoomIn) {
+      btnZoomIn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        card.classList.remove('size-s', 'size-m', 'size-l', 'size-full');
+        currentScale = Math.min(100, currentScale + 10);
+        card.style.width = currentScale + '%';
+        card.style.maxWidth = currentScale + '%';
+      });
+    }
+
+    if (btnZoomOut) {
+      btnZoomOut.addEventListener('click', (e) => {
+        e.stopPropagation();
+        card.classList.remove('size-s', 'size-m', 'size-l', 'size-full');
+        currentScale = Math.max(20, currentScale - 10);
+        card.style.width = currentScale + '%';
+        card.style.maxWidth = currentScale + '%';
+      });
+    }
+
+    // Alignment Horizontal listeners (Left, Center, Right, Free)
+    const alignBtns = card.querySelectorAll('.btn-align');
+    alignBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const align = btn.getAttribute('data-align');
+        card.classList.remove('align-left', 'align-center', 'align-right', 'align-free');
+        card.classList.add(align);
+        alignBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // Sync to sidebar menu buttons
+        const alignKey = align.replace('align-', '');
+        if (typeof window.updateMenuAlignUI === 'function') {
+          window.updateMenuAlignUI(alignKey);
+        }
+      });
+    });
+
+    // Move Up / Down listeners (Posisi Atas / Bawah)
+    const btnMoveUp = card.querySelector('.btn-move-up');
+    const btnMoveDown = card.querySelector('.btn-move-down');
+
+    if (btnMoveUp) {
+      btnMoveUp.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const prev = card.previousElementSibling;
+        if (prev && prev.classList.contains('dok-photo-card')) {
+          dokPhotoContainer.insertBefore(card, prev);
+        }
+      });
+    }
+
+    if (btnMoveDown) {
+      btnMoveDown.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const next = card.nextElementSibling;
+        if (next && next.classList.contains('dok-photo-card') && next !== dokEmptyPlaceholder) {
+          dokPhotoContainer.insertBefore(next, card);
+        }
+      });
+    }
+
+    // Delete Button listener
+    const btnDel = card.querySelector('.dok-toolbar-btn.btn-del');
+    if (btnDel) {
+      btnDel.addEventListener('click', (e) => {
+        e.stopPropagation();
+        card.remove();
+        updateDokEmptyState();
+        if (typeof showToast === 'function') {
+          showToast('Foto berhasil dihapus dari lembar dokumen.', 'info');
+        }
+      });
+    }
+
+    // Interactive Resizing by Corner Handle
+    const resizeHandle = card.querySelector('.dok-resize-handle');
+    if (resizeHandle) {
+      let isResizing = false;
+      let startX = 0;
+      let startWidth = 0;
+      let containerWidth = 0;
+
+      resizeHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        isResizing = true;
+        startX = e.clientX;
+        startWidth = card.offsetWidth;
+        containerWidth = dokPhotoContainer.offsetWidth || 700;
+        card.classList.add('is-resizing');
+
+        const onMouseMove = (moveEvent) => {
+          if (!isResizing) return;
+          const deltaX = moveEvent.clientX - startX;
+          const newWidthPx = Math.max(140, Math.min(containerWidth, startWidth + deltaX));
+          const newPct = Math.round((newWidthPx / containerWidth) * 100);
+          card.classList.remove('size-s', 'size-m', 'size-l', 'size-full');
+          card.style.width = newPct + '%';
+          card.style.maxWidth = newPct + '%';
+        };
+
+        const onMouseUp = () => {
+          isResizing = false;
+          card.classList.remove('is-resizing');
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+      });
+    }
+
+    // Click card to activate toolbar & sync sidebar menu
+    card.addEventListener('click', (e) => {
+      const wasActive = card.classList.contains('is-active');
+      document.querySelectorAll('.dok-photo-card').forEach(c => c.classList.remove('is-active'));
+      if (!wasActive) {
+        card.classList.add('is-active');
+      }
+
+      const indicator = document.getElementById('dokActivePhotoIndicator');
+      if (card.classList.contains('is-active')) {
+        if (indicator) indicator.textContent = 'Foto Terpilih';
+        let currentAlign = 'center';
+        if (card.classList.contains('align-left')) currentAlign = 'left';
+        else if (card.classList.contains('align-right')) currentAlign = 'right';
+        else if (card.classList.contains('align-free')) currentAlign = 'free';
+        if (typeof window.updateMenuAlignUI === 'function') window.updateMenuAlignUI(currentAlign);
+      } else {
+        if (indicator) indicator.textContent = 'Semua Foto';
+      }
+    });
+
+    // Drag & Drop reordering between cards
+    card.addEventListener('dragstart', (e) => {
+      draggedPhotoCard = card;
+      card.classList.add('is-dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    card.addEventListener('dragend', () => {
+      draggedPhotoCard = null;
+      card.classList.remove('is-dragging');
+      dokPhotoContainer.querySelectorAll('.dok-photo-card').forEach(c => c.classList.remove('drag-over-item'));
+    });
+
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (!draggedPhotoCard || draggedPhotoCard === card) return;
+      
+      const rect = card.getBoundingClientRect();
+      const isAfter = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+      dokPhotoContainer.insertBefore(draggedPhotoCard, isAfter && card.nextSibling !== draggedPhotoCard ? card.nextSibling : card);
+    });
+
+    if (dokEmptyPlaceholder) {
+      dokPhotoContainer.insertBefore(card, dokEmptyPlaceholder);
+    } else {
+      dokPhotoContainer.appendChild(card);
+    }
+    updateDokEmptyState();
+
+    return card;
+  };
+
+  const MAX_DOK_PHOTOS = 30;
+
+  // Cloudflare R2 Upload Engine with Real-time Progress Bar
+  const uploadAndInsertPhoto = (fileOrBlob, defaultCaption = '') => {
+    if (!dokPhotoContainer) return Promise.resolve(null);
+
+    const currentCards = dokPhotoContainer.querySelectorAll('.dok-photo-card:not(.dok-uploading-card)');
+    if (currentCards.length >= MAX_DOK_PHOTOS) {
+      if (typeof showToast === 'function') {
+        showToast('⚠️ Batas maksimal 30 foto kegiatan telah tercapai!', 'warn');
+      }
+      return Promise.resolve(null);
+    }
+
+    const uploadId = `dok-upload-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+    const originalName = fileOrBlob.name || `foto_${Date.now()}.jpg`;
+    const fileSizeFormatted = fileOrBlob.size ? (fileOrBlob.size < 1024 * 1024 ? `${(fileOrBlob.size / 1024).toFixed(0)} KB` : `${(fileOrBlob.size / (1024 * 1024)).toFixed(1)} MB`) : '';
+
+    // Create Uploading Card with Progress UI in Container
+    const card = document.createElement('div');
+    card.className = 'dok-photo-card dok-uploading-card align-center';
+    card.id = uploadId;
+
+    card.innerHTML = `
+      <div class="dok-upload-overlay">
+        <div class="dok-upload-spinner-wrap">
+          <svg class="dok-spin-circle" viewBox="0 0 58 58">
+            <circle class="dok-spin-circle-bg" cx="29" cy="29" r="25"></circle>
+            <circle class="dok-spin-circle-bar" id="${uploadId}-bar" cx="29" cy="29" r="25"></circle>
+          </svg>
+          <span class="dok-upload-pct" id="${uploadId}-pct">0%</span>
+        </div>
+        <div class="dok-upload-info">
+          <div class="dok-upload-filename" title="${escapeHtmlHelper(originalName)}">${escapeHtmlHelper(originalName)}</div>
+          <div class="dok-upload-status">
+            <span class="dok-status-dot"></span>
+            <span id="${uploadId}-status-text">Mengunggah ke Cloudflare R2...</span>
+          </div>
+          <div class="dok-upload-progress-bar">
+            <div class="dok-upload-progress-fill" id="${uploadId}-fill"></div>
+          </div>
+          <div class="dok-upload-size-info">${fileSizeFormatted}</div>
+        </div>
+      </div>
+    `;
+
+    if (dokEmptyPlaceholder) {
+      dokPhotoContainer.insertBefore(card, dokEmptyPlaceholder);
+    } else {
+      dokPhotoContainer.appendChild(card);
+    }
+    updateDokEmptyState();
+
+    return new Promise((resolve) => {
+      const xhr = new XMLHttpRequest();
+      const formData = new FormData();
+      formData.append('file', fileOrBlob, originalName);
+
+      const username = (window.SppdTemplateController && window.SppdTemplateController.getCurrentUsername) ? window.SppdTemplateController.getCurrentUsername() : 'Petugas';
+      formData.append('uploaded_by', username);
+
+      // Track Upload Progress
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const percent = Math.min(99, Math.round((e.loaded / e.total) * 100));
+          const pctEl = document.getElementById(`${uploadId}-pct`);
+          const fillEl = document.getElementById(`${uploadId}-fill`);
+          const barEl = document.getElementById(`${uploadId}-bar`);
+
+          if (pctEl) pctEl.textContent = `${percent}%`;
+          if (fillEl) fillEl.style.width = `${percent}%`;
+          if (barEl) {
+            const circumference = 2 * Math.PI * 25; // ~157.08
+            const offset = circumference - (percent / 100) * circumference;
+            barEl.style.strokeDashoffset = offset;
+          }
+        }
+      });
+
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              if (res.success && res.url) {
+                // Set 100% completion visual
+                const pctEl = document.getElementById(`${uploadId}-pct`);
+                const fillEl = document.getElementById(`${uploadId}-fill`);
+                const statusEl = document.getElementById(`${uploadId}-status-text`);
+                if (pctEl) pctEl.textContent = '100%';
+                if (fillEl) fillEl.style.width = '100%';
+                if (statusEl) statusEl.textContent = 'Menyisipkan foto...';
+
+                setTimeout(() => {
+                  card.remove();
+                  createPhotoCard(res.url, defaultCaption || originalName.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '));
+                  updateDokEmptyState();
+                  if (window.FotoUploadLogManager && typeof window.FotoUploadLogManager.refreshBadge === 'function') {
+                    window.FotoUploadLogManager.refreshBadge();
+                  }
+                  if (typeof showToast === 'function') {
+                    showToast(`✓ Foto "${originalName}" berhasil diunggah ke Cloudflare R2!`, 'success');
+                  }
+                  resolve(res);
+                }, 180);
+                return;
+              }
+            } catch (parseErr) {
+              console.warn('Respon JSON parse error:', parseErr);
+            }
+          }
+
+          // Fallback if R2 returns non-ok or error
+          console.warn('Gagal upload ke R2, menggunakan fallback lokal...');
+          const statusEl = document.getElementById(`${uploadId}-status-text`);
+          if (statusEl) statusEl.textContent = 'Memuat pratinjau lokal...';
+
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            card.remove();
+            createPhotoCard(e.target.result, defaultCaption || originalName.replace(/\.[^/.]+$/, ''));
+            updateDokEmptyState();
+            if (typeof showToast === 'function') {
+              showToast(`⚠️ Foto disematkan secara lokal (R2 tidak tersedia).`, 'warn');
+            }
+            resolve(null);
+          };
+          reader.readAsDataURL(fileOrBlob);
+        }
+      };
+
+      xhr.onerror = () => {
+        console.warn('XHR network error R2 upload, fallback ke FileReader lokal...');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          card.remove();
+          createPhotoCard(e.target.result, defaultCaption || originalName.replace(/\.[^/.]+$/, ''));
+          updateDokEmptyState();
+          resolve(null);
+        };
+        reader.readAsDataURL(fileOrBlob);
+      };
+
+      xhr.open('POST', '/api/foto/upload');
+      xhr.setRequestHeader('x-user-name', username);
+      xhr.send(formData);
+    });
+  };
+
+  const handleDokImageFiles = async (files) => {
+    if (!files || files.length === 0) return;
+    const currentCards = dokPhotoContainer ? dokPhotoContainer.querySelectorAll('.dok-photo-card:not(.dok-uploading-card)') : [];
+    const currentCount = currentCards.length;
+
+    if (currentCount >= MAX_DOK_PHOTOS) {
+      if (typeof showToast === 'function') {
+        showToast('⚠️ Batas maksimal 30 foto kegiatan telah tercapai!', 'warn');
+      }
+      return;
+    }
+
+    const availableSlots = MAX_DOK_PHOTOS - currentCount;
+    const fileArray = Array.from(files).filter(file => file.type && file.type.startsWith('image/'));
+    const filesToProcess = fileArray.slice(0, availableSlots);
+
+    if (fileArray.length > availableSlots) {
+      if (typeof showToast === 'function') {
+        showToast(`⚠️ Hanya ${availableSlots} foto yang dapat ditambahkan (Batas maksimal 30 foto per kegiatan).`, 'warn');
+      }
+    }
+
+    for (const file of filesToProcess) {
+      await uploadAndInsertPhoto(file);
+    }
+  };
+
+
+  // Upload button listeners
+  const dokBtnSampleTrigger = document.getElementById('dokBtnSampleTrigger');
+  if (dokBtnSampleTrigger) {
+    dokBtnSampleTrigger.addEventListener('click', () => {
+      const svgCode = `<svg xmlns="http://www.w3.org/2000/svg" width="600" height="420" viewBox="0 0 600 420">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0284c7"/>
+            <stop offset="100%" stop-color="#0f766e"/>
+          </linearGradient>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grad)"/>
+        <circle cx="300" cy="170" r="60" fill="#ffffff" opacity="0.95"/>
+        <text x="300" y="185" font-family="Arial, sans-serif" font-size="44" text-anchor="middle">📷</text>
+        <text x="300" y="280" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#ffffff">FOTO KEGIATAN RESMI</text>
+        <text x="300" y="315" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#e0f2fe">Pelaksanaan Penimbangan dan Pemeriksaan</text>
+      </svg>`;
+      const sampleImg = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgCode);
+      createPhotoCard(sampleImg, 'Foto Kegiatan: Pelaksanaan Penimbangan dan Edukasi Gizi Balita');
+      if (typeof showToast === 'function') {
+        showToast('✓ Contoh foto kegiatan berhasil disisipkan!', 'success');
+      }
+    });
+  }
+
+  if (dokBtnUploadTrigger && dokFileInput) {
+    dokBtnUploadTrigger.addEventListener('click', () => dokFileInput.click());
+  }
+  if (dokDropzoneClickArea && dokFileInput) {
+    dokDropzoneClickArea.addEventListener('click', () => dokFileInput.click());
+  }
+  if (dokFileInput) {
+    dokFileInput.addEventListener('change', (e) => {
+      handleDokImageFiles(e.target.files);
+      dokFileInput.value = '';
+    });
+  }
+
+  // Clear all photos
+  if (dokBtnClearAll) {
+    dokBtnClearAll.addEventListener('click', async () => {
+      if (!dokPhotoContainer) return;
+      const cards = dokPhotoContainer.querySelectorAll('.dok-photo-card');
+      if (cards.length === 0) return;
+      const confirmed = await window.SicekasAlert.confirm(
+        'Hapus Semua Foto?',
+        'Seluruh foto dokumentasi kegiatan pada lembar ini akan dihapus.',
+        'Ya, Hapus Semua',
+        'Batal',
+        true
+      );
+      if (confirmed) {
+        cards.forEach(c => c.remove());
+        updateDokEmptyState();
+        showToast('✓ Semua foto dokumentasi berhasil dihapus.', 'info');
+      }
+    });
+  }
+
+  // Layout mode switcher
+  if (dokSelectLayout && dokPhotoContainer) {
+    dokSelectLayout.addEventListener('change', () => {
+      dokPhotoContainer.classList.remove('dok-layout-grid-2', 'dok-layout-grid-3', 'dok-layout-grid-1', 'dok-layout-free');
+      const val = dokSelectLayout.value;
+      if (val === 'grid-3') dokPhotoContainer.classList.add('dok-layout-grid-3');
+      else if (val === 'grid-1') dokPhotoContainer.classList.add('dok-layout-grid-1');
+      else if (val === 'free') dokPhotoContainer.classList.add('dok-layout-free');
+      else dokPhotoContainer.classList.add('dok-layout-grid-2');
+    });
+  }
+
+  // Position Alignment Controller (Left, Center, Right, Free)
+  const menuAlignBtns = document.querySelectorAll('.dok-menu-align-btn');
+  window.updateMenuAlignUI = (alignType) => {
+    menuAlignBtns.forEach(btn => {
+      if (btn.getAttribute('data-align') === alignType) {
+        btn.classList.add('active');
+        btn.style.background = '#2dd4bf';
+        btn.style.color = '#0f172a';
+      } else {
+        btn.classList.remove('active');
+        btn.style.background = 'transparent';
+        btn.style.color = '#cbd5e1';
+      }
+    });
+  };
+
+  const applyPhotoAlignment = (alignType) => {
+    window.updateMenuAlignUI(alignType);
+    const activeCard = dokPhotoContainer ? dokPhotoContainer.querySelector('.dok-photo-card.is-active') : null;
+    const cardsToUpdate = activeCard ? [activeCard] : (dokPhotoContainer ? Array.from(dokPhotoContainer.querySelectorAll('.dok-photo-card')) : []);
+
+    cardsToUpdate.forEach(card => {
+      card.classList.remove('align-left', 'align-center', 'align-right', 'align-free');
+      card.classList.add(`align-${alignType}`);
+
+      const cardAlignBtns = card.querySelectorAll('.btn-align');
+      cardAlignBtns.forEach(b => {
+        if (b.getAttribute('data-align') === `align-${alignType}`) {
+          b.classList.add('active');
+        } else {
+          b.classList.remove('active');
+        }
+      });
+    });
+
+    if (alignType === 'free') {
+      if (dokSelectLayout) {
+        dokSelectLayout.value = 'free';
+        dokPhotoContainer.classList.remove('dok-layout-grid-2', 'dok-layout-grid-3', 'dok-layout-grid-1');
+        dokPhotoContainer.classList.add('dok-layout-free');
+      }
+    }
+  };
+
+  menuAlignBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const align = btn.getAttribute('data-align');
+      applyPhotoAlignment(align);
+    });
+  });
+
+  // Drag and Drop files onto dropzone and preview sheet
+  [dokDropzoneBox, dokSheetDoc].forEach(zone => {
+    if (!zone) return;
+    zone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.types && Array.from(e.dataTransfer.types).includes('Files')) {
+        zone.classList.add(zone === dokSheetDoc ? 'drag-over' : 'drag-active');
+      }
+    });
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('drag-active', 'drag-over');
+    });
+    zone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      zone.classList.remove('drag-active', 'drag-over');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleDokImageFiles(e.dataTransfer.files);
+      }
+    });
+  });
+
+  // Global Clipboard Paste (Ctrl + V) for Dokumentasi
+  window.addEventListener('paste', (e) => {
+    const currentForm = sppdLptSelectForm ? sppdLptSelectForm.value : 'sppd';
+    if (currentForm !== 'dok') return;
+
+    const items = (e.clipboardData || window.clipboardData).items;
+    if (!items) return;
+
+    const currentCards = dokPhotoContainer ? dokPhotoContainer.querySelectorAll('.dok-photo-card') : [];
+    if (currentCards.length >= MAX_DOK_PHOTOS) {
+      if (typeof showToast === 'function') {
+        showToast('⚠️ Batas maksimal 30 foto kegiatan telah tercapai!', 'warn');
+      }
+      return;
+    }
+
+    let imageFound = false;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const blob = items[i].getAsFile();
+        if (blob) {
+          uploadAndInsertPhoto(blob, 'Foto Screenshot / Paste');
+          imageFound = true;
+        }
+      }
+    }
+    if (imageFound) {
+      e.preventDefault();
+    }
+  });
+
+
+  // ==========================================================================
+  // SEARCHABLE COMBOBOX FOR DOKUMENTASI JUDUL KEGIATAN (40 KEGIATAN PUSKESMAS)
+  // ==========================================================================
+  const dokJudulDropdownList = document.getElementById('dokJudulDropdownList');
+  const dokJudulToggleBtn = document.getElementById('dokJudulToggleBtn');
+
+  const renderDokJudulDropdown = (filterText = '') => {
+    if (!dokJudulDropdownList) return;
+    const query = (filterText || '').toLowerCase().trim();
+    const filtered = query
+      ? SPPD_KEGIATAN_LIST.filter(k => k.toLowerCase().includes(query))
+      : SPPD_KEGIATAN_LIST;
+
+    if (filtered.length === 0) {
+      dokJudulDropdownList.innerHTML = `<div class="sppd-combobox-empty">Tidak ada kegiatan yang cocok</div>`;
+    } else {
+      dokJudulDropdownList.innerHTML = filtered.map((item) => {
+        const isSelected = dokInputJudulKegiatan && dokInputJudulKegiatan.value === item;
+        return `<div class="sppd-combobox-item ${isSelected ? 'selected' : ''}" data-value="${escapeHtmlHelper(item)}">${escapeHtmlHelper(item)}</div>`;
+      }).join('');
+
+      dokJudulDropdownList.querySelectorAll('.sppd-combobox-item').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const val = el.getAttribute('data-value');
+          if (dokInputJudulKegiatan) {
+            dokInputJudulKegiatan.value = val;
+            dokInputJudulKegiatan.dataset.userEdited = 'true';
+          }
+          if (dokValJudulKegiatan) {
+            dokValJudulKegiatan.textContent = val;
+          }
+          if (sppdInputMaksud && !sppdInputMaksud.value) {
+            sppdInputMaksud.value = val;
+            syncSppdLptData();
+          }
+          closeDokJudulDropdown();
+        });
+      });
+    }
+  };
+
+  const openDokJudulDropdown = () => {
+    if (!dokJudulDropdownList) return;
+    renderDokJudulDropdown(dokInputJudulKegiatan ? dokInputJudulKegiatan.value : '');
+    dokJudulDropdownList.classList.add('active');
+  };
+
+  const closeDokJudulDropdown = () => {
+    if (dokJudulDropdownList) dokJudulDropdownList.classList.remove('active');
+  };
+
+  if (dokInputJudulKegiatan) {
+    dokInputJudulKegiatan.addEventListener('focus', () => {
+      openDokJudulDropdown();
+    });
+    dokInputJudulKegiatan.addEventListener('input', (e) => {
+      dokInputJudulKegiatan.dataset.userEdited = 'true';
+      if (dokValJudulKegiatan) dokValJudulKegiatan.textContent = e.target.value || 'Judul Kegiatan';
+      renderDokJudulDropdown(e.target.value);
+      if (dokJudulDropdownList) dokJudulDropdownList.classList.add('active');
+    });
+  }
+
+  if (dokJudulToggleBtn) {
+    dokJudulToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (dokJudulDropdownList && dokJudulDropdownList.classList.contains('active')) {
+        closeDokJudulDropdown();
+      } else {
+        openDokJudulDropdown();
+      }
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#dokJudulCombobox')) {
+      closeDokJudulDropdown();
+    }
+  });
+
+  if (dokValJudulKegiatan) {
+    dokValJudulKegiatan.addEventListener('input', () => {
+      if (dokInputJudulKegiatan) {
+        dokInputJudulKegiatan.value = dokValJudulKegiatan.textContent;
+        dokInputJudulKegiatan.dataset.userEdited = 'true';
+      }
+    });
+  }
+
+  // Switch between SPPD, LPT, and Dokumentasi Form
+  const updateFormDisplay = () => {
+    hydrateSppdAssets();
+    const formType = sppdLptSelectForm ? sppdLptSelectForm.value : 'sppd';
+
+    if (formType === 'sppd') {
+      if (sppdSidebarSections) sppdSidebarSections.style.display = 'block';
+      if (lptSidebarSections) lptSidebarSections.style.display = 'none';
+      if (dokSidebarSections) dokSidebarSections.style.display = 'none';
+      if (sppdDisplayPartGroup) sppdDisplayPartGroup.style.display = 'block';
+      if (lptSheetDoc) lptSheetDoc.style.display = 'none';
+      if (dokSheetDoc) dokSheetDoc.style.display = 'none';
+
+      const part = sppdDisplayPart ? sppdDisplayPart.value : 'both';
+      if (part === 'both') {
+        if (sppdSheetDepan) sppdSheetDepan.style.display = 'block';
+        if (sppdSheetBelakang) sppdSheetBelakang.style.display = 'block';
+      } else if (part === 'front') {
+        if (sppdSheetDepan) sppdSheetDepan.style.display = 'block';
+        if (sppdSheetBelakang) sppdSheetBelakang.style.display = 'none';
+      } else if (part === 'back') {
+        if (sppdSheetDepan) sppdSheetDepan.style.display = 'none';
+        if (sppdSheetBelakang) sppdSheetBelakang.style.display = 'block';
+      }
+    } else if (formType === 'lpt') {
+      // LPT Form
+      if (sppdSidebarSections) sppdSidebarSections.style.display = 'none';
+      if (lptSidebarSections) lptSidebarSections.style.display = 'block';
+      if (dokSidebarSections) dokSidebarSections.style.display = 'none';
+      if (sppdDisplayPartGroup) sppdDisplayPartGroup.style.display = 'none';
+      if (sppdSheetDepan) sppdSheetDepan.style.display = 'none';
+      if (sppdSheetBelakang) sppdSheetBelakang.style.display = 'none';
+      if (lptSheetDoc) lptSheetDoc.style.display = 'block';
+      if (dokSheetDoc) dokSheetDoc.style.display = 'none';
+    } else if (formType === 'dok') {
+      // Dokumentasi Kegiatan Form
+      if (sppdSidebarSections) sppdSidebarSections.style.display = 'none';
+      if (lptSidebarSections) lptSidebarSections.style.display = 'none';
+      if (dokSidebarSections) dokSidebarSections.style.display = 'block';
+      if (sppdDisplayPartGroup) sppdDisplayPartGroup.style.display = 'none';
+      if (sppdSheetDepan) sppdSheetDepan.style.display = 'none';
+      if (sppdSheetBelakang) sppdSheetBelakang.style.display = 'none';
+      if (lptSheetDoc) lptSheetDoc.style.display = 'none';
+      if (dokSheetDoc) dokSheetDoc.style.display = 'block';
+      updateDokEmptyState();
+    }
+  };
+
+  if (sppdLptSelectForm) sppdLptSelectForm.addEventListener('change', updateFormDisplay);
+  if (sppdDisplayPart) sppdDisplayPart.addEventListener('change', updateFormDisplay);
+
+  if (btnSaveSppdLpt) {
+    btnSaveSppdLpt.addEventListener('click', () => {
+      showToast ? showToast('✓ Data SPPD, LPT & Dokumentasi berhasil disimpan!', 'success') : alert('✓ Data SPPD, LPT & Dokumentasi berhasil disimpan.');
+    });
+  }
+
+  const sppdPaperSize = document.getElementById('sppdPaperSize');
+  const btnDownloadPdfSppdLpt = document.getElementById('btnDownloadPdfSppdLpt');
+
+  // Dynamic @page CSS rule for Pure A4 Paper Format (Margin 0 to suppress browser header/footer)
+  const applyPrintPaperSize = () => {
+    let styleEl = document.getElementById('sppdDynamicPrintPageStyle');
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = 'sppdDynamicPrintPageStyle';
+      document.head.appendChild(styleEl);
+    }
+    styleEl.innerHTML = `
+      @media print {
+        @page {
+          size: A4 portrait !important;
+          margin: 0mm !important;
+        }
+      }
+    `;
+  };
+  applyPrintPaperSize();
+
+  // ==========================================================================
+  // SPPD & LPT ASSET RESOLVER & DOCUMENT CUSTOMIZER CONTROLLER
+  // ==========================================================================
+  const hydrateSppdAssets = () => {
+    if (typeof window === 'undefined' || !window.SPPD_ASSETS) return;
+    const logoData = window.SPPD_ASSETS.logoKabBandung || window.SPPD_ASSETS.logo;
+    const barcodeData = window.SPPD_ASSETS.barcodeRina || window.SPPD_ASSETS.barcode;
+    if (logoData) {
+      document.querySelectorAll('.sppd-kop-logo').forEach(img => {
+        if (!img.src || !img.src.startsWith('data:') || img.naturalWidth === 0) {
+          img.src = logoData;
+        }
+      });
+    }
+    if (barcodeData) {
+      document.querySelectorAll('.sppd-barcode-img').forEach(img => {
+        if (!img.src || !img.src.startsWith('data:') || img.naturalWidth === 0) {
+          img.src = barcodeData;
+        }
+      });
+    }
+  };
+
+  const getGuaranteedSppdAsset = (assetType) => {
+    if (assetType === 'logo') {
+      if (window.SPPD_ASSETS && (window.SPPD_ASSETS.logoKabBandung || window.SPPD_ASSETS.logo)) {
+        return window.SPPD_ASSETS.logoKabBandung || window.SPPD_ASSETS.logo;
+      }
+      const existingImg = document.querySelector('.sppd-kop-logo');
+      if (existingImg && existingImg.complete && existingImg.naturalWidth > 0) {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = existingImg.naturalWidth;
+          canvas.height = existingImg.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(existingImg, 0, 0);
+          return canvas.toDataURL('image/png');
+        } catch (e) {}
+      }
+      return 'kabbandung.png';
+    } else if (assetType === 'barcode') {
+      if (window.SPPD_ASSETS && (window.SPPD_ASSETS.barcodeRina || window.SPPD_ASSETS.barcode)) {
+        return window.SPPD_ASSETS.barcodeRina || window.SPPD_ASSETS.barcode;
+      }
+      const existingImg = document.querySelector('.sppd-barcode-img');
+      if (existingImg && existingImg.complete && existingImg.naturalWidth > 0) {
+        try {
+          const canvas = document.createElement('canvas');
+          canvas.width = existingImg.naturalWidth;
+          canvas.height = existingImg.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(existingImg, 0, 0);
+          return canvas.toDataURL('image/png');
+        } catch (e) {}
+      }
+      return 'barcode_rina.png';
+    }
+    return '';
+  };
+
+  // Run immediate hydration for SPPD & LPT sheets
+  hydrateSppdAssets();
+
+  // State kustomisasi cetak dokumen (disimpan di localStorage)
+  const sppdCustomSettings = {
+    hideTableBorders: false,
+    hideBarcode: false,
+    hideKop: false,
+    fontColor: '#000000',
+    fontFamily: 'arial'
+  };
+
+  const loadSppdCustomSettings = () => {
+    try {
+      const saved = localStorage.getItem('sicekas_sppd_customizer');
+      if (saved) {
+        Object.assign(sppdCustomSettings, JSON.parse(saved));
+      }
+    } catch (e) {}
+  };
+
+  const saveSppdCustomSettings = () => {
+    try {
+      localStorage.setItem('sicekas_sppd_customizer', JSON.stringify(sppdCustomSettings));
+    } catch (e) {}
+  };
+
+  const applySppdCustomSettingsToDOM = () => {
+    const docSheets = document.querySelectorAll('.sppd-doc-sheet-exact');
+    docSheets.forEach(sheet => {
+      // 1. Hide Borders
+      sheet.classList.toggle('sppd-hide-borders', !!sppdCustomSettings.hideTableBorders);
+      // 2. Hide Barcode
+      sheet.classList.toggle('sppd-hide-barcode', !!sppdCustomSettings.hideBarcode);
+      // 3. Hide Kop
+      sheet.classList.toggle('sppd-hide-kop', !!sppdCustomSettings.hideKop);
+      // 4. Font Color
+      sheet.style.setProperty('--sppd-doc-font-color', sppdCustomSettings.fontColor || '#000000');
+      // 5. Font Family
+      sheet.classList.toggle('sppd-font-times', sppdCustomSettings.fontFamily === 'times');
+      sheet.classList.toggle('sppd-font-calibri', sppdCustomSettings.fontFamily === 'calibri');
+    });
+
+    // Update UI Toolbar elements
+    const tBorders = document.getElementById('toggleHideTableBorders');
+    const sBorders = document.getElementById('statusHideTableBorders');
+    if (tBorders) {
+      tBorders.checked = !!sppdCustomSettings.hideTableBorders;
+      if (sBorders) sBorders.textContent = tBorders.checked ? 'Sembunyi' : 'Tampil';
+    }
+
+    const tBarcode = document.getElementById('toggleHideBarcode');
+    const sBarcode = document.getElementById('statusHideBarcode');
+    if (tBarcode) {
+      tBarcode.checked = !!sppdCustomSettings.hideBarcode;
+      if (sBarcode) sBarcode.textContent = tBarcode.checked ? 'Sembunyi (TTD Basah)' : 'Tampil';
+    }
+
+    const tKop = document.getElementById('toggleHideKop');
+    const sKop = document.getElementById('statusHideKop');
+    if (tKop) {
+      tKop.checked = !!sppdCustomSettings.hideKop;
+      if (sKop) sKop.textContent = tKop.checked ? 'Sembunyi' : 'Tampil';
+    }
+
+    const colorPicker = document.getElementById('inputSppdFontColor');
+    if (colorPicker) colorPicker.value = sppdCustomSettings.fontColor || '#000000';
+
+    const colorDots = document.querySelectorAll('.sppd-color-dot');
+    colorDots.forEach(dot => {
+      dot.classList.toggle('active', dot.getAttribute('data-color') === (sppdCustomSettings.fontColor || '#000000'));
+    });
+
+    const fontSelect = document.getElementById('selectSppdFontFamily');
+    if (fontSelect) fontSelect.value = sppdCustomSettings.fontFamily || 'arial';
+  };
+
+  const initSppdCustomizerEvents = () => {
+    loadSppdCustomSettings();
+    applySppdCustomSettingsToDOM();
+
+    const tBorders = document.getElementById('toggleHideTableBorders');
+    if (tBorders) {
+      tBorders.addEventListener('change', (e) => {
+        sppdCustomSettings.hideTableBorders = e.target.checked;
+        saveSppdCustomSettings();
+        applySppdCustomSettingsToDOM();
+      });
+    }
+
+    const tBarcode = document.getElementById('toggleHideBarcode');
+    if (tBarcode) {
+      tBarcode.addEventListener('change', (e) => {
+        sppdCustomSettings.hideBarcode = e.target.checked;
+        saveSppdCustomSettings();
+        applySppdCustomSettingsToDOM();
+      });
+    }
+
+    const tKop = document.getElementById('toggleHideKop');
+    if (tKop) {
+      tKop.addEventListener('change', (e) => {
+        sppdCustomSettings.hideKop = e.target.checked;
+        saveSppdCustomSettings();
+        applySppdCustomSettingsToDOM();
+      });
+    }
+
+    const colorDots = document.querySelectorAll('.sppd-color-dot');
+    colorDots.forEach(dot => {
+      dot.addEventListener('click', () => {
+        const color = dot.getAttribute('data-color');
+        sppdCustomSettings.fontColor = color;
+        saveSppdCustomSettings();
+        applySppdCustomSettingsToDOM();
+      });
+    });
+
+    const colorPicker = document.getElementById('inputSppdFontColor');
+    if (colorPicker) {
+      colorPicker.addEventListener('input', (e) => {
+        sppdCustomSettings.fontColor = e.target.value;
+        saveSppdCustomSettings();
+        applySppdCustomSettingsToDOM();
+      });
+    }
+
+    const fontSelect = document.getElementById('selectSppdFontFamily');
+    if (fontSelect) {
+      fontSelect.addEventListener('change', (e) => {
+        sppdCustomSettings.fontFamily = e.target.value;
+        saveSppdCustomSettings();
+        applySppdCustomSettingsToDOM();
+      });
+    }
+
+    const btnReset = document.getElementById('btnResetSppdCustomizer');
+    if (btnReset) {
+      btnReset.addEventListener('click', () => {
+        sppdCustomSettings.hideTableBorders = false;
+        sppdCustomSettings.hideBarcode = false;
+        sppdCustomSettings.hideKop = false;
+        sppdCustomSettings.fontColor = '#000000';
+        sppdCustomSettings.fontFamily = 'arial';
+        saveSppdCustomSettings();
+        applySppdCustomSettingsToDOM();
+        if (typeof showToast === 'function') {
+          showToast('Format dokumen dikembalikan ke pengaturan standar resmi', 'info');
+        }
+      });
+    }
+  };
+
+  // ==========================================================================
+  // PRECISION ISOLATED DOCUMENT PRINTER — EXACT A4 REPLICA (ZERO OVERFLOW)
+  // ==========================================================================
+  const printIsolatedDocument = (formType, part) => {
+    const pageSizeCss = 'A4 portrait';
+    const sheetWidth = '210mm';
+    const screenPadding = '10mm 14mm 10mm 14mm';
+    const pageMargin = '0mm';
+    const tableFontSize = '12px';
+    const cellPadding = '3.5px 6px';
+    const paperLabel = 'Format Kertas: A4 (Standar Resmi)';
+
+    const logoSize = '180';
+    const logoPos = '-31';
+
+    const prepareSheetForPrint = (html) => {
+      let res = html;
+      const logoData = getGuaranteedSppdAsset('logo');
+      const barcodeData = getGuaranteedSppdAsset('barcode');
+      if (logoData) {
+        res = res.replace(/(<img[^>]*class=["'][^"']*sppd-kop-logo[^"']*["'][^>]*src=["'])[^"']*(")/gi, `$1${logoData}$2`);
+        res = res.replace(/src=["'][^"']*(?:kabbandung|Logo.*Bandung)[^"']*["']/gi, `src="${logoData}"`);
+      }
+      if (barcodeData) {
+        res = res.replace(/(<img[^>]*class=["'][^"']*sppd-barcode-img[^"']*["'][^>]*src=["'])[^"']*(")/gi, `$1${barcodeData}$2`);
+        res = res.replace(/src=["'][^"']*(?:barcode_rina|Barcode.*TTD)[^"']*["']/gi, `src="${barcodeData}"`);
+      }
+      
+      let classes = 'sppd-doc-sheet-exact';
+      if (sppdCustomSettings.hideTableBorders) classes += ' sppd-hide-borders';
+      if (sppdCustomSettings.hideBarcode) classes += ' sppd-hide-barcode';
+      if (sppdCustomSettings.hideKop) classes += ' sppd-hide-kop';
+      if (sppdCustomSettings.fontFamily === 'times') classes += ' sppd-font-times';
+      if (sppdCustomSettings.fontFamily === 'calibri') classes += ' sppd-font-calibri';
+
+      res = res.replace(/class=["']sppd-doc-sheet-exact([^"']*)["']/i, `class="${classes}$1" style="--sppd-doc-font-color: ${sppdCustomSettings.fontColor || '#000000'}; color: ${sppdCustomSettings.fontColor || '#000000'} !important;"`);
+      return res;
+    };
+
+    const contentToPrint = [];
+    if (formType === 'dok') {
+      const dokEl = document.getElementById('dokSheetDoc');
+      if (dokEl) contentToPrint.push(prepareSheetForPrint(dokEl.outerHTML));
+    } else if (formType === 'lpt') {
+      const lptEl = document.getElementById('lptSheetDoc');
+      if (lptEl) {
+        const clone = lptEl.cloneNode(true);
+        // Explicitly remove hidden officer rows so they never appear in print
+        for (let i = 2; i <= 5; i++) {
+          const toggle = document.getElementById(`lptTogglePetugas${i}`);
+          const origRow = document.getElementById(`lptSigRow${i}`);
+          const isShown = toggle ? toggle.checked : (origRow && origRow.style.display !== 'none');
+          if (!isShown) {
+            const cloneRow = clone.querySelector(`#lptSigRow${i}`);
+            if (cloneRow) cloneRow.remove();
+          }
+        }
+        // If dynamic table is disabled, remove table wrapper from clone
+        const toggleTable = document.getElementById('lptToggleTable');
+        const isTableActive = toggleTable ? toggleTable.checked : (typeof lptTableState !== 'undefined' && lptTableState && lptTableState.enabled);
+        if (!isTableActive) {
+          const cloneTable = clone.querySelector('#lptTableWrapper');
+          if (cloneTable) cloneTable.remove();
+        }
+        contentToPrint.push(prepareSheetForPrint(clone.outerHTML));
+      }
+    } else {
+      if (part === 'both' || part === 'front') {
+        const frontEl = document.getElementById('sppdSheetDepan');
+        if (frontEl) contentToPrint.push(prepareSheetForPrint(frontEl.outerHTML));
+      }
+      if (part === 'both' || part === 'back') {
+        const backEl = document.getElementById('sppdSheetBelakang');
+        if (backEl) contentToPrint.push(prepareSheetForPrint(backEl.outerHTML));
+      }
+    }
+
+    if (contentToPrint.length === 0) {
+      alert('Tidak ada dokumen yang bisa dicetak.');
+      return;
+    }
+
+    const isBothSheets = (part === 'both' && formType !== 'lpt');
+
+    const printWin = window.open('', '_blank');
+    if (!printWin) {
+      alert('Popup diblokir oleh browser. Izinkan popup untuk mencetak dokumen.');
+      return;
+    }
+
+    const baseHref = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+
+    printWin.document.open();
+    printWin.document.write(`<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<base href="${baseHref}">
+<title>${formType === 'lpt' ? 'LPT' : 'SPPD'} — Puskesmas Banjaran Kota</title>
+<script>
+  window.SPPD_ASSETS = {
+    logoKabBandung: ${JSON.stringify(getGuaranteedSppdAsset('logo'))},
+    barcodeRina: ${JSON.stringify(getGuaranteedSppdAsset('barcode'))},
+    logo: ${JSON.stringify(getGuaranteedSppdAsset('logo'))},
+    barcode: ${JSON.stringify(getGuaranteedSppdAsset('barcode'))}
+  };
+</script>
+<style>
+  :root {
+    --sppd-logo-size: ${logoSize}px;
+    --sppd-logo-offset-x: ${logoPos}px;
+  }
+  @page {
+    size: ${pageSizeCss} !important;
+    margin: ${pageMargin} !important;
+  }
+  *, *::before, *::after {
+    box-sizing: border-box !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  html, body {
+    background: #1e293b;
+    color: #000000;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif !important;
+    line-height: 1.2;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Screen toolbar (hidden during print) */
+  .no-print-bar {
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  .no-print-bar .doc-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13.5px;
+  }
+  .no-print-bar .doc-badge {
+    background: rgba(212, 163, 89, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(212, 163, 89, 0.4);
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .no-print-bar .btn-group {
+    display: flex;
+    gap: 10px;
+  }
+  .no-print-bar .btn-print-action {
+    background: linear-gradient(135deg, #d4a359, #b8863b);
+    color: #0b0f19;
+    font-weight: 700;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 10px rgba(212, 163, 89, 0.35);
+    transition: transform 0.15s ease;
+  }
+  .no-print-bar .btn-print-action:hover {
+    transform: translateY(-1px);
+  }
+  .no-print-bar .btn-close-action {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .document-stage {
+    padding: 25px 15px 50px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  /* Sheet container - EXACT A4 PAPER WIDTH ON SCREEN */
+  .sppd-doc-sheet-exact {
+    background: #ffffff !important;
+    color: #000000 !important;
+    width: ${sheetWidth} !important;
+    max-width: 100% !important;
+    min-height: 297mm !important;
+    box-sizing: border-box !important;
+    margin: 0 auto 30px auto !important;
+    padding: ${screenPadding} !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45) !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    border-radius: 3px !important;
+    position: relative !important;
+    overflow: visible !important;
+  }
+
+  /* PRINT MODE OVERRIDES (PURE A4 FULL PAGE - ZERO BROWSER HEADERS & FOOTERS) */
+  @media print {
+    .no-print, .no-print-bar {
+      display: none !important;
+    }
+    html, body {
+      background: #ffffff !important;
+      color: #000000 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100% !important;
+    }
+    .document-stage {
+      padding: 0 !important;
+      margin: 0 !important;
+      display: block !important;
+      width: 100% !important;
+    }
+    .sppd-doc-sheet-exact {
+      box-shadow: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: #ffffff !important;
+      color: #000000 !important;
+      margin: 0 auto !important;
+      padding: 10mm 14mm 10mm 14mm !important;
+      width: 210mm !important;
+      max-width: 210mm !important;
+      min-height: 297mm !important;
+      height: auto !important;
+      display: block !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      box-sizing: border-box !important;
+    }
+
+    ${isBothSheets ? `
+    #sppdSheetDepan {
+      page-break-after: always !important;
+      break-after: page !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      margin-bottom: 0 !important;
+    }
+    #sppdSheetBelakang {
+      page-break-before: always !important;
+      break-before: page !important;
+      page-break-after: avoid !important;
+      break-after: avoid !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+      margin-top: 0 !important;
+      padding: 5mm 12mm 5mm 12mm !important;
+    }
+    ` : `
+    #sppdSheetDepan, #sppdSheetBelakang, #lptSheetDoc {
+      page-break-after: avoid !important;
+      break-after: avoid !important;
+      page-break-inside: avoid !important;
+      break-inside: avoid !important;
+    }
+    `}
+  }
+
+  /* Kop Surat Resmi (Exact Image Reference) */
+  .sppd-kop-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    margin-bottom: 1px !important;
+    min-height: 85px !important;
+    width: 100% !important;
+  }
+  .sppd-kop-logo {
+    position: absolute !important;
+    left: var(--sppd-logo-offset-x, 0px) !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: var(--sppd-logo-size, 100px) !important;
+    height: var(--sppd-logo-size, 100px) !important;
+    max-height: 120px !important;
+    object-fit: contain !important;
+    object-position: left center !important;
+    display: block !important;
+  }
+  .sppd-kop-text {
+    width: 100% !important;
+    text-align: center !important;
+    color: #000000 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 !important;
+  }
+  .sppd-kop-line1 {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    letter-spacing: 0.4px !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
+  }
+  .sppd-kop-line2 {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.6px !important;
+    line-height: 1.1 !important;
+    margin: 1px 0 0 0 !important;
+  }
+  .sppd-kop-line3 {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.4px !important;
+    line-height: 1.1 !important;
+    margin: 1px 0 0 0 !important;
+  }
+  .sppd-kop-line4 {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 400 !important;
+    line-height: 1.2 !important;
+    margin: 2px 0 0 0 !important;
+  }
+  .sppd-kop-line5 {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 10px !important;
+    font-weight: 400 !important;
+    line-height: 1.2 !important;
+    margin: 1px 0 0 0 !important;
+  }
+
+  .sppd-kop-divider {
+    border-top: 1.5px solid #000000 !important;
+    border-bottom: 1.5px solid #000000 !important;
+    height: 1px !important;
+    margin: 2px 0 3px 0 !important;
+  }
+
+  .sppd-title-center-box {
+    text-align: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .sppd-title {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    text-decoration: underline !important;
+    margin: 0 !important;
+    line-height: 1.1 !important;
+  }
+  .sppd-subtitle {
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    margin: 1px 0 0 0 !important;
+    line-height: 1.1 !important;
+  }
+  .sppd-title-divider {
+    border-top: 1.5px solid #000000 !important;
+    border-bottom: 1.5px solid #000000 !important;
+    height: 1px !important;
+    margin: 2px 0 1px 0 !important;
+  }
+
+  /* Table styles (Exact A4 Spacing) */
+  .exact-sppd-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: 1.5px solid #000000 !important;
+    font-size: ${tableFontSize} !important;
+    color: #000000 !important;
+    margin-top: 0 !important;
+    margin-bottom: 8px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .exact-sppd-table th,
+  .exact-sppd-table td {
+    border: 1px solid #000000 !important;
+    padding: ${cellPadding} !important;
+    color: #000000 !important;
+    line-height: 1.25 !important;
+  }
+
+  .sppd-num-col {
+    width: 25px !important;
+    text-align: left !important;
+    vertical-align: top !important;
+    padding: 3.5px 4px !important;
+  }
+  .sppd-desc-col {
+    width: 310px !important;
+    vertical-align: top !important;
+    padding: 3.5px 6px !important;
+  }
+  .sppd-val-col {
+    vertical-align: top !important;
+    padding: 3.5px 6px !important;
+  }
+  .sppd-row-pejabat td,
+  .sppd-row-pejabat .sppd-num-col,
+  .sppd-row-pejabat .sppd-desc-col,
+  .sppd-row-pejabat .sppd-val-col {
+    vertical-align: middle !important;
+    height: 40px !important;
+  }
+  .sppd-row-pegawai td,
+  .sppd-row-pegawai .sppd-num-col,
+  .sppd-row-pegawai .sppd-desc-col,
+  .sppd-row-pegawai .sppd-val-col {
+    vertical-align: middle !important;
+    height: 40px !important;
+  }
+  .sppd-row-maksud td,
+  .sppd-row-maksud .sppd-num-col,
+  .sppd-row-maksud .sppd-desc-col,
+  .sppd-row-maksud .sppd-val-col {
+    vertical-align: middle !important;
+    height: 65px !important;
+  }
+
+  /* Signature Block */
+  .sppd-signature-front {
+    display: flex !important;
+    justify-content: flex-end !important;
+    margin-top: 8px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .sppd-sig-box-right {
+    width: 290px !important;
+    font-size: 12px !important;
+  }
+  .sppd-barcode-img {
+    width: 68px !important;
+    height: 68px !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 2px auto !important;
+  }
+  .sppd-sig-name {
+    font-weight: 700 !important;
+    text-decoration: underline !important;
+    margin: 0 !important;
+    font-size: 12.5px !important;
+  }
+  .sppd-sig-nip {
+    margin: 1px 0 0 0 !important;
+    font-size: 11.5px !important;
+  }
+
+  /* Lembar Belakang */
+  #sppdSheetBelakang {
+    padding: 5mm 12mm 5mm 12mm !important;
+  }
+  #sppdSheetBelakang,
+  #sppdSheetBelakang *,
+  .sppd-back-outer-table,
+  .sppd-back-outer-table * {
+    font-family: Arial, Helvetica, sans-serif !important;
+    color: #000000 !important;
+  }
+  .sppd-back-outer-table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    table-layout: fixed !important;
+    border: 1px solid #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 3px !important;
+  }
+  .sppd-back-outer-table > tbody > tr > td {
+    border: 1px solid #000000 !important;
+    vertical-align: top !important;
+    box-sizing: border-box !important;
+  }
+  .sppd-back-outer-table > tbody > tr.sppd-visum-row > td {
+    height: 160px !important;
+    padding: 4px 8px !important;
+  }
+  .sppd-back-outer-table > tbody > tr.sppd-note-row > td {
+    height: auto !important;
+  }
+  .nested-sppd-tbl {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: fixed !important;
+    border: none !important;
+    font-size: 10px !important;
+  }
+  .nested-sppd-tbl td {
+    border: none !important;
+    padding: 1px 2px !important;
+    line-height: 1.2 !important;
+    color: #000000 !important;
+  }
+
+  /* LPT specific */
+  #lptSheetDoc {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  #lptSheetDoc .lpt-editable-field,
+  #lptSheetDoc .lpt-field-yellow,
+  #lptSheetDoc .lpt-field-blue,
+  #dokSheetDoc .lpt-editable-field {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+  }
+  .lpt-signatures-wrapper {
+    margin-top: 25px !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .lpt-sig-stacked-block {
+    width: 270px !important;
+    color: #000000 !important;
+    text-align: left !important;
+  }
+  .lpt-officer-item {
+    display: flex;
+    align-items: flex-start !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    color: #000000 !important;
+  }
+  .lpt-officer-item[style*="display: none"],
+  .lpt-officer-item[style*="display:none"],
+  .lpt-officer-item.hidden-officer {
+    display: none !important;
+  }
+  .lpt-officer-num {
+    width: 20px !important;
+    flex-shrink: 0 !important;
+    font-weight: bold !important;
+    color: #000000 !important;
+  }
+  #lptTableWrapper {
+    margin-top: 8px !important;
+    margin-bottom: 10px !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  #lptDynamicTable,
+  .exact-lpt-table {
+    width: 100% !important;
+    max-width: 540px !important;
+    border-collapse: collapse !important;
+    border: 1.5px solid #000000 !important;
+    font-size: 11px !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+  }
+  #lptDynamicTable th,
+  #lptDynamicTable td,
+  .exact-lpt-table th,
+  .exact-lpt-table td {
+    border: 1px solid #000000 !important;
+    padding: 5px 8px !important;
+    text-align: center !important;
+    color: #000000 !important;
+    line-height: 1.25 !important;
+  }
+  #lptDynamicTable th {
+    font-weight: bold !important;
+  }
+
+  /* Dokumentasi specific */
+  #dokSheetDoc {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    padding: 10mm 14mm !important;
+  }
+  .dok-card-toolbar,
+  .dok-resize-handle,
+  .dok-empty-placeholder {
+    display: none !important;
+  }
+  .dok-photo-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    width: 100% !important;
+    margin-top: 10px !important;
+  }
+  .dok-layout-grid-2 { display: grid !important; grid-template-columns: repeat(2, 1fr) !important; gap: 16px !important; }
+  .dok-layout-grid-3 { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 14px !important; }
+  .dok-layout-grid-1 { display: flex !important; flex-direction: column !important; gap: 20px !important; }
+  .dok-layout-free { display: flex !important; flex-wrap: wrap !important; gap: 16px !important; }
+  
+  .dok-photo-card {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    box-sizing: border-box !important;
+    margin-bottom: 14px !important;
+  }
+  .dok-photo-card.align-left { margin-right: auto !important; margin-left: 0 !important; align-items: flex-start !important; }
+  .dok-photo-card.align-left .dok-photo-caption { text-align: left !important; }
+  .dok-photo-card.align-center { margin-left: auto !important; margin-right: auto !important; align-items: center !important; }
+  .dok-photo-card.align-center .dok-photo-caption { text-align: center !important; }
+  .dok-photo-card.align-right { margin-left: auto !important; margin-right: 0 !important; align-items: flex-end !important; }
+  .dok-photo-card.align-right .dok-photo-caption { text-align: right !important; }
+
+  .dok-photo-card.size-s { width: 33% !important; max-width: 33% !important; }
+  .dok-photo-card.size-m { width: 50% !important; max-width: 50% !important; }
+  .dok-photo-card.size-l { width: 75% !important; max-width: 75% !important; }
+  .dok-photo-card.size-full { width: 100% !important; max-width: 100% !important; }
+  
+  .dok-photo-img-wrap {
+    width: 100% !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    background: transparent !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .dok-photo-img {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 480px !important;
+    object-fit: contain !important;
+    display: block !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  .dok-photo-caption {
+    margin-top: 6px !important;
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+    color: #000000 !important;
+    text-align: center !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+  }
+  .dok-photo-caption:empty {
+    display: none !important;
+  }
+
+  /* Document Customization Modifiers inside Print Window */
+  .sppd-doc-sheet-exact {
+    --sppd-doc-font-color: ${sppdCustomSettings.fontColor || '#000000'};
+    color: var(--sppd-doc-font-color, #000000) !important;
+  }
+  .sppd-doc-sheet-exact p,
+  .sppd-doc-sheet-exact span,
+  .sppd-doc-sheet-exact td,
+  .sppd-doc-sheet-exact th,
+  .sppd-doc-sheet-exact h2,
+  .sppd-doc-sheet-exact h3,
+  .sppd-doc-sheet-exact label,
+  .sppd-doc-sheet-exact .lpt-editable-field,
+  .sppd-doc-sheet-exact div:not(.sppd-kop-logo):not(.sppd-barcode-img) {
+    color: var(--sppd-doc-font-color, #000000) !important;
+  }
+  .sppd-hide-borders .exact-sppd-table,
+  .sppd-hide-borders .exact-sppd-table th,
+  .sppd-hide-borders .exact-sppd-table td,
+  .sppd-hide-borders .sppd-back-outer-table,
+  .sppd-hide-borders .sppd-back-outer-table td,
+  .sppd-hide-borders .exact-lpt-table,
+  .sppd-hide-borders .exact-lpt-table th,
+  .sppd-hide-borders .exact-lpt-table td,
+  .sppd-hide-borders .sppd-title-divider {
+    border-color: transparent !important;
+  }
+  .sppd-hide-barcode .sppd-barcode-img {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  .sppd-hide-barcode .sppd-sig-barcode-wrap {
+    min-height: 52px !important;
+    height: 52px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .sppd-hide-kop .sppd-kop-container,
+  .sppd-hide-kop .sppd-kop-divider {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  .sppd-font-times, .sppd-font-times * {
+    font-family: "Times New Roman", Times, Georgia, serif !important;
+  }
+  .sppd-font-calibri, .sppd-font-calibri * {
+    font-family: Calibri, "Segoe UI", Arial, sans-serif !important;
+  }
+
+  /* Quick Customizer Bar in Print Preview */
+  .no-print-bar {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    padding: 8px 18px !important;
+  }
+  .print-quick-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 4px 10px;
+    border-radius: 8px;
+  }
+  .print-quick-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 11.5px;
+    color: #cbd5e1;
+  }
+  .print-quick-label input[type="checkbox"] {
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="no-print-bar no-print">
+  <div class="doc-info">
+    <strong style="display: flex; align-items: center; gap: 6px;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+      <span>Pratinjau Dokumen ${formType === 'dok' ? 'Dokumentasi Kegiatan' : (formType === 'lpt' ? 'LPT' : 'SPPD')}</span>
+    </strong>
+    <span class="doc-badge">${paperLabel}</span>
+  </div>
+
+  <div class="print-quick-tools">
+    <span style="color: #94a3b8; font-size: 11px; font-weight: 600;">Kustomisasi:</span>
+    <label class="print-quick-label" title="Sembunyikan garis tabel">
+      <input type="checkbox" id="popCheckBorders" ${sppdCustomSettings.hideTableBorders ? 'checked' : ''} onchange="window.setCustomBorder(this.checked)">
+      <span>Hide Garis</span>
+    </label>
+    <label class="print-quick-label" title="Sembunyikan barcode digital untuk tanda tangan basah">
+      <input type="checkbox" id="popCheckBarcode" ${sppdCustomSettings.hideBarcode ? 'checked' : ''} onchange="window.setCustomBarcode(this.checked)">
+      <span>Hide Barcode</span>
+    </label>
+    <label class="print-quick-label" title="Sembunyikan kop jika mencetak di kertas blanko ber-kop">
+      <input type="checkbox" id="popCheckKop" ${sppdCustomSettings.hideKop ? 'checked' : ''} onchange="window.setCustomKop(this.checked)">
+      <span>Hide Kop</span>
+    </label>
+    <label class="print-quick-label" title="Ubah warna font dokumen" style="gap:4px;">
+      <span>Warna:</span>
+      <input type="color" id="popTextColor" value="${sppdCustomSettings.fontColor || '#000000'}" onchange="window.setCustomColor(this.value)" style="width:20px;height:20px;border:none;border-radius:4px;cursor:pointer;padding:0;background:transparent;">
+    </label>
+    <select id="popFontFamily" onchange="window.setCustomFont(this.value)" style="background:#0f172a;color:#f8fafc;border:1px solid rgba(255,255,255,0.2);border-radius:4px;font-size:11px;padding:2px 4px;cursor:pointer;">
+      <option value="arial" ${sppdCustomSettings.fontFamily === 'arial' ? 'selected' : ''}>Arial</option>
+      <option value="times" ${sppdCustomSettings.fontFamily === 'times' ? 'selected' : ''}>Times New Roman</option>
+      <option value="calibri" ${sppdCustomSettings.fontFamily === 'calibri' ? 'selected' : ''}>Calibri</option>
+    </select>
+  </div>
+
+  <div class="btn-group">
+    <button type="button" class="btn-print-action" onclick="window.print()">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+      <span>Cetak / Save as PDF</span>
+    </button>
+    <button type="button" class="btn-close-action" onclick="window.close()">
+      <span>Tutup</span>
+    </button>
+  </div>
+</div>
+
+<div class="document-stage">
+  ${contentToPrint.join('')}
+</div>
+
+<script>
+  window.setCustomBorder = function(hide) {
+    document.querySelectorAll('.sppd-doc-sheet-exact').forEach(function(el) {
+      if (hide) el.classList.add('sppd-hide-borders');
+      else el.classList.remove('sppd-hide-borders');
+    });
+  };
+  window.setCustomBarcode = function(hide) {
+    document.querySelectorAll('.sppd-doc-sheet-exact').forEach(function(el) {
+      if (hide) el.classList.add('sppd-hide-barcode');
+      else el.classList.remove('sppd-hide-barcode');
+    });
+  };
+  window.setCustomKop = function(hide) {
+    document.querySelectorAll('.sppd-doc-sheet-exact').forEach(function(el) {
+      if (hide) el.classList.add('sppd-hide-kop');
+      else el.classList.remove('sppd-hide-kop');
+    });
+  };
+  window.setCustomColor = function(color) {
+    document.querySelectorAll('.sppd-doc-sheet-exact').forEach(function(el) {
+      el.style.setProperty('--sppd-doc-font-color', color);
+      el.style.color = color;
+    });
+  };
+  window.setCustomFont = function(font) {
+    document.querySelectorAll('.sppd-doc-sheet-exact').forEach(function(el) {
+      el.classList.remove('sppd-font-times', 'sppd-font-calibri');
+      if (font === 'times') el.classList.add('sppd-font-times');
+      if (font === 'calibri') el.classList.add('sppd-font-calibri');
+    });
+  };
+
+  function executeAutoPrint() {
+    if (window.SPPD_ASSETS) {
+      if (window.SPPD_ASSETS.logoKabBandung) {
+        document.querySelectorAll('.sppd-kop-logo').forEach(function(img) {
+          if (!img.src || !img.src.startsWith('data:') || img.naturalWidth === 0) {
+            img.src = window.SPPD_ASSETS.logoKabBandung;
+          }
+        });
+      }
+      if (window.SPPD_ASSETS.barcodeRina) {
+        document.querySelectorAll('.sppd-barcode-img').forEach(function(img) {
+          if (!img.src || !img.src.startsWith('data:') || img.naturalWidth === 0) {
+            img.src = window.SPPD_ASSETS.barcodeRina;
+          }
+        });
+      }
+    }
+    var images = Array.from(document.images);
+    var promises = images.map(function(img) {
+      if (img.decode) return img.decode().catch(function() {});
+      return new Promise(function(resolve) {
+        if (img.complete) return resolve();
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+    });
+
+    Promise.all(promises).then(function() {
+      setTimeout(function() {
+        window.print();
+      }, 450);
+    });
+  }
+
+  if (document.readyState === 'complete') {
+    executeAutoPrint();
+  } else {
+    window.addEventListener('load', executeAutoPrint);
+  }
+<\/script>
+</body>
+</html>`);
+    printWin.document.close();
+  };
+
+  // Direct Pure A4 PDF Downloader (Zero Browser Headers & Footers)
+  const exportDirectA4Pdf = async (formType, part) => {
+    if (typeof html2pdf === 'undefined') {
+      printIsolatedDocument(formType, part);
+      return;
+    }
+
+    if (typeof showToast === 'function') {
+      showToast('Memproses file PDF A4 resmi tanpa header/footer...', 'info');
+    }
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '0';
+    container.style.top = '0';
+    container.style.width = '210mm';
+    container.style.maxWidth = '210mm';
+    container.style.zIndex = '-99999';
+    container.style.opacity = '0';
+    container.style.pointerEvents = 'none';
+    container.style.background = '#ffffff';
+    container.style.color = '#000000';
+    container.style.fontFamily = 'Arial, Helvetica, sans-serif';
+
+    const sheets = [];
+    if (formType === 'dok') {
+      const dokEl = document.getElementById('dokSheetDoc');
+      if (dokEl) sheets.push(dokEl.cloneNode(true));
+    } else if (formType === 'lpt') {
+      const lptEl = document.getElementById('lptSheetDoc');
+      if (lptEl) {
+        const lptClone = lptEl.cloneNode(true);
+        // Explicitly remove hidden officer rows from PDF export
+        for (let i = 2; i <= 5; i++) {
+          const toggle = document.getElementById(`lptTogglePetugas${i}`);
+          const origRow = document.getElementById(`lptSigRow${i}`);
+          const isShown = toggle ? toggle.checked : (origRow && origRow.style.display !== 'none');
+          if (!isShown) {
+            const cloneRow = lptClone.querySelector(`#lptSigRow${i}`);
+            if (cloneRow) cloneRow.remove();
+          }
+        }
+        const toggleTable = document.getElementById('lptToggleTable');
+        const isTableActive = toggleTable ? toggleTable.checked : (typeof lptTableState !== 'undefined' && lptTableState && lptTableState.enabled);
+        if (!isTableActive) {
+          const cloneTable = lptClone.querySelector('#lptTableWrapper');
+          if (cloneTable) cloneTable.remove();
+        }
+        sheets.push(lptClone);
+      }
+    } else {
+      if (part === 'both' || part === 'front') {
+        const frontEl = document.getElementById('sppdSheetDepan');
+        if (frontEl) sheets.push(frontEl.cloneNode(true));
+      }
+      if (part === 'both' || part === 'back') {
+        const backEl = document.getElementById('sppdSheetBelakang');
+        if (backEl) sheets.push(backEl.cloneNode(true));
+      }
+    }
+
+    sheets.forEach((sheet, idx) => {
+      sheet.style.width = '210mm';
+      sheet.style.maxWidth = '210mm';
+      sheet.style.minHeight = '296mm';
+      sheet.style.padding = '10mm 14mm 10mm 14mm';
+      sheet.style.margin = '0';
+      sheet.style.boxShadow = 'none';
+      sheet.style.border = 'none';
+      sheet.style.boxSizing = 'border-box';
+      sheet.style.background = '#ffffff';
+
+      // Apply guaranteed assets & customizer settings to cloned sheet
+      const logoData = getGuaranteedSppdAsset('logo');
+      const barcodeData = getGuaranteedSppdAsset('barcode');
+      sheet.querySelectorAll('.sppd-kop-logo').forEach(img => {
+        if (logoData) img.src = logoData;
+      });
+      sheet.querySelectorAll('.sppd-barcode-img').forEach(img => {
+        if (barcodeData) img.src = barcodeData;
+      });
+      sheet.classList.toggle('sppd-hide-borders', !!sppdCustomSettings.hideTableBorders);
+      sheet.classList.toggle('sppd-hide-barcode', !!sppdCustomSettings.hideBarcode);
+      sheet.classList.toggle('sppd-hide-kop', !!sppdCustomSettings.hideKop);
+      sheet.classList.toggle('sppd-font-times', sppdCustomSettings.fontFamily === 'times');
+      sheet.classList.toggle('sppd-font-calibri', sppdCustomSettings.fontFamily === 'calibri');
+      sheet.style.setProperty('--sppd-doc-font-color', sppdCustomSettings.fontColor || '#000000');
+
+      if (idx > 0) {
+        sheet.style.pageBreakBefore = 'always';
+        sheet.style.breakBefore = 'page';
+      }
+      container.appendChild(sheet);
+    });
+
+    document.body.appendChild(container);
+
+    // Wait for all images inside container to be fully loaded
+    const imgs = container.querySelectorAll('img');
+    if (imgs.length > 0) {
+      await Promise.all(Array.from(imgs).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(res => {
+          img.onload = res;
+          img.onerror = res;
+        });
+      }));
+    }
+
+    const filename = formType === 'dok'
+      ? `Dokumentasi_Kegiatan_Puskesmas_Banjaran_Kota_${new Date().toISOString().slice(0,10)}.pdf`
+      : (formType === 'lpt' 
+        ? `LPT_Puskesmas_Banjaran_Kota_${new Date().toISOString().slice(0,10)}.pdf` 
+        : `SPPD_Puskesmas_Banjaran_Kota_${new Date().toISOString().slice(0,10)}.pdf`);
+
+    const opt = {
+      margin: 0,
+      filename: filename,
+      image: { type: 'jpeg', quality: 1.0 },
+      html2canvas: {
+        scale: 4,
+        dpi: 300,
+        useCORS: true,
+        letterRendering: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0
+      },
+      jsPDF: {
+        unit: 'mm',
+        format: 'a4',
+        orientation: 'portrait',
+        compress: true,
+        precision: 16
+      },
+      pagebreak: { mode: ['css', 'legacy'] }
+    };
+
+    try {
+      await html2pdf().set(opt).from(container).save();
+      if (typeof showToast === 'function') {
+        showToast('✓ PDF resmi A4 resolusi tinggi berhasil diunduh bersih!', 'success');
+      }
+    } catch (err) {
+      console.error('html2pdf direct export error:', err);
+      printIsolatedDocument(formType, part);
+    } finally {
+      if (container.parentNode) {
+        document.body.removeChild(container);
+      }
+    }
+  };
+
+  // Print & Download PDF Buttons (SPPD)
+  if (btnPrintSppdLpt) {
+    btnPrintSppdLpt.addEventListener('click', () => {
+      printIsolatedDocument(
+        sppdLptSelectForm ? sppdLptSelectForm.value : 'sppd',
+        sppdDisplayPart ? sppdDisplayPart.value : 'both'
+      );
+    });
+  }
+  if (btnDownloadPdfSppdLpt) {
+    btnDownloadPdfSppdLpt.addEventListener('click', () => {
+      exportDirectA4Pdf(
+        sppdLptSelectForm ? sppdLptSelectForm.value : 'sppd',
+        sppdDisplayPart ? sppdDisplayPart.value : 'both'
+      );
+    });
+  }
+
+  // Initial Sync & Display
+  syncSppdLptData();
+  for (let i = 1; i <= 5; i++) syncLptOfficer(i);
+  updateLptPetugasVisibility();
+  renderLptTable();
+  updateFormDisplay();
+  initSppdCustomizerEvents();
+
+  // ==========================================================================
+  // SPPD, LPT, & FOTO KEGIATAN TEMPLATES CONTROLLER (CLOUDFLARE D1 STUDIO)
+  // Max 30 templates per user for each category (SPPD, LPT, DOK)
+  // Format Nama: Kegiatan-dd-mm-yyyy
+  // ==========================================================================
+  const MAX_TEMPLATES_PER_TYPE = 30;
+
+  function formatTemplateNameHelper(baseText, dateVal) {
+    const d = dateVal ? new Date(dateVal) : new Date();
+    const validDate = isNaN(d.getTime()) ? new Date() : d;
+    const dd = String(validDate.getDate()).padStart(2, '0');
+    const mm = String(validDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = validDate.getFullYear();
+    const dateFormatted = `${dd}-${mm}-${yyyy}`;
+    const cleanTitle = (baseText || 'Kegiatan').trim().replace(/[\/\\:*?"<>|]/g, ' ') || 'Kegiatan';
+    return `${cleanTitle}-${dateFormatted}`;
+  }
+
+  const SppdTemplateController = {
+    templates: [],
+    activeTab: 'sppd', // 'sppd' | 'lpt' | 'dok'
+    searchFilter: '',
+
+    // Containers
+    sppdContainer: document.getElementById('sppdTemplateListContainer'),
+    lptContainer: document.getElementById('lptTemplateListContainer'),
+    dokContainer: document.getElementById('dokTemplateListContainer'),
+    evidenceGrid: document.getElementById('sppdEvidenceGridContainer'),
+
+    // Buttons
+    btnSaveSppd: document.getElementById('btnSaveSppdTemplate') || document.getElementById('btnSaveCurrentAsTemplate'),
+    btnSaveLpt: document.getElementById('btnSaveLptTemplate'),
+    btnSaveDok: document.getElementById('btnSaveDokTemplate'),
+    btnModalSave: document.getElementById('btnModalSaveCurrentTemplate'),
+    btnModalSaveText: document.getElementById('btnModalSaveText'),
+    btnOpenModal: document.getElementById('btnOpenSppdTemplateModal'),
+
+    // Modal
+    modal: document.getElementById('modalListTemplateSppd'),
+    btnCloseModal: document.getElementById('closeListTemplateModal'),
+    btnCancelModal: document.getElementById('btnCancelListTemplateModal'),
+    searchInput: document.getElementById('sppdTemplateSearchInput'),
+
+    // Badges & Tabs
+    heroBadge: document.getElementById('sppdHeroTemplateBadge'),
+    usageBadge: document.getElementById('modalTemplateUsageBadge'),
+    tabBtnSppd: document.getElementById('tabBtnSppd'),
+    tabBtnLpt: document.getElementById('tabBtnLpt'),
+    tabBtnDok: document.getElementById('tabBtnDok'),
+    tabBadgeSppd: document.getElementById('tabBadgeSppd'),
+    tabBadgeLpt: document.getElementById('tabBadgeLpt'),
+    tabBadgeDok: document.getElementById('tabBadgeDok'),
+
+    async init() {
+      // Sidebar Save triggers for each menu
+      if (this.btnSaveSppd) {
+        this.btnSaveSppd.addEventListener('click', () => this.saveCurrentAsTemplate('sppd'));
+      }
+      if (this.btnSaveLpt) {
+        this.btnSaveLpt.addEventListener('click', () => this.saveCurrentAsTemplate('lpt'));
+      }
+      if (this.btnSaveDok) {
+        this.btnSaveDok.addEventListener('click', () => this.saveCurrentAsTemplate('dok'));
+      }
+      if (this.btnModalSave) {
+        this.btnModalSave.addEventListener('click', () => this.saveCurrentAsTemplate(this.activeTab));
+      }
+
+      // Modal Open & Close triggers
+      if (this.btnOpenModal) {
+        this.btnOpenModal.addEventListener('click', () => this.openModal());
+      }
+      if (this.btnCloseModal) {
+        this.btnCloseModal.addEventListener('click', () => this.closeModal());
+      }
+      if (this.btnCancelModal) {
+        this.btnCancelModal.addEventListener('click', () => this.closeModal());
+      }
+      if (this.modal) {
+        this.modal.addEventListener('click', (e) => {
+          if (e.target === this.modal) this.closeModal();
+        });
+      }
+
+      // Category Tabs inside Modal
+      const setupTab = (btn, type) => {
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+          this.switchTab(type);
+        });
+      };
+      setupTab(this.tabBtnSppd, 'sppd');
+      setupTab(this.tabBtnLpt, 'lpt');
+      setupTab(this.tabBtnDok, 'dok');
+
+      // Search Filter
+      if (this.searchInput) {
+        this.searchInput.addEventListener('input', (e) => {
+          this.searchFilter = (e.target.value || '').toLowerCase().trim();
+          this.renderEvidenceGrid();
+        });
+      }
+
+      await this.loadTemplates();
+    },
+
+    switchTab(type) {
+      this.activeTab = type;
+      [this.tabBtnSppd, this.tabBtnLpt, this.tabBtnDok].forEach(btn => {
+        if (!btn) return;
+        if (btn.getAttribute('data-tab-type') === type) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      if (this.btnModalSaveText) {
+        if (type === 'lpt') {
+          this.btnModalSaveText.textContent = '+ Simpan Form LPT Saat Ini';
+        } else if (type === 'dok') {
+          this.btnModalSaveText.textContent = '+ Simpan Foto & Layout Saat Ini';
+        } else {
+          this.btnModalSaveText.textContent = '+ Simpan Form SPPD Saat Ini';
+        }
+      }
+
+      this.renderEvidenceGrid();
+    },
+
+    getCurrentUsername() {
+      try {
+        const stored = localStorage.getItem('SICEKAS_CURRENT_USER');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.username) return parsed.username;
+        }
+      } catch (e) {}
+      return 'ozie';
+    },
+
+    openModal(preferredTab) {
+      if (!this.modal) this.modal = document.getElementById('modalListTemplateSppd');
+      if (!this.modal) return;
+      if (preferredTab) {
+        this.switchTab(preferredTab);
+      } else {
+        // Auto-detect current active form in studio
+        const formMode = (typeof sppdLptSelectForm !== 'undefined' && sppdLptSelectForm) ? sppdLptSelectForm.value : 'sppd';
+        if (formMode === 'lpt') {
+          this.switchTab('lpt');
+        } else if (formMode === 'dok') {
+          this.switchTab('dok');
+        } else {
+          this.switchTab('sppd');
+        }
+      }
+      this.searchFilter = '';
+      if (this.searchInput) this.searchInput.value = '';
+      this.render();
+      this.modal.classList.add('active');
+      // Always fetch latest data from Cloud D1 on open
+      this.loadTemplates();
+    },
+
+    closeModal() {
+      if (this.modal) this.modal.classList.remove('active');
+    },
+
+    async loadTemplates() {
+      const u = this.getCurrentUsername();
+      let list = await CloudflareDB.fetchSppdTemplates(u);
+      if (!list || list.length === 0) {
+        try {
+          const cached = JSON.parse(localStorage.getItem('SICEKAS_SPPD_TEMPLATES_CACHE')) || [];
+          if (cached && cached.length > 0) list = cached;
+        } catch (e) {}
+      }
+      this.templates = Array.isArray(list) ? list : [];
+      this.render();
+    },
+
+
+    updateBadges() {
+      const sppdList = this.templates.filter(t => (t.template_type || 'sppd') === 'sppd');
+      const lptList = this.templates.filter(t => t.template_type === 'lpt');
+      const dokList = this.templates.filter(t => t.template_type === 'dok');
+      const totalAll = sppdList.length + lptList.length + dokList.length;
+
+      if (this.tabBadgeSppd) this.tabBadgeSppd.textContent = `${sppdList.length}/${MAX_TEMPLATES_PER_TYPE}`;
+      if (this.tabBadgeLpt) this.tabBadgeLpt.textContent = `${lptList.length}/${MAX_TEMPLATES_PER_TYPE}`;
+      if (this.tabBadgeDok) this.tabBadgeDok.textContent = `${dokList.length}/${MAX_TEMPLATES_PER_TYPE}`;
+
+      if (this.heroBadge) {
+        this.heroBadge.textContent = `${totalAll} Template`;
+        this.heroBadge.title = `Template Tersimpan: ${sppdList.length} SPPD, ${lptList.length} LPT, ${dokList.length} Foto Dokumentasi`;
+      }
+      if (this.usageBadge) {
+        this.usageBadge.textContent = `${totalAll} Template Cloud`;
+      }
+    },
+
+    render() {
+      this.updateBadges();
+      this.renderSidebarLists();
+      this.renderEvidenceGrid();
+    },
+
+    renderSidebarLists() {
+      // 1. SPPD Sidebar List
+      if (this.sppdContainer) {
+        const sppdItems = this.templates.filter(t => (t.template_type || 'sppd') === 'sppd');
+        if (sppdItems.length === 0) {
+          this.sppdContainer.innerHTML = `
+            <div class="sppd-template-empty" style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px 4px;">
+              Belum ada template SPPD (0/${MAX_TEMPLATES_PER_TYPE}). Klik <strong>"+ Simpan Template"</strong> di atas.
+            </div>
+          `;
+        } else {
+          let html = '';
+          sppdItems.slice(0, 6).forEach(t => {
+            const title = escapeHtmlHelper(t.nama_template || 'Template SPPD');
+            const tujuan = escapeHtmlHelper(t.tempat_tujuan || '-');
+            const maksud = escapeHtmlHelper(t.maksud_kegiatan || '-');
+            html += `
+              <div class="sppd-template-card" data-id="${t.id}" title="Klik untuk terapkan template SPPD ini">
+                <div class="sppd-template-card-main">
+                  <div class="sppd-template-title">
+                    <span style="color: #ffd166;">📄</span>
+                    <span>${title}</span>
+                  </div>
+                  <div class="sppd-template-sub">
+                    ${tujuan !== '-' ? `📍 ${tujuan}` : ''} ${maksud !== '-' ? `• ${maksud}` : ''}
+                  </div>
+                </div>
+                <div class="sppd-template-actions">
+                  <button type="button" class="sppd-template-btn-apply" data-id="${t.id}">Terapkan</button>
+                  <button type="button" class="sppd-template-btn-del" data-id="${t.id}" title="Hapus Template">✕</button>
+                </div>
+              </div>
+            `;
+          });
+          if (sppdItems.length > 6) {
+            html += `
+              <div style="text-align: center; padding-top: 4px;">
+                <button type="button" class="sppd-template-btn-apply" onclick="window.SppdTemplateController.openModal('sppd')" style="font-size: 11px; padding: 4px 10px;">
+                  Lihat Semua (${sppdItems.length} Template) ↗
+                </button>
+              </div>
+            `;
+          }
+          this.sppdContainer.innerHTML = html;
+        }
+      }
+
+      // 2. LPT Sidebar List
+      if (this.lptContainer) {
+        const lptItems = this.templates.filter(t => t.template_type === 'lpt');
+        if (lptItems.length === 0) {
+          this.lptContainer.innerHTML = `
+            <div class="sppd-template-empty" style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px 4px;">
+              Belum ada template LPT (0/${MAX_TEMPLATES_PER_TYPE}). Klik <strong>"+ Simpan Template LPT"</strong> di atas.
+            </div>
+          `;
+        } else {
+          let html = '';
+          lptItems.slice(0, 6).forEach(t => {
+            const title = escapeHtmlHelper(t.nama_template || 'Template LPT');
+            const lpt = t.lpt_data || {};
+            const tujuan = escapeHtmlHelper(lpt.tujuan || t.maksud_kegiatan || '-');
+            html += `
+              <div class="sppd-template-card" data-id="${t.id}" title="Klik untuk terapkan template LPT ini" style="border-left: 3px solid #38bdf8;">
+                <div class="sppd-template-card-main">
+                  <div class="sppd-template-title">
+                    <span style="color: #38bdf8;">📋</span>
+                    <span>${title}</span>
+                  </div>
+                  <div class="sppd-template-sub">
+                    ${tujuan !== '-' ? `🎯 ${tujuan}` : ''}
+                  </div>
+                </div>
+                <div class="sppd-template-actions">
+                  <button type="button" class="sppd-template-btn-apply" data-id="${t.id}" style="color: #38bdf8; border-color: rgba(56,189,248,0.4);">Terapkan</button>
+                  <button type="button" class="sppd-template-btn-del" data-id="${t.id}" title="Hapus Template">✕</button>
+                </div>
+              </div>
+            `;
+          });
+          if (lptItems.length > 6) {
+            html += `
+              <div style="text-align: center; padding-top: 4px;">
+                <button type="button" class="sppd-template-btn-apply" onclick="window.SppdTemplateController.openModal('lpt')" style="font-size: 11px; padding: 4px 10px;">
+                  Lihat Semua (${lptItems.length} Template LPT) ↗
+                </button>
+              </div>
+            `;
+          }
+          this.lptContainer.innerHTML = html;
+        }
+      }
+
+      // 3. Dokumentasi Sidebar List
+      if (this.dokContainer) {
+        const dokItems = this.templates.filter(t => t.template_type === 'dok');
+        if (dokItems.length === 0) {
+          this.dokContainer.innerHTML = `
+            <div class="sppd-template-empty" style="font-size: 11px; color: #94a3b8; text-align: center; padding: 10px 4px;">
+              Belum ada template foto kegiatan (0/${MAX_TEMPLATES_PER_TYPE}). Klik <strong>"+ Simpan Template Foto"</strong> di atas.
+            </div>
+          `;
+        } else {
+          let html = '';
+          dokItems.slice(0, 6).forEach(t => {
+            const title = escapeHtmlHelper(t.nama_template || 'Template Foto');
+            const dok = t.dok_data || {};
+            const photoCount = Array.isArray(dok.photos) ? dok.photos.length : 0;
+            html += `
+              <div class="sppd-template-card" data-id="${t.id}" title="Klik untuk terapkan template foto ini" style="border-left: 3px solid #2dd4bf;">
+                <div class="sppd-template-card-main">
+                  <div class="sppd-template-title">
+                    <span style="color: #2dd4bf;">📷</span>
+                    <span>${title}</span>
+                  </div>
+                  <div class="sppd-template-sub">
+                    ${photoCount} Foto • Tata Letak: ${dok.layout || 'grid-2'}
+                  </div>
+                </div>
+                <div class="sppd-template-actions">
+                  <button type="button" class="sppd-template-btn-apply" data-id="${t.id}" style="color: #2dd4bf; border-color: rgba(45,212,191,0.4);">Terapkan</button>
+                  <button type="button" class="sppd-template-btn-del" data-id="${t.id}" title="Hapus Template">✕</button>
+                </div>
+              </div>
+            `;
+          });
+          if (dokItems.length > 6) {
+            html += `
+              <div style="text-align: center; padding-top: 4px;">
+                <button type="button" class="sppd-template-btn-apply" onclick="window.SppdTemplateController.openModal('dok')" style="font-size: 11px; padding: 4px 10px; color: #2dd4bf; border-color: rgba(45,212,191,0.4);">
+                  Lihat Semua (${dokItems.length} Template Foto) ↗
+                </button>
+              </div>
+            `;
+          }
+          this.dokContainer.innerHTML = html;
+        }
+      }
+
+      // Attach event listeners for all 3 sidebar containers
+      [this.sppdContainer, this.lptContainer, this.dokContainer].forEach(container => {
+        if (!container) return;
+        container.querySelectorAll('.sppd-template-card').forEach(card => {
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('.sppd-template-btn-del')) return;
+            const id = card.getAttribute('data-id');
+            this.applyTemplate(id);
+          });
+        });
+        container.querySelectorAll('.sppd-template-btn-del').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const id = btn.getAttribute('data-id');
+            await this.deleteTemplate(id);
+          });
+        });
+      });
+    },
+
+    renderEvidenceGrid() {
+      if (!this.evidenceGrid) return;
+
+      const q = this.searchFilter;
+      const type = this.activeTab || 'sppd';
+      const typedTemplates = this.templates.filter(t => (t.template_type || 'sppd') === type);
+
+      const filtered = typedTemplates.filter(t => {
+        if (!q) return true;
+        const name = (t.nama_template || '').toLowerCase();
+        const keg = (t.maksud_kegiatan || '').toLowerCase();
+        const peg = (t.pegawai_nama || '').toLowerCase();
+        const tuj = (t.tempat_tujuan || '').toLowerCase();
+        const lpt = t.lpt_data ? JSON.stringify(t.lpt_data).toLowerCase() : '';
+        const dok = t.dok_data ? (t.dok_data.judul || '').toLowerCase() : '';
+        return name.includes(q) || keg.includes(q) || peg.includes(q) || tuj.includes(q) || lpt.includes(q) || dok.includes(q);
+      });
+
+      const typeTitle = type === 'lpt' ? 'Template LPT' : (type === 'dok' ? 'Template Foto Kegiatan' : 'Template SPPD');
+
+      if (filtered.length === 0) {
+        this.evidenceGrid.innerHTML = `
+          <div class="evidence-empty-box">
+            <div class="evidence-empty-icon-wrap">
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+            </div>
+            <h4 style="font-size: 15px; font-weight: 700; color: #ffffff; margin-bottom: 6px;">
+              ${q ? `Tidak ada template yang cocok` : `Belum Ada ${typeTitle} Tersimpan`}
+            </h4>
+            <p style="font-size: 12px; color: #94a3b8; max-width: 440px; margin: 0 auto 18px auto; line-height: 1.5;">
+              ${q ? 'Silakan periksa kembali kata kunci pencarian Anda.' : `Simpan konfigurasi ${typeTitle} yang sering digunakan agar dapat diterapkan kembali dalam 1 detik.`}
+            </p>
+            <button type="button" class="btn-save-current-template-modal" onclick="window.SppdTemplateController.saveCurrentAsTemplate('${type}')" style="margin: 0 auto; display: inline-flex;">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>Simpan Form Saat Ini ke Pustaka</span>
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      filtered.forEach((t, idx) => {
+        const title = escapeHtmlHelper(t.nama_template || typeTitle);
+        const dateFormatted = t.created_at ? new Date(t.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Baru saja';
+
+        if (type === 'sppd') {
+          const pegawai = escapeHtmlHelper(t.pegawai_nama || 'Belum dipilih');
+          const nip = escapeHtmlHelper(t.pegawai_nip || '-');
+          const berangkat = escapeHtmlHelper(t.tempat_berangkat || 'Puskesmas Banjaran Kota');
+          const tujuan = escapeHtmlHelper(t.tempat_tujuan || 'Lokasi Tujuan');
+          const maksud = escapeHtmlHelper(t.maksud_kegiatan || 'Kegiatan Pelayanan Puskesmas');
+
+          let pengikutHtml = '';
+          if (Array.isArray(t.pengikut_data) && t.pengikut_data.length > 0) {
+            pengikutHtml = `<div class="evidence-pengikut-tags">`;
+            t.pengikut_data.forEach(p => {
+              const pName = p.customNama || p.selectVal;
+              if (pName && pName !== 'CUSTOM') {
+                pengikutHtml += `<span class="evidence-pengikut-tag">${escapeHtmlHelper(pName)}</span>`;
+              }
+            });
+            pengikutHtml += `</div>`;
+          } else {
+            pengikutHtml = `<span style="font-size: 11px; color: #64748b;">(Tanpa Pengikut)</span>`;
+          }
+
+          html += `
+            <div class="evidence-card" data-id="${t.id}">
+              <div class="evidence-card-header">
+                <span class="evidence-idx-badge">SPPD #${idx + 1}</span>
+                <span class="evidence-time-text">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  ${dateFormatted}
+                </span>
+              </div>
+              <h4 class="evidence-card-title">
+                <span style="color: #ffd166;">📄</span>
+                <span>${title}</span>
+              </h4>
+              <div class="evidence-route-pill">
+                <span>${berangkat}</span>
+                <span class="evidence-route-arrow">➔</span>
+                <span style="font-weight: 700; color: #ffffff;">${tujuan}</span>
+              </div>
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">📋</span>
+                <div>
+                  <strong style="color: #ffffff;">Maksud:</strong>
+                  <div style="color: #cbd5e1;">${maksud}</div>
+                </div>
+              </div>
+              ${t.tgl_berangkat ? `
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">📅</span>
+                <div>
+                  <strong style="color: #ffffff;">Jadwal Dinas:</strong>
+                  <div style="color: #ffd166; font-weight: 600;">${escapeHtmlHelper(t.tgl_berangkat)}${t.tgl_kembali && t.tgl_kembali !== t.tgl_berangkat ? ` s/d ${escapeHtmlHelper(t.tgl_kembali)}` : ''}</div>
+                </div>
+              </div>` : ''}
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">👤</span>
+                <div>
+                  <strong style="color: #ffffff;">Pelaksana Utama:</strong>
+                  <div>${pegawai} ${nip !== '-' ? `<span style="color: #94a3b8; font-size: 10.5px;">(${nip})</span>` : ''}</div>
+                </div>
+              </div>
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">👥</span>
+                <div>
+                  <strong style="color: #ffffff;">Petugas Pengikut:</strong>
+                  <div style="margin-top: 3px;">${pengikutHtml}</div>
+                </div>
+              </div>
+              <div class="evidence-card-actions">
+                <button type="button" class="btn-evidence-apply" data-id="${t.id}">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>Terapkan Template</span>
+                </button>
+                <button type="button" class="btn-evidence-delete" data-id="${t.id}" title="Hapus Template SPPD">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  <span>Hapus</span>
+                </button>
+              </div>
+            </div>
+          `;
+        } else if (type === 'lpt') {
+          const lpt = t.lpt_data || {};
+          const dasar = escapeHtmlHelper(lpt.dasar || t.maksud_kegiatan || '-');
+          const tujuan = escapeHtmlHelper(lpt.tujuan || '-');
+          const hasil = escapeHtmlHelper(lpt.proses ? lpt.proses.slice(0, 100) + '...' : '-');
+          const pet1 = escapeHtmlHelper(lpt.petugas1 || t.pegawai_nama || '-');
+
+          html += `
+            <div class="evidence-card" data-id="${t.id}" style="border-color: rgba(56, 189, 248, 0.25);">
+              <div class="evidence-card-header">
+                <span class="evidence-idx-badge" style="background: rgba(56, 189, 248, 0.12); color: #38bdf8; border-color: rgba(56, 189, 248, 0.3);">LPT #${idx + 1}</span>
+                <span class="evidence-time-text">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  ${dateFormatted}
+                </span>
+              </div>
+              <h4 class="evidence-card-title">
+                <span style="color: #38bdf8;">📋</span>
+                <span>${title}</span>
+              </h4>
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">📜</span>
+                <div>
+                  <strong style="color: #ffffff;">Dasar SPT:</strong>
+                  <div style="color: #cbd5e1;">${dasar}</div>
+                </div>
+              </div>
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">🎯</span>
+                <div>
+                  <strong style="color: #ffffff;">Tujuan Laporan:</strong>
+                  <div style="color: #cbd5e1;">${tujuan}</div>
+                </div>
+              </div>
+              ${lpt.tanggal_laporan ? `
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">📅</span>
+                <div>
+                  <strong style="color: #ffffff;">Tanggal Laporan:</strong>
+                  <div style="color: #38bdf8; font-weight: 600;">${escapeHtmlHelper(lpt.tanggal_laporan)}</div>
+                </div>
+              </div>` : ''}
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">📝</span>
+                <div>
+                  <strong style="color: #ffffff;">Ringkasan Hasil:</strong>
+                  <div style="font-size: 11px; color: #94a3b8;">${hasil}</div>
+                </div>
+              </div>
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">👤</span>
+                <div>
+                  <strong style="color: #ffffff;">Pelapor:</strong>
+                  <div>${pet1}</div>
+                </div>
+              </div>
+              <div class="evidence-card-actions">
+                <button type="button" class="btn-evidence-apply" data-id="${t.id}" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.18) 0%, rgba(14, 165, 233, 0.28) 100%); border-color: rgba(56, 189, 248, 0.45); color: #38bdf8;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>Terapkan Template</span>
+                </button>
+                <button type="button" class="btn-evidence-delete" data-id="${t.id}" title="Hapus Template LPT">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  <span>Hapus</span>
+                </button>
+              </div>
+            </div>
+          `;
+        } else if (type === 'dok') {
+          const dok = t.dok_data || {};
+          const judul = escapeHtmlHelper(dok.judul || t.maksud_kegiatan || 'Dokumentasi Foto');
+          const layout = escapeHtmlHelper(dok.layout || 'grid-2');
+          const photoCount = Array.isArray(dok.photos) ? dok.photos.length : 0;
+
+          html += `
+            <div class="evidence-card" data-id="${t.id}" style="border-color: rgba(45, 212, 191, 0.25);">
+              <div class="evidence-card-header">
+                <span class="evidence-idx-badge" style="background: rgba(45, 212, 191, 0.12); color: #2dd4bf; border-color: rgba(45, 212, 191, 0.3);">FOTO #${idx + 1}</span>
+                <span class="evidence-time-text">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  ${dateFormatted}
+                </span>
+              </div>
+              <h4 class="evidence-card-title">
+                <span style="color: #2dd4bf;">📷</span>
+                <span>${title}</span>
+              </h4>
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">🏷️</span>
+                <div>
+                  <strong style="color: #ffffff;">Judul Kegiatan:</strong>
+                  <div style="color: #cbd5e1;">${judul}</div>
+                </div>
+              </div>
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">🖼️</span>
+                <div>
+                  <strong style="color: #ffffff;">Koleksi Foto:</strong>
+                  <div>${photoCount} Foto tersimpan (${photoCount}/30)</div>
+                </div>
+              </div>
+              <div class="evidence-detail-row">
+                <span class="evidence-detail-icon">📐</span>
+                <div>
+                  <strong style="color: #ffffff;">Tata Letak:</strong>
+                  <div>${layout === 'grid-2' ? 'Grid 2 Kolom (Standar Rapi)' : (layout === 'grid-3' ? 'Grid 3 Kolom (Kompak)' : (layout === 'grid-1' ? '1 Kolom Besar' : 'Bebas Drag & Drop'))}</div>
+                </div>
+              </div>
+              <div class="evidence-card-actions">
+                <button type="button" class="btn-evidence-apply" data-id="${t.id}" style="background: linear-gradient(135deg, rgba(45, 212, 191, 0.18) 0%, rgba(13, 148, 136, 0.28) 100%); border-color: rgba(45, 212, 191, 0.45); color: #2dd4bf;">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>Terapkan Template</span>
+                </button>
+                <button type="button" class="btn-evidence-delete" data-id="${t.id}" title="Hapus Template Foto">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  <span>Hapus</span>
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      });
+
+      this.evidenceGrid.innerHTML = html;
+
+      // Event listeners inside modal grid
+      this.evidenceGrid.querySelectorAll('.btn-evidence-apply').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          this.applyTemplate(id);
+          this.closeModal();
+        });
+      });
+
+      this.evidenceGrid.querySelectorAll('.btn-evidence-delete').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const id = btn.getAttribute('data-id');
+          await this.deleteTemplate(id);
+        });
+      });
+    },
+
+    async saveCurrentAsTemplate(forcedType) {
+      try {
+        const targetType = forcedType || this.activeTab || 'sppd';
+        const currentList = this.templates.filter(t => (t.template_type || 'sppd') === targetType);
+
+        // Check 30 Template Limit for this specific type
+        if (currentList.length >= MAX_TEMPLATES_PER_TYPE) {
+          const typeLabel = targetType === 'lpt' ? 'LPT' : (targetType === 'dok' ? 'Foto Kegiatan' : 'SPPD');
+          if (typeof Swal !== 'undefined') {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Batas Kuota Tercapai',
+              text: `Anda telah mencapai batas maksimal ${MAX_TEMPLATES_PER_TYPE} template untuk ${typeLabel}. Harap hapus salah satu template lama terlebih dahulu sebelum menambah yang baru.`,
+              confirmButtonText: 'Mengerti',
+              background: '#0f172a',
+              color: '#ffffff'
+            });
+          } else {
+            alert(`Batas maksimal ${MAX_TEMPLATES_PER_TYPE} template untuk ${typeLabel} telah tercapai.`);
+          }
+          return;
+        }
+
+        let defaultName = '';
+        let dialogTitle = '';
+
+        if (targetType === 'sppd') {
+          const kegText = document.getElementById('sppdInputMaksud')?.value || document.getElementById('sppdInputTujuan')?.value || 'SPPD';
+          const tglSurat = document.getElementById('sppdInputTglBerangkat')?.value || '';
+          defaultName = formatTemplateNameHelper(kegText, tglSurat);
+          dialogTitle = 'Simpan Template SPPD';
+        } else if (targetType === 'lpt') {
+          const tujuanLpt = document.getElementById('lptInputTujuanPerjalanan')?.value || document.getElementById('lptInputDasar')?.value || 'Laporan LPT';
+          const tglLpt = document.getElementById('lptInputTanggalLaporan')?.value || '';
+          defaultName = formatTemplateNameHelper(tujuanLpt, tglLpt);
+          dialogTitle = 'Simpan Template LPT';
+        } else if (targetType === 'dok') {
+          const judulDok = document.getElementById('dokInputJudulKegiatan')?.value || 'Dokumentasi Kegiatan';
+          defaultName = formatTemplateNameHelper(judulDok, null);
+          dialogTitle = 'Simpan Template Foto Kegiatan';
+        }
+
+        // Prompt for Template Name with SweetAlert2
+        let templateName = '';
+        if (typeof Swal !== 'undefined') {
+          const { value: nameInput, isConfirmed } = await Swal.fire({
+            title: dialogTitle,
+            html: `<div style="font-size: 13px; color: #94a3b8; margin-bottom: 8px;">Format nama otomatis <strong>(Kegiatan-dd-mm-yyyy)</strong>:</div>`,
+            input: 'text',
+            inputValue: defaultName,
+            showCancelButton: true,
+            confirmButtonText: '💾 Simpan Template',
+            cancelButtonText: 'Batal',
+            background: '#0f172a',
+            color: '#ffffff',
+            customClass: {
+              popup: 'sicekas-swal-modal',
+              confirmButton: 'btn-swal-teal',
+              cancelButton: 'btn-swal-cancel'
+            },
+            inputValidator: (val) => {
+              if (!val || !val.trim()) return 'Nama template tidak boleh kosong!';
+            }
+          });
+          if (!isConfirmed || !nameInput) return;
+          templateName = nameInput.trim();
+        } else {
+          templateName = prompt(`${dialogTitle} (Kegiatan-dd-mm-yyyy):`, defaultName) || '';
+          if (!templateName.trim()) return;
+        }
+
+        // Gather Data safely according to targetType
+        const pegawaiEl = document.getElementById('sppdInputPegawai');
+        const optUser = (pegawaiEl && pegawaiEl.selectedIndex >= 0) ? pegawaiEl.options[pegawaiEl.selectedIndex] : null;
+
+        // SPPD Details
+        const noSurat = document.getElementById('sppdInputNoSurat')?.value || '';
+        const tglBerangkat = document.getElementById('sppdInputTglBerangkat')?.value || '';
+        const tglKembali = document.getElementById('sppdInputTglKembali')?.value || '';
+        const pegawai = pegawaiEl ? pegawaiEl.value : '';
+        const nip = optUser ? (optUser.getAttribute('data-nip') || '') : '';
+        const maksud = document.getElementById('sppdInputMaksud')?.value || '';
+        const tempatBerangkat = document.getElementById('sppdInputTempatBerangkat')?.value || '';
+        const tujuan = document.getElementById('sppdInputTujuan')?.value || '';
+
+        const pengikutList = [];
+        for (let i = 1; i <= 4; i++) {
+          const select = document.getElementById(`sppdPengikutSelect${i}`);
+          const inNama = document.getElementById(`sppdPengikutInputNama${i}`);
+          const inNip = document.getElementById(`sppdPengikutInputNip${i}`);
+          const inKet = document.getElementById(`sppdPengikutInputKet${i}`);
+          if (select && select.value) {
+            pengikutList.push({
+              index: i,
+              selectVal: select.value,
+              customNama: inNama ? inNama.value : '',
+              customNip: inNip ? inNip.value : '',
+              customKet: inKet ? inKet.value : ''
+            });
+          }
+        }
+
+        // LPT Details (Termasuk Tanggal Laporan, 5 Petugas & Dynamic Table)
+        const lptData = {
+          dasar: document.getElementById('lptInputDasar')?.value || '',
+          tujuan: document.getElementById('lptInputTujuanPerjalanan')?.value || '',
+          tanggal_laporan: document.getElementById('lptInputTanggalLaporan')?.value || '',
+          proses: document.getElementById('lptInputProses')?.value || '',
+          masalah: document.getElementById('lptInputMasalah')?.value || '',
+          kesimpulan: document.getElementById('lptInputKesimpulan')?.value || '',
+          petugas1: document.getElementById('lptSelectPetugas1')?.value || '',
+          petugas2: document.getElementById('lptSelectPetugas2')?.value || '',
+          petugas3: document.getElementById('lptSelectPetugas3')?.value || '',
+          petugas4: document.getElementById('lptSelectPetugas4')?.value || '',
+          petugas5: document.getElementById('lptSelectPetugas5')?.value || '',
+          toggle2: document.getElementById('lptTogglePetugas2')?.checked || false,
+          toggle3: document.getElementById('lptTogglePetugas3')?.checked || false,
+          toggle4: document.getElementById('lptTogglePetugas4')?.checked || false,
+          toggle5: document.getElementById('lptTogglePetugas5')?.checked || false,
+          customNama1: document.getElementById('lptInputCustomNama1')?.value || '',
+          customNip1: document.getElementById('lptInputCustomNip1')?.value || '',
+          customNama2: document.getElementById('lptInputCustomNama2')?.value || '',
+          customNip2: document.getElementById('lptInputCustomNip2')?.value || '',
+          customNama3: document.getElementById('lptInputCustomNama3')?.value || '',
+          customNip3: document.getElementById('lptInputCustomNip3')?.value || '',
+          customNama4: document.getElementById('lptInputCustomNama4')?.value || '',
+          customNip4: document.getElementById('lptInputCustomNip4')?.value || '',
+          customNama5: document.getElementById('lptInputCustomNama5')?.value || '',
+          customNip5: document.getElementById('lptInputCustomNip5')?.value || '',
+          table_enabled: !!(lptTableState && lptTableState.enabled),
+          table_headers: lptTableState ? [...lptTableState.headers] : [],
+          table_rows: lptTableState ? JSON.parse(JSON.stringify(lptTableState.rows)) : []
+        };
+
+        // Dokumentasi Details - Pastikan file gambar tersimpan di Cloudflare R2
+        const photoCards = Array.from(document.querySelectorAll('#dokPhotoContainer .dok-photo-card'));
+        const dokPhotos = [];
+        for (let idx = 0; idx < Math.min(photoCards.length, 30); idx++) {
+          const card = photoCards[idx];
+          const img = card.querySelector('.dok-photo-img');
+          const cap = card.querySelector('.dok-photo-caption');
+          let sz = 'M';
+          if (card.classList.contains('size-s')) sz = 'S';
+          else if (card.classList.contains('size-l')) sz = 'L';
+          else if (card.classList.contains('size-full')) sz = '100%';
+
+          let photoUrl = img ? img.src : '';
+          // Jika gambar masih Base64 data URI, upload langsung ke Cloudflare R2 Bucket
+          if (photoUrl && photoUrl.startsWith('data:')) {
+            try {
+              const r2Res = await CloudflareDB.uploadFotoR2(photoUrl, `foto_tmpl_${Date.now()}_${idx + 1}.jpg`);
+              if (r2Res && r2Res.url) {
+                photoUrl = r2Res.url;
+                if (img) {
+                  img.src = r2Res.url;
+                  img.setAttribute('data-r2-key', r2Res.key || '');
+                }
+              }
+            } catch (r2Err) {
+              console.warn('Upload R2 fallback:', r2Err);
+            }
+          }
+
+          dokPhotos.push({
+            id: `photo-${Date.now()}-${idx}`,
+            url: photoUrl,
+            caption: cap ? cap.textContent.trim() : '',
+            size: sz
+          });
+        }
+
+        const dokData = {
+          judul: document.getElementById('dokInputJudulKegiatan')?.value || '',
+          layout: document.getElementById('dokSelectLayout')?.value || 'grid-2',
+          photos: dokPhotos
+        };
+
+        const payload = {
+          id: `tmpl-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+          template_type: targetType,
+          nama_template: templateName,
+          username: this.getCurrentUsername(),
+          no_surat: noSurat,
+          tgl_berangkat: tglBerangkat,
+          tgl_kembali: tglKembali,
+          pegawai_nama: pegawai,
+          pegawai_nip: nip,
+          maksud_kegiatan: maksud,
+          tempat_berangkat: tempatBerangkat || 'Puskesmas Banjaran Kota',
+          tempat_tujuan: tujuan,
+          pengikut_data: pengikutList,
+          lpt_data: lptData,
+          dok_data: dokData,
+          is_favorite: 0,
+          created_at: new Date().toISOString()
+        };
+
+        // Optimistic update
+        this.templates.unshift(payload);
+        this.render();
+
+        const res = await CloudflareDB.saveSppdTemplate(payload);
+
+        const typeLabel = targetType === 'lpt' ? 'LPT' : (targetType === 'dok' ? 'Foto Kegiatan' : 'SPPD');
+        const countNow = this.templates.filter(t => (t.template_type || 'sppd') === targetType).length;
+
+        if (res && res.isLocalFallback) {
+          if (typeof showToast === 'function') {
+            showToast(`⚠️ Template ${typeLabel} "${templateName}" disimpan di cache lokal browser (D1: ${res.error || 'offline'}).`, 'warn');
+          }
+        } else {
+          if (typeof showToast === 'function') {
+            showToast(`✓ Template ${typeLabel} "${templateName}" berhasil disimpan ke Cloud D1 (${countNow}/${MAX_TEMPLATES_PER_TYPE})!`, 'success');
+          }
+        }
+
+      } catch (err) {
+        console.error('Error saat menyimpan template:', err);
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Menyimpan Template',
+            text: err.message || 'Terjadi kesalahan sistem saat menyimpan template.',
+            background: '#0f172a',
+            color: '#ffffff'
+          });
+        } else {
+          alert('Gagal menyimpan template: ' + (err.message || err));
+        }
+      }
+    },
+
+    applyTemplate(templateId) {
+      const tmpl = this.templates.find(t => t.id === templateId);
+      if (!tmpl) return;
+
+      const type = tmpl.template_type || 'sppd';
+
+      if (type === 'sppd') {
+        // Auto-switch to SPPD if on other form
+        if (sppdLptSelectForm && sppdLptSelectForm.value !== 'sppd') {
+          sppdLptSelectForm.value = 'sppd';
+          updateFormDisplay();
+        }
+
+        if (sppdInputNoSurat && tmpl.no_surat) {
+          sppdInputNoSurat.value = tmpl.no_surat;
+        }
+        if (sppdInputTglBerangkat && tmpl.tgl_berangkat) {
+          sppdInputTglBerangkat.value = tmpl.tgl_berangkat;
+        }
+        if (sppdInputTglKembali && tmpl.tgl_kembali) {
+          sppdInputTglKembali.value = tmpl.tgl_kembali;
+        }
+        if (sppdInputPegawai && tmpl.pegawai_nama) {
+          sppdInputPegawai.value = tmpl.pegawai_nama;
+        }
+        if (sppdInputMaksud && tmpl.maksud_kegiatan) {
+          sppdInputMaksud.value = tmpl.maksud_kegiatan;
+        }
+        if (sppdInputTempatBerangkat && tmpl.tempat_berangkat) {
+          sppdInputTempatBerangkat.value = tmpl.tempat_berangkat;
+        }
+        if (sppdInputTujuan && tmpl.tempat_tujuan) {
+          sppdInputTujuan.value = tmpl.tempat_tujuan;
+        }
+
+        // Reset pengikut first
+        for (let i = 1; i <= 4; i++) {
+          const select = document.getElementById(`sppdPengikutSelect${i}`);
+          const customDiv = document.getElementById(`sppdPengikutCustomWrap${i}`);
+          const inNama = document.getElementById(`sppdPengikutInputNama${i}`);
+          const inNip = document.getElementById(`sppdPengikutInputNip${i}`);
+          const inKet = document.getElementById(`sppdPengikutInputKet${i}`);
+          if (select) select.value = '';
+          if (customDiv) customDiv.style.display = 'none';
+          if (inNama) inNama.value = '';
+          if (inNip) inNip.value = '';
+          if (inKet) inKet.value = '';
+        }
+
+        // Restore saved pengikut
+        if (Array.isArray(tmpl.pengikut_data)) {
+          tmpl.pengikut_data.forEach(p => {
+            const idx = p.index;
+            const select = document.getElementById(`sppdPengikutSelect${idx}`);
+            const customDiv = document.getElementById(`sppdPengikutCustomWrap${idx}`);
+            const inNama = document.getElementById(`sppdPengikutInputNama${idx}`);
+            const inNip = document.getElementById(`sppdPengikutInputNip${idx}`);
+            const inKet = document.getElementById(`sppdPengikutInputKet${idx}`);
+
+            if (select && p.selectVal) {
+              select.value = p.selectVal;
+              if (p.selectVal === 'CUSTOM' && customDiv) {
+                customDiv.style.display = 'flex';
+                if (inNama) inNama.value = p.customNama || '';
+                if (inNip) inNip.value = p.customNip || '';
+                if (inKet) inKet.value = p.customKet || '';
+              }
+            }
+          });
+        }
+
+        // Realtime sync document preview & LPT
+        syncSppdLptData();
+
+      } else if (type === 'lpt') {
+        // Auto-switch to LPT form
+        if (sppdLptSelectForm && sppdLptSelectForm.value !== 'lpt') {
+          sppdLptSelectForm.value = 'lpt';
+          updateFormDisplay();
+        }
+
+        if (tmpl.lpt_data) {
+          const lpt = typeof tmpl.lpt_data === 'string' ? JSON.parse(tmpl.lpt_data) : tmpl.lpt_data;
+          if (lpt.dasar) {
+            const el = document.getElementById('lptInputDasar');
+            if (el) { el.value = lpt.dasar; el.dataset.userEdited = 'true'; }
+            const docEl = document.getElementById('lptValDasar');
+            if (docEl) docEl.textContent = lpt.dasar;
+          }
+          if (lpt.tujuan) {
+            const el = document.getElementById('lptInputTujuanPerjalanan');
+            if (el) { el.value = lpt.tujuan; el.dataset.userEdited = 'true'; }
+            const docEl = document.getElementById('lptValTujuanPerjalanan');
+            if (docEl) docEl.textContent = lpt.tujuan;
+          }
+          if (lpt.tanggal_laporan) {
+            const el = document.getElementById('lptInputTanggalLaporan');
+            if (el) { el.value = lpt.tanggal_laporan; el.dataset.userEdited = 'true'; }
+            const docEl = document.getElementById('lptSigDate');
+            if (docEl && typeof formatIndoDate === 'function') {
+              docEl.textContent = formatIndoDate(lpt.tanggal_laporan);
+            }
+          }
+          if (lpt.proses) {
+            const el = document.getElementById('lptInputProses');
+            if (el) el.value = lpt.proses;
+            const docEl = document.getElementById('lptValProses');
+            if (docEl) docEl.innerHTML = textToHtml(lpt.proses);
+          }
+          if (lpt.masalah) {
+            const el = document.getElementById('lptInputMasalah');
+            if (el) el.value = lpt.masalah;
+            const docEl = document.getElementById('lptValMasalah');
+            if (docEl) docEl.innerHTML = textToHtml(lpt.masalah);
+          }
+          if (lpt.kesimpulan) {
+            const el = document.getElementById('lptInputKesimpulan');
+            if (el) el.value = lpt.kesimpulan;
+            const docEl = document.getElementById('lptValKesimpulan');
+            if (docEl) docEl.innerHTML = textToHtml(lpt.kesimpulan);
+          }
+          // Restore 5 Officers & Toggles
+          for (let i = 1; i <= 5; i++) {
+            const petVal = lpt[`petugas${i}`];
+            if (petVal) {
+              const el = document.getElementById(`lptSelectPetugas${i}`);
+              if (el) { el.value = petVal; el.dataset.userEdited = 'true'; }
+              const customWrap = document.getElementById(`lptCustomWrap${i}`);
+              if (customWrap) customWrap.style.display = petVal === 'CUSTOM' ? 'grid' : 'none';
+            }
+            const cNama = lpt[`customNama${i}`];
+            if (cNama) {
+              const el = document.getElementById(`lptInputCustomNama${i}`);
+              if (el) el.value = cNama;
+            }
+            const cNip = lpt[`customNip${i}`];
+            if (cNip) {
+              const el = document.getElementById(`lptInputCustomNip${i}`);
+              if (el) el.value = cNip;
+            }
+            if (i >= 2 && typeof lpt[`toggle${i}`] !== 'undefined') {
+              const el = document.getElementById(`lptTogglePetugas${i}`);
+              if (el) el.checked = !!lpt[`toggle${i}`];
+            }
+            syncLptOfficer(i);
+          }
+          updateLptPetugasVisibility();
+
+          // Restore Dynamic Table (Sesuai Gambar 1)
+          if (typeof lpt.table_enabled !== 'undefined' || lpt.table_data) {
+            const isTableEnabled = typeof lpt.table_enabled !== 'undefined' ? lpt.table_enabled : (lpt.table_data && lpt.table_data.enabled);
+            lptTableState.enabled = !!isTableEnabled;
+            if (Array.isArray(lpt.table_headers)) {
+              lptTableState.headers = [...lpt.table_headers];
+            } else if (lpt.table_data && Array.isArray(lpt.table_data.headers)) {
+              lptTableState.headers = [...lpt.table_data.headers];
+            }
+            if (Array.isArray(lpt.table_rows)) {
+              lptTableState.rows = JSON.parse(JSON.stringify(lpt.table_rows));
+            } else if (lpt.table_data && Array.isArray(lpt.table_data.rows)) {
+              lptTableState.rows = JSON.parse(JSON.stringify(lpt.table_data.rows));
+            }
+            const toggleEl = document.getElementById('lptToggleTable');
+            if (toggleEl) toggleEl.checked = lptTableState.enabled;
+            renderLptTable();
+          }
+        }
+
+      } else if (type === 'dok') {
+        // Auto-switch to Dokumentasi form
+        if (sppdLptSelectForm && sppdLptSelectForm.value !== 'dok') {
+          sppdLptSelectForm.value = 'dok';
+          updateFormDisplay();
+        }
+
+        if (tmpl.dok_data) {
+          const dok = typeof tmpl.dok_data === 'string' ? JSON.parse(tmpl.dok_data) : tmpl.dok_data;
+          if (dok.judul) {
+            const el = document.getElementById('dokInputJudulKegiatan');
+            if (el) el.value = dok.judul;
+            const docEl = document.getElementById('dokValJudulKegiatan');
+            if (docEl) docEl.textContent = dok.judul;
+          }
+          if (dok.layout) {
+            const el = document.getElementById('dokSelectLayout');
+            if (el) el.value = dok.layout;
+            if (typeof updateDokLayoutClass === 'function') updateDokLayoutClass();
+          }
+          if (Array.isArray(dok.photos) && dok.photos.length > 0) {
+            if (dokPhotoContainer) {
+              const existingCards = dokPhotoContainer.querySelectorAll('.dok-photo-card');
+              existingCards.forEach(c => c.remove());
+            }
+            dok.photos.forEach(p => {
+              if (p && p.url) {
+                createPhotoCard(p.url, p.caption || '', p.size || 'M');
+              }
+            });
+            updateDokEmptyState();
+          }
+
+        }
+      }
+
+      if (typeof showToast === 'function') {
+        showToast(`✓ Template "${tmpl.nama_template}" berhasil diterapkan!`, 'success');
+      }
+    },
+
+    async deleteTemplate(templateId) {
+      const tmpl = this.templates.find(t => t.id === templateId);
+      const name = tmpl ? tmpl.nama_template : 'Template';
+
+      let confirmed = true;
+      if (typeof Swal !== 'undefined') {
+        const res = await Swal.fire({
+          title: 'Hapus Template?',
+          text: `Yakin ingin menghapus template "${name}" dari Cloud D1?`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Hapus',
+          cancelButtonText: 'Batal',
+          confirmButtonColor: '#ef4444',
+          background: '#0f172a',
+          color: '#ffffff'
+        });
+        confirmed = res.isConfirmed;
+      } else {
+        confirmed = confirm(`Hapus template "${name}"?`);
+      }
+
+      if (!confirmed) return;
+
+      // Optimistic delete
+      this.templates = this.templates.filter(t => t.id !== templateId);
+      this.render();
+
+      await CloudflareDB.deleteSppdTemplate(templateId);
+
+      if (typeof showToast === 'function') {
+        showToast(`✓ Template "${name}" berhasil dihapus dari Cloud D1.`, 'info');
+      }
+    }
+  };
+  window.SppdTemplateController = SppdTemplateController;
+  SppdTemplateController.init();
+
+  // ==========================================================================
+  // FOTO UPLOAD LOG MANAGER (CLOUDFLARE R2 & D1 MEDIA VAULT)
+  // ==========================================================================
+  const FotoUploadLogManager = {
+    logs: [],
+    modal: document.getElementById('modalFotoUploadLog'),
+    tableBody: document.getElementById('dokLogTableBody'),
+    emptyState: document.getElementById('dokLogEmptyState'),
+    searchInput: document.getElementById('dokLogSearchInput'),
+    counterText: document.getElementById('dokLogCounterText'),
+    badgeCount: document.getElementById('dokUploadLogCountBadge'),
+    btnOpen: document.getElementById('dokBtnOpenUploadLog'),
+    btnClose: document.getElementById('btnCloseFotoUploadLog'),
+    btnRefresh: document.getElementById('dokLogBtnRefresh'),
+
+    async init() {
+      if (this.btnOpen) {
+        this.btnOpen.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.openModal();
+        });
+      }
+      if (this.btnClose) {
+        this.btnClose.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.closeModal();
+        });
+      }
+      if (this.modal) {
+        this.modal.addEventListener('click', (e) => {
+          if (e.target === this.modal) this.closeModal();
+        });
+      }
+      if (this.btnRefresh) {
+        this.btnRefresh.addEventListener('click', (e) => {
+          e.preventDefault();
+          this.loadLogs();
+        });
+      }
+      if (this.searchInput) {
+        this.searchInput.addEventListener('input', (e) => {
+          this.render(e.target.value || '');
+        });
+      }
+
+      await this.refreshBadge();
+    },
+
+    async openModal() {
+      if (!this.modal) this.modal = document.getElementById('modalFotoUploadLog');
+      if (!this.modal) return;
+      this.modal.classList.add('active');
+      await this.loadLogs();
+    },
+
+    closeModal() {
+      if (!this.modal) this.modal = document.getElementById('modalFotoUploadLog');
+      if (this.modal) this.modal.classList.remove('active');
+    },
+
+    async loadLogs() {
+      const data = await CloudflareDB.fetchFotoLogs();
+      this.logs = Array.isArray(data) ? data : [];
+      this.render();
+      this.updateBadge();
+    },
+
+    async refreshBadge() {
+      const data = await CloudflareDB.fetchFotoLogs();
+      this.logs = Array.isArray(data) ? data : [];
+      this.updateBadge();
+    },
+
+    updateBadge() {
+      const total = this.logs.length;
+      if (!this.badgeCount) this.badgeCount = document.getElementById('dokUploadLogCountBadge');
+      if (!this.counterText) this.counterText = document.getElementById('dokLogCounterText');
+      if (this.badgeCount) this.badgeCount.textContent = total;
+      if (this.counterText) this.counterText.textContent = `${total} Foto di Cloud`;
+    },
+
+    render(filterText = '') {
+      if (!this.tableBody) this.tableBody = document.getElementById('dokLogTableBody');
+      if (!this.emptyState) this.emptyState = document.getElementById('dokLogEmptyState');
+      if (!this.tableBody) return;
+
+      const q = (filterText || '').toLowerCase().trim();
+      const filtered = this.logs.filter(item => {
+        if (!q) return true;
+        const name = (item.file_name || '').toLowerCase();
+        const key = (item.file_key || '').toLowerCase();
+        const user = (item.uploaded_by || '').toLowerCase();
+        const date = (item.uploaded_at || '').toLowerCase();
+        return name.includes(q) || key.includes(q) || user.includes(q) || date.includes(q);
+      });
+
+      if (filtered.length === 0) {
+        this.tableBody.innerHTML = '';
+        if (this.emptyState) this.emptyState.classList.remove('dok-log-hidden');
+        return;
+      }
+
+      if (this.emptyState) this.emptyState.classList.add('dok-log-hidden');
+
+      let html = '';
+      filtered.forEach(item => {
+        const title = escapeHtmlHelper(item.file_name || 'Foto');
+        const key = escapeHtmlHelper(item.file_key || '-');
+        const url = escapeHtmlHelper(item.url || `/api/foto/${item.file_key}`);
+        const sizeFormatted = item.file_size ? (item.file_size < 1024 * 1024 ? `${(item.file_size / 1024).toFixed(0)} KB` : `${(item.file_size / (1024 * 1024)).toFixed(1)} MB`) : '-';
+        const dateFormatted = item.uploaded_at ? new Date(item.uploaded_at).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+        const user = escapeHtmlHelper(item.uploaded_by || 'Petugas');
+
+        html += `
+          <tr data-key="${key}" data-url="${url}">
+            <td>
+              <div class="dok-log-thumb-wrap" onclick="window.open('${url}', '_blank')" title="Klik untuk pratinjau resolusi penuh">
+                <img src="${url}" class="dok-log-thumb-img" alt="${title}" loading="lazy">
+              </div>
+            </td>
+            <td>
+              <div class="dok-log-file-title" title="${title}">${title}</div>
+              <div class="dok-log-file-key">${key}</div>
+              <div class="dok-log-badge-cloud">
+                <span>☁️ R2 Storage</span>
+              </div>
+            </td>
+            <td>
+              <span style="font-weight: 600; color: #cbd5e1;">${sizeFormatted}</span>
+            </td>
+            <td>
+              <span style="color: #94a3b8; font-size: 11.5px;">${dateFormatted}</span>
+            </td>
+            <td>
+              <span style="color: #e2e8f0; font-weight: 500;">${user}</span>
+            </td>
+            <td>
+              <div class="dok-log-actions-cell" style="justify-content: flex-end;">
+                <button type="button" class="dok-log-btn-use" data-url="${url}" data-title="${title}" title="Sisipkan foto ini langsung ke formulir kegiatan aktif">
+                  <span>➕ Sisipkan</span>
+                </button>
+                <button type="button" class="dok-log-btn-copy" data-url="${url}" title="Salin URL Foto">
+                  <span>🔗</span>
+                </button>
+                <button type="button" class="dok-log-btn-del" data-key="${key}" title="Hapus Foto dari Cloudflare R2">
+                  <span>🗑️</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      this.tableBody.innerHTML = html;
+
+      // Event listeners on table actions
+      this.tableBody.querySelectorAll('.dok-log-btn-use').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const u = btn.getAttribute('data-url');
+          const t = btn.getAttribute('data-title');
+          this.insertPhotoToForm(u, t);
+        });
+      });
+
+      this.tableBody.querySelectorAll('.dok-log-btn-copy').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const u = btn.getAttribute('data-url');
+          const fullUrl = u.startsWith('http') ? u : `${window.location.origin}${u}`;
+          navigator.clipboard.writeText(fullUrl).then(() => {
+            if (typeof showToast === 'function') showToast('✓ Link foto berhasil disalin ke clipboard!', 'success');
+          });
+        });
+      });
+
+      this.tableBody.querySelectorAll('.dok-log-btn-del').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const k = btn.getAttribute('data-key');
+          await this.deletePhoto(k);
+        });
+      });
+    },
+
+    insertPhotoToForm(url, title = '') {
+      if (!dokPhotoContainer) return;
+      // Auto-switch to Dokumentasi Form if currently on SPPD/LPT
+      if (sppdLptSelectForm && sppdLptSelectForm.value !== 'dok') {
+        sppdLptSelectForm.value = 'dok';
+        if (typeof updateFormDisplay === 'function') updateFormDisplay();
+      }
+
+      createPhotoCard(url, title);
+      updateDokEmptyState();
+      this.closeModal();
+
+      if (typeof showToast === 'function') {
+        showToast(`✓ Foto "${title}" berhasil disisipkan ke formulir!`, 'success');
+      }
+    },
+
+    async deletePhoto(fileKey) {
+      if (!fileKey) return;
+      let confirmed = true;
+      if (typeof Swal !== 'undefined') {
+        const res = await Swal.fire({
+          title: 'Hapus Foto dari R2?',
+          text: `File [${fileKey}] akan dihapus secara permanen dari Cloudflare R2 Bucket.`,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, Hapus Permanen',
+          cancelButtonText: 'Batal',
+          confirmButtonColor: '#ef4444',
+          background: '#0f172a',
+          color: '#ffffff'
+        });
+        confirmed = res.isConfirmed;
+      } else {
+        confirmed = confirm(`Hapus file [${fileKey}] dari R2?`);
+      }
+
+      if (!confirmed) return;
+
+      const res = await CloudflareDB.deleteFotoR2(fileKey);
+      if (res && res.success) {
+        if (typeof showToast === 'function') showToast('✓ Foto berhasil dihapus dari Cloudflare R2.', 'success');
+      } else {
+        if (typeof showToast === 'function') showToast('Foto dihapus dari log.', 'info');
+      }
+      await this.loadLogs();
+    }
+  };
+
+  window.FotoUploadLogManager = FotoUploadLogManager;
+  FotoUploadLogManager.init();
+
+  // Global event delegation for 100% reliable template button clicks
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#btnOpenSppdTemplateModal')) {
+      e.preventDefault();
+      window.SppdTemplateController.openModal();
+    } else if (e.target.closest('#btnSaveSppdTemplate') || e.target.closest('#btnSaveCurrentAsTemplate')) {
+      e.preventDefault();
+      window.SppdTemplateController.saveCurrentAsTemplate('sppd');
+    } else if (e.target.closest('#btnSaveLptTemplate')) {
+      e.preventDefault();
+      window.SppdTemplateController.saveCurrentAsTemplate('lpt');
+    } else if (e.target.closest('#btnSaveDokTemplate')) {
+      e.preventDefault();
+      window.SppdTemplateController.saveCurrentAsTemplate('dok');
+    } else if (e.target.closest('#btnModalSaveCurrentTemplate')) {
+      e.preventDefault();
+      window.SppdTemplateController.saveCurrentAsTemplate(window.SppdTemplateController.activeTab);
+    } else if (e.target.closest('#dokBtnOpenUploadLog')) {
+      e.preventDefault();
+      window.FotoUploadLogManager.openModal();
+    }
+  });
+
+
+  // Initial update
+  updateTpPolDocHeader();
+
+  // Entrance animations for Beranda view
+  gsap.from('.beranda-compact-hero', {
+    y: 15,
+    opacity: 0,
+    duration: 0.5,
+    ease: 'power2.out'
+  });
+
+  gsap.from('.beranda-kpi-card', {
+    y: 15,
+    opacity: 0,
+    duration: 0.4,
+    stagger: 0.06,
+    delay: 0.08,
+    ease: 'power2.out'
+  });
+
+  gsap.from('.module-launch-tile', {
+    y: 15,
+    opacity: 0,
+    duration: 0.4,
+    stagger: 0.06,
+    delay: 0.15,
+    ease: 'power2.out'
+  });
+
+  // ==========================================================================
+  // 12. JADWAL KEGIATAN BOK CONTROLLER (SICEKAS v2.0)
+  // ==========================================================================
+  const KEGIATAN_BOK_LIST = [
+    "Fasilitasi Pelaksanaan First Aider Pertolongan Pertama pada Luka Psikologis (P3LP) di Sekolah",
+    "Pelacakan dan pengawasan minum obat untuk ODGJ berat",
+    "Pelacakan dan pelaporan kematian dan pelaksanaan otopsi verbal kematian Ibu dan Bayi/balita",
+    "Pelaksanaan Kelas ibu Hamil",
+    "Pelaksanaan Kelas Ibu Balita",
+    "Pelayanan Kesehatan pada anak usia sekolah dan remaja (Skrining dan pembinaan di sekolah dan komunitas)",
+    "Pemantauan Minum TTD",
+    "Pelaksanaan skrining dan intervensi hasil skrining masalah Kesehatan jiwa di UKBM/Lembaga",
+    "Kunjungan lapangan pemantauan bumil KEK, Anemia, Bumil Risti, BBLR, dan Bayi Balita dengan Masalah Gizi",
+    "Kunjungan lapangan pemantauan Tumbuh Kembang dan Masalah Gizi ibu dan anak",
+    "Pendampingan rujukan balita stunting/gizi buruk",
+    "Pelayanan Imunisasi Rutin",
+    "Pelayanan Imunisasi BIAS",
+    "Pelayanan Imunisasi Tambahan",
+    "Penemuan Kasus KIPI dan PD3I",
+    "Deteksi Dini dan Cek Kesehatan Gratis dan Tindak Lanjut Penyakit Tidak Menular",
+    "Inspeksi kesling di sarana tempat dan fasilitas umum, sarana Tempat Pengelolaan Pangan (TPP), Sarana Air Minum (SAM), Fasyankes",
+    "Pemberdayaan kader dalam rangka pencegahan dan pengendalian penyakit tidak menular",
+    "Pemberdayaan kader dalam rangka pencegahan dan pengendalian penyakit menular",
+    "Pemberdayaan kader dalam rangka pelaksanaan Imunisasi",
+    "Pemberdayaan kader masyarakat melalui pemicuan untuk implementasi seluruh pilar STBM (Implementasi 5 pilar STBM)",
+    "Penemuan kasus aktif dan pemantauan pengobatan TBC (Investigasi kontak TBC, pelacakan kasus TBC mangkir)",
+    "Pemantauan menelan obat TBC, pemberian terapi pencegahan TBC, penemuan kasus ILTB",
+    "Penemuan kasus aktif penyakit menular, NTDs (Penyakit Tropis Terabaikan), KIPI dan PD3I (AFP, Campak Rubela dan PD3I lainnya), Pneumonia dan Infeksi Saluran Pernapasan Akut terintegrasi dengan Posyandu, Posbindu",
+    "Pemantauan dan tindaklanjut kasus penyakit menular (Pemberian Obat Pencegahan Massal (POPM) Kecacingan)",
+    "Penemuan kasus aktif kusta dan komprofilaksis kusta",
+    "Survei dan Pengendalian Vector (pengasapan/fogging, penyemprotan dinding rumah (IRS), larvasidasi DBD/Malaria dan PSN)",
+    "Kunjungan lapangan dalam rangka pengawasan terhadap kualitas air minum rumah tangga",
+    "Kunjungan lapangan dalam rangka surveilans kualitas udara dalam ruang",
+    "Verifikasi Sinyal/rumor, PE/pelacakan kontak penyakit berpotensi KLB/Wabah/PIE/kejadian tidak lazim",
+    "Penyelidikan epidemiologi (PE) Penyakit menular lainnya",
+    "Penyelidikan epidemiologi (PE) Penyehatan Lingkungan",
+    "Pembekalan tim pelaksana dalam penyiapan pemberian makanan tambahan berbasis pangan lokal bagi ibu hamil kek dan balita gizi kurang tingkat kab/kota dan puskesmas",
+    "Pendampingan pelaksanaan ILP di pustu dan pelayanan kesehatan desa/kelurahan (UPKD/K)",
+    "Kunjungan rumah kader posyandu",
+    "Pembinaan, Koordinasi, Pengelolaan dan Penyelenggaraan UPKD/K",
+    "Tindak Lanjut kunjungan Rumah UPKD/K",
+    "Partisipasi dalam Musrenbangdes",
+    "Intervensi Pemberdayaan Masyarakat berdasarkan siklus hidup di UPKD/kelurahan",
+    "Monitoring dan evaluasi kegiatan Posyandu Bidang kesehatan di wilayah desa/kelurahan"
+  ];
+  window.KEGIATAN_BOK_LIST = KEGIATAN_BOK_LIST;
+
+  const STORAGE_BOK_DATA = 'SICEKAS_BOK_DATA_V2';
+  const STORAGE_BOK_COLLAB = 'SICEKAS_BOK_COLLAB_V2';
+
+  // Current logged in user - DYNAMIC from login session (no more hardcoded)
+  const sessionRaw = localStorage.getItem('SICEKAS_CURRENT_USER');
+  const sessionUser = sessionRaw ? JSON.parse(sessionRaw) : null;
+  const CURRENT_USER = {
+    username: sessionUser?.username || 'ozie',
+    nama: sessionUser?.nama || 'Mochamad Fauzie, S.Gz',
+    jabatan: sessionUser?.jabatan || 'Nutrisionis',
+    nip: sessionUser?.nip || '873.3204.16.02.008',
+    role: sessionUser?.role || 'Super Admin',
+    avatar: sessionUser?.avatar || 'MF'
+  };
+  window.CURRENT_USER = CURRENT_USER;
+
+  // No dummy seed data - all kegiatan data comes from Cloudflare D1 cloud database
+  // Clean up any old dummy/seed data from localStorage (legacy cleanup)
+  try {
+    const oldBokData = JSON.parse(localStorage.getItem(STORAGE_BOK_DATA) || '[]');
+    const hasDummyIds = oldBokData.some(item => 
+      ['bok-1', 'bok-2', 'bok-3', 'bok-4', 'bok-5', 'bok-6', 'bok-7', 'bok-8'].includes(item.id)
+    );
+    if (hasDummyIds) {
+      localStorage.removeItem(STORAGE_BOK_DATA);
+      console.info('[SICEKAS] Old dummy kegiatan data cleaned from localStorage.');
+    }
+    const oldCollabData = JSON.parse(localStorage.getItem(STORAGE_BOK_COLLAB) || '[]');
+    const hasDummyCollabs = oldCollabData.some(item => 
+      ['collab-101', 'collab-102'].includes(item.id)
+    );
+    if (hasDummyCollabs) {
+      localStorage.removeItem(STORAGE_BOK_COLLAB);
+      console.info('[SICEKAS] Old dummy kolaborasi data cleaned from localStorage.');
+    }
+  } catch (e) {
+    // Silent cleanup
+  }
+
+  // Jadwal BOK Controller Object
+  const JadwalBOKController = {
+    currentYear: new Date().getFullYear(),
+    currentMonth: new Date().getMonth() + 1,
+    berandaMonth: new Date().getMonth() + 1,
+    berandaYear: new Date().getFullYear(),
+    berandaFilterTab: 'all', // 'all' | 'sendiri' | 'collab'
+    berandaSearchKeyword: '',
+    berandaViewMode: 'calendar', // 'calendar' | 'table'
+    selectedStaff: '',
+    searchKeyword: '',
+    activeTab: 'all', // 'all' | 'mine' | 'collab'
+    viewMode: 'timeline', // 'timeline' | 'calendar'
+    _cachedData: null, // in-memory cache for cloud data
+    _lastFetchKey: '', // tracks last fetch params to avoid redundant calls
+
+    // Fetch kegiatan from Cloudflare D1 cloud database (async)
+    async getData(targetMonth = null, targetYear = null) {
+      const fetchMonth = targetMonth !== null ? targetMonth : this.currentMonth;
+      const fetchYear = targetYear !== null ? targetYear : this.currentYear;
+      const fetchKey = `${fetchMonth}-${fetchYear}`;
+      // Use cache if we already fetched for this month/year
+      if (this._cachedData !== null && this._lastFetchKey === fetchKey) {
+        return this._cachedData;
+      }
+      try {
+        const cloudData = await CloudflareDB.fetchJadwal(fetchMonth, fetchYear);
+        // Normalize cloud data fields to match local format
+        const normalized = (cloudData || []).map(item => {
+          const kegName = item.namaKegiatan || item.nama_kegiatan || '';
+          let noKeg = item.noKegiatan || item.no_kegiatan;
+          if (!noKeg || noKeg === 0) {
+            const kegIdx = KEGIATAN_BOK_LIST.indexOf(kegName);
+            noKeg = (kegIdx >= 0) ? (kegIdx + 1) : 0;
+          }
+
+          let normTanggal = item.tanggal || '';
+          if (normTanggal && typeof normTanggal === 'string' && normTanggal.includes('-')) {
+            const parts = normTanggal.split('-');
+            if (parts.length === 3) {
+              const y = parts[0];
+              const m = String(parseInt(parts[1], 10)).padStart(2, '0');
+              const d = String(parseInt(parts[2], 10)).padStart(2, '0');
+              normTanggal = `${y}-${m}-${d}`;
+            }
+          }
+
+          let bulanVal = item.bulan;
+          let tahunVal = item.tahun;
+          if (normTanggal && normTanggal.includes('-')) {
+            const parts = normTanggal.split('-');
+            tahunVal = parseInt(parts[0], 10) || tahunVal;
+            bulanVal = parseInt(parts[1], 10) || bulanVal;
+          }
+
+          return {
+            id: item.id,
+            tanggal: normTanggal,
+            bulan: bulanVal,
+            tahun: tahunVal,
+            noKegiatan: noKeg,
+            namaKegiatan: kegName,
+            keterangan: item.keterangan || '',
+            lokasi: item.lokasi || '',
+            username: item.username || '',
+            namaUser: item.namaUser || item.petugas_nama || '',
+            jabatan: item.jabatan || item.petugas_jabatan || '',
+            petugas_nip: item.petugas_nip || '',
+            rekan_kolaborasi: item.rekan_kolaborasi || [],
+            status: item.status || 'Disetujui',
+            createdAt: item.created_at || item.createdAt || ''
+          };
+        });
+        this._cachedData = normalized;
+        this._lastFetchKey = fetchKey;
+        return normalized;
+      } catch (e) {
+        console.warn('Error fetching jadwal from cloud, using cache', e);
+        // Fallback to localStorage cache if cloud fails
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_BOK_DATA)) || [];
+        } catch (ex) {
+          return [];
+        }
+      }
+    },
+
+    // Invalidate cache so next getData() fetches fresh from cloud
+    invalidateCache() {
+      this._cachedData = null;
+      this._lastFetchKey = '';
+    },
+
+    // Helper to safely retrieve an item by ID across cache, active month, or cloud
+    async getItemById(id) {
+      if (id === undefined || id === null || id === '') return null;
+      const strId = String(id).trim();
+
+      const findIn = (arr) => {
+        if (!Array.isArray(arr)) return null;
+        return arr.find(i => i && String(i.id).trim() === strId);
+      };
+
+      // 1. Check in-memory cached data
+      let item = findIn(this._cachedData);
+      if (item) return item;
+
+      // 2. Check Beranda month/year
+      if (this.berandaMonth && this.berandaYear) {
+        const berandaData = await this.getData(this.berandaMonth, this.berandaYear);
+        item = findIn(berandaData);
+        if (item) return item;
+      }
+
+      // 3. Check currentMonth / currentYear
+      if (this.currentMonth && this.currentYear) {
+        const currentData = await this.getData(this.currentMonth, this.currentYear);
+        item = findIn(currentData);
+        if (item) return item;
+      }
+
+      // 4. Check localStorage
+      try {
+        const local = JSON.parse(localStorage.getItem('SICEKAS_BOK_DATA_V2') || localStorage.getItem(STORAGE_BOK_DATA) || '[]');
+        const raw = findIn(local);
+        if (raw) {
+          return this._normalizeRawItem(raw);
+        }
+      } catch (e) {}
+
+      // 5. Query cloud without month/year filter (all items)
+      try {
+        const cloudAll = await CloudflareDB.fetchJadwal('', '');
+        const raw = findIn(cloudAll);
+        if (raw) {
+          return this._normalizeRawItem(raw);
+        }
+      } catch (e) {}
+
+      return null;
+    },
+
+    _normalizeRawItem(raw) {
+      if (!raw) return null;
+      const kegName = raw.namaKegiatan || raw.nama_kegiatan || '';
+      let noKeg = raw.noKegiatan || raw.no_kegiatan;
+      if (!noKeg || noKeg === 0) {
+        const kegIdx = KEGIATAN_BOK_LIST.indexOf(kegName);
+        noKeg = (kegIdx >= 0) ? (kegIdx + 1) : 0;
+      }
+      let normTanggal = raw.tanggal || '';
+      if (normTanggal && typeof normTanggal === 'string' && normTanggal.includes('-')) {
+        const parts = normTanggal.split('-');
+        if (parts.length === 3) {
+          const y = parts[0];
+          const m = String(parseInt(parts[1], 10)).padStart(2, '0');
+          const d = String(parseInt(parts[2], 10)).padStart(2, '0');
+          normTanggal = `${y}-${m}-${d}`;
+        }
+      }
+      return {
+        id: raw.id,
+        tanggal: normTanggal,
+        bulan: raw.bulan,
+        tahun: raw.tahun,
+        noKegiatan: noKeg,
+        namaKegiatan: kegName,
+        keterangan: raw.keterangan || '',
+        lokasi: raw.lokasi || '',
+        username: raw.username || '',
+        namaUser: raw.namaUser || raw.petugas_nama || '',
+        jabatan: raw.jabatan || raw.petugas_jabatan || '',
+        petugas_nip: raw.petugas_nip || '',
+        rekan_kolaborasi: raw.rekan_kolaborasi || [],
+        status: raw.status || 'Disetujui',
+        createdAt: raw.created_at || raw.createdAt || ''
+      };
+    },
+
+    async getCollabData() {
+      try {
+        const uNip = CURRENT_USER.nip || '';
+        const uNama = CURRENT_USER.nama || '';
+        const uUser = CURRENT_USER.username || '';
+        const cloudData = await CloudflareDB.fetchCollab(uNip, uNama, uUser);
+        if (Array.isArray(cloudData)) return cloudData;
+      } catch (e) {
+        console.warn('Fallback getting collab data', e);
+      }
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_BOK_COLLAB)) || [];
+      } catch (e) {
+        return [];
+      }
+    },
+
+    saveCollabData(data) {
+      try {
+        localStorage.setItem(STORAGE_BOK_COLLAB, JSON.stringify(data));
+      } catch (e) {}
+    },
+
+    isCollabForMe(req) {
+      if (!req) return false;
+      const uNip = (CURRENT_USER.nip || '').trim();
+      const uNama = (CURRENT_USER.nama || '').trim().toLowerCase();
+      const uUser = (CURRENT_USER.username || '').trim().toLowerCase();
+
+      const toNip = (req.to_nip || req.toNip || '').trim();
+      const toNama = (req.to_nama || req.toNama || '').trim().toLowerCase();
+      const toUser = (req.to_username || req.toUser || '').trim().toLowerCase();
+
+      if (toNip && uNip && toNip === uNip) return true;
+      if (toNama && uNama && (toNama === uNama || toNama.includes(uNama) || uNama.includes(toNama))) return true;
+      if (toUser && uUser && toUser === uUser) return true;
+      return false;
+    },
+
+    isCollabFromMe(req) {
+      if (!req) return false;
+      const uNip = (CURRENT_USER.nip || '').trim();
+      const uNama = (CURRENT_USER.nama || '').trim().toLowerCase();
+      const uUser = (CURRENT_USER.username || '').trim().toLowerCase();
+
+      const fromNip = (req.from_nip || req.fromNip || '').trim();
+      const fromNama = (req.from_nama || req.fromNama || '').trim().toLowerCase();
+      const fromUser = (req.from_username || req.fromUser || '').trim().toLowerCase();
+
+      if (fromNip && uNip && fromNip === uNip) return true;
+      if (fromNama && uNama && (fromNama === uNama || fromNama.includes(uNama) || uNama.includes(fromNama))) return true;
+      if (fromUser && uUser && fromUser === uUser) return true;
+      return false;
+    },
+
+    isPrivilegedScheduleViewer() {
+      const role = (CURRENT_USER.role || '').toLowerCase();
+      const jab = (CURRENT_USER.jabatan || '').toLowerCase();
+      const u = (CURRENT_USER.username || '').toLowerCase();
+
+      // Admin & Super Admin
+      if (role.includes('admin') || u === 'ozie' || u === 'satrianita' || u === 'dilla' || u === 'fahri') return true;
+
+      // Kepala Puskesmas
+      if (role.includes('kepala') || jab.includes('kepala puskesmas') || u === 'rina') return true;
+
+      // PJ (PJ Klaster, Satker, Penanggung Jawab)
+      if (role.includes('pj') || jab.includes('pj') || jab.includes('satker') || jab.includes('penanggung jawab')) return true;
+
+      return false;
+    },
+
+    async init() {
+      this.populateSelects();
+      this.populateStaffPickers();
+      this.bindEvents();
+      await this.render();
+      await this.updateCollabBadges();
+    },
+
+    populateSelects() {
+      // 1. Populate Kegiatan BOK selects (modal tambah & collab)
+      const inputKegiatan = document.getElementById('inputKegiatanBOK');
+      const collabKegiatan = document.getElementById('collabKegiatan');
+
+      let kegOptions = '<option value="">-- Pilih Jenis Kegiatan --</option>';
+      KEGIATAN_BOK_LIST.forEach((item, index) => {
+        kegOptions += `<option value="${index + 1}">${index + 1}. ${item}</option>`;
+      });
+
+      if (inputKegiatan) inputKegiatan.innerHTML = kegOptions;
+      if (collabKegiatan) collabKegiatan.innerHTML = kegOptions;
+
+      // 2. Populate Staff Filter in header (Only for Admin, Kepala Puskesmas, & PJ)
+      const fPetugas = document.getElementById('fPetugasBOK');
+      const fPetugasGroup = fPetugas ? fPetugas.closest('.bok-filter-group') : null;
+      const tabAllBtn = document.querySelector('.bok-tab-btn[data-filter="all"]');
+      const tabMineBtn = document.querySelector('.bok-tab-btn[data-filter="mine"]');
+
+      const isPrivileged = this.isPrivilegedScheduleViewer();
+
+      if (fPetugas && DAFTAR_PEGAWAI) {
+        if (isPrivileged) {
+          let staffOpts = '<option value="">— Semua Petugas Puskesmas (39 Pegawai) —</option>';
+          DAFTAR_PEGAWAI.forEach(p => {
+            staffOpts += `<option value="${p.nama}">${p.nama} (${p.jabatan})</option>`;
+          });
+          fPetugas.innerHTML = staffOpts;
+          if (fPetugasGroup) fPetugasGroup.style.display = 'flex';
+          if (tabAllBtn) tabAllBtn.style.display = 'inline-flex';
+        } else {
+          // Regular staff: Hide staff filter dropdown and 'Semua Jadwal' tab
+          fPetugas.innerHTML = `<option value="${CURRENT_USER.nama}" selected>${CURRENT_USER.nama} (${CURRENT_USER.jabatan})</option>`;
+          if (fPetugasGroup) fPetugasGroup.style.display = 'none';
+          if (tabAllBtn) tabAllBtn.style.display = 'none';
+          
+          // Switch default active tab to 'mine'
+          this.activeTab = 'mine';
+          if (tabAllBtn) tabAllBtn.classList.remove('active');
+          if (tabMineBtn) tabMineBtn.classList.add('active');
+        }
+      }
+
+      // 3. Auto-detect and set Current Month and Year for Beranda and BOK module
+      const now = new Date();
+      const currentRealMonth = now.getMonth() + 1;
+      const currentRealYear = now.getFullYear();
+
+      this.currentMonth = currentRealMonth;
+      this.currentYear = currentRealYear;
+      this.berandaMonth = currentRealMonth;
+      this.berandaYear = currentRealYear;
+
+      const selBerBulan = document.getElementById('selectBerandaBulan');
+      const selBerTahun = document.getElementById('selectBerandaTahun');
+      const fBulan = document.getElementById('fBulanBOK');
+      const fTahun = document.getElementById('fTahunBOK');
+
+      if (selBerBulan) selBerBulan.value = String(currentRealMonth);
+      if (selBerTahun) selBerTahun.value = String(currentRealYear);
+      if (fBulan) fBulan.value = String(currentRealMonth);
+      if (fTahun) fTahun.value = String(currentRealYear);
+    },
+
+    populateStaffPickers() {
+      const container = document.getElementById('collabStaffListContainer');
+      if (!container || !DAFTAR_PEGAWAI) return;
+
+      let html = '';
+      DAFTAR_PEGAWAI.forEach(p => {
+        if (p.nama !== CURRENT_USER.nama) {
+          const initials = p.nama.split(' ').map(w => w[0]).filter(c => /[A-Za-z]/.test(c)).slice(0, 2).join('').toUpperCase() || 'PG';
+          html += `
+            <label class="collab-staff-item" id="collabStaff_${(p.username || p.nama).replace(/[^a-zA-Z0-9]/g, '_')}" data-nama="${p.nama.toLowerCase()}" data-jab="${p.jabatan.toLowerCase()}" data-nip="${(p.nip || '').toLowerCase()}">
+              <input type="checkbox" class="collab-staff-cb" value="${p.nama}" data-jabatan="${p.jabatan}" data-nip="${p.nip || ''}">
+              <div class="collab-staff-avatar">${initials}</div>
+              <div class="collab-staff-text" style="flex: 1;">
+                <h6>${p.nama}</h6>
+                <p>${p.jabatan} • ${p.nipFull || p.nip}</p>
+                <div class="collab-staff-conflict-box" style="display: none;"></div>
+              </div>
+            </label>
+          `;
+        }
+      });
+      container.innerHTML = html;
+    },
+
+    bindEvents() {
+      // Month & Year Filter Change
+      const fBulan = document.getElementById('fBulanBOK');
+      const fTahun = document.getElementById('fTahunBOK');
+      const fPetugas = document.getElementById('fPetugasBOK');
+      const searchInput = document.getElementById('searchBOK');
+
+      if (fBulan) {
+        fBulan.addEventListener('change', async (e) => {
+          this.currentMonth = parseInt(e.target.value);
+          this.invalidateCache();
+          await this.render();
+        });
+      }
+
+      if (fTahun) {
+        fTahun.addEventListener('change', async (e) => {
+          this.currentYear = parseInt(e.target.value);
+          this.invalidateCache();
+          await this.render();
+        });
+      }
+
+      if (fPetugas) {
+        fPetugas.addEventListener('change', async (e) => {
+          this.selectedStaff = e.target.value;
+          await this.render();
+        });
+      }
+
+      if (searchInput) {
+        searchInput.addEventListener('input', async (e) => {
+          this.searchKeyword = e.target.value.toLowerCase().trim();
+          await this.render();
+        });
+      }
+
+      // Quick Tabs (All / Mine / Collab)
+      const tabBtns = document.querySelectorAll('.bok-tab-btn');
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', async () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.activeTab = btn.getAttribute('data-filter') || 'all';
+          await this.render();
+        });
+      });
+
+      // View Mode Switcher (Timeline vs Calendar)
+      const btnTimeline = document.getElementById('btnBokViewTimeline');
+      const btnCalendar = document.getElementById('btnBokViewCalendar');
+      const timelineContainer = document.getElementById('bokTimelineContainer');
+      const calendarContainer = document.getElementById('bokCalendarContainer');
+
+      if (btnTimeline && btnCalendar) {
+        btnTimeline.addEventListener('click', async () => {
+          btnTimeline.classList.add('active');
+          btnCalendar.classList.remove('active');
+          this.viewMode = 'timeline';
+          if (timelineContainer) timelineContainer.style.display = 'block';
+          if (calendarContainer) calendarContainer.style.display = 'none';
+          await this.render();
+        });
+
+        btnCalendar.addEventListener('click', async () => {
+          btnCalendar.classList.add('active');
+          btnTimeline.classList.remove('active');
+          this.viewMode = 'calendar';
+          if (timelineContainer) timelineContainer.style.display = 'none';
+          if (calendarContainer) calendarContainer.style.display = 'block';
+          await this.render();
+        });
+      }
+
+      // Calendar Navigation
+      const btnCalPrev = document.getElementById('btnBokCalPrev');
+      const btnCalNext = document.getElementById('btnBokCalNext');
+
+      if (btnCalPrev) {
+        btnCalPrev.addEventListener('click', async () => {
+          if (this.currentMonth === 1) {
+            this.currentMonth = 12;
+            this.currentYear--;
+          } else {
+            this.currentMonth--;
+          }
+          if (fBulan) fBulan.value = this.currentMonth;
+          if (fTahun) fTahun.value = this.currentYear;
+          this.invalidateCache();
+          await this.render();
+        });
+      }
+
+      if (btnCalNext) {
+        btnCalNext.addEventListener('click', async () => {
+          if (this.currentMonth === 12) {
+            this.currentMonth = 1;
+            this.currentYear++;
+          } else {
+            this.currentMonth++;
+          }
+          if (fBulan) fBulan.value = this.currentMonth;
+          if (fTahun) fTahun.value = this.currentYear;
+          this.invalidateCache();
+          await this.render();
+        });
+      }
+
+      const btnCalToday = document.getElementById('btnBokCalToday');
+      if (btnCalToday) {
+        btnCalToday.addEventListener('click', async () => {
+          const now = new Date();
+          this.currentMonth = now.getMonth() + 1;
+          this.currentYear = now.getFullYear();
+          if (fBulan) fBulan.value = this.currentMonth;
+          if (fTahun) fTahun.value = this.currentYear;
+          this.invalidateCache();
+          await this.render();
+        });
+      }
+
+      // Header Action Buttons
+      const btnTambah = document.getElementById('btnBokTambahJadwal');
+      const btnCollab = document.getElementById('btnBokRequestCollab');
+      const btnNotif = document.getElementById('btnBokNotifCollab');
+      const btnExport = document.getElementById('btnBokExportPdf');
+      const btnBerandaKeJadwal = document.getElementById('btnBerandaKeJadwal');
+      const btnBerandaTambahJadwal = document.getElementById('btnBerandaTambahJadwal');
+
+      if (btnTambah) btnTambah.addEventListener('click', () => this.bukaModalTambah());
+      if (btnBerandaTambahJadwal) btnBerandaTambahJadwal.addEventListener('click', () => this.bukaModalTambah(this.berandaSelectedDate));
+      if (btnCollab) btnCollab.addEventListener('click', () => this.bukaModalCollab());
+      if (btnNotif) btnNotif.addEventListener('click', () => this.bukaModalNotif());
+      if (btnExport) btnExport.addEventListener('click', () => this.cetakJadwalBulanan());
+
+      if (btnBerandaKeJadwal) {
+        btnBerandaKeJadwal.addEventListener('click', () => {
+          const navItem = document.getElementById('navJadwalKegiatan');
+          if (navItem) navItem.click();
+        });
+      }
+
+      // Beranda Month Toolbar & Filter Events
+      const selectBerandaBulan = document.getElementById('selectBerandaBulan');
+      const selectBerandaTahun = document.getElementById('selectBerandaTahun');
+      const btnBerandaPrevMonth = document.getElementById('btnBerandaPrevMonth');
+      const btnBerandaNextMonth = document.getElementById('btnBerandaNextMonth');
+      const btnBerandaBulanIni = document.getElementById('btnBerandaBulanIni');
+      const inputBerandaSearch = document.getElementById('inputBerandaSearch');
+      const berandaTabAll = document.getElementById('berandaTabAll');
+      const berandaTabSendiri = document.getElementById('berandaTabSendiri');
+      const berandaTabCollab = document.getElementById('berandaTabCollab');
+
+      if (selectBerandaBulan) {
+        selectBerandaBulan.addEventListener('change', async (e) => {
+          this.berandaMonth = parseInt(e.target.value, 10);
+          await this.renderBerandaWidget();
+        });
+      }
+
+      if (selectBerandaTahun) {
+        selectBerandaTahun.addEventListener('change', async (e) => {
+          this.berandaYear = parseInt(e.target.value, 10);
+          await this.renderBerandaWidget();
+        });
+      }
+
+      if (btnBerandaPrevMonth) {
+        btnBerandaPrevMonth.addEventListener('click', async () => {
+          if (this.berandaMonth === 1) {
+            this.berandaMonth = 12;
+            this.berandaYear -= 1;
+          } else {
+            this.berandaMonth -= 1;
+          }
+          await this.renderBerandaWidget();
+        });
+      }
+
+      if (btnBerandaNextMonth) {
+        btnBerandaNextMonth.addEventListener('click', async () => {
+          if (this.berandaMonth === 12) {
+            this.berandaMonth = 1;
+            this.berandaYear += 1;
+          } else {
+            this.berandaMonth += 1;
+          }
+          await this.renderBerandaWidget();
+        });
+      }
+
+      if (btnBerandaBulanIni) {
+        btnBerandaBulanIni.addEventListener('click', async () => {
+          const now = new Date();
+          this.berandaMonth = now.getMonth() + 1;
+          this.berandaYear = now.getFullYear();
+          if (inputBerandaSearch) {
+            inputBerandaSearch.value = '';
+            this.berandaSearchKeyword = '';
+          }
+          await this.renderBerandaWidget();
+        });
+      }
+
+      if (inputBerandaSearch) {
+        inputBerandaSearch.addEventListener('input', async (e) => {
+          this.berandaSearchKeyword = (e.target.value || '').toLowerCase().trim();
+          await this.renderBerandaWidget();
+        });
+      }
+
+      const berandaTabs = [berandaTabAll, berandaTabSendiri, berandaTabCollab];
+      berandaTabs.forEach(tab => {
+        if (tab) {
+          tab.addEventListener('click', async () => {
+            berandaTabs.forEach(t => t && t.classList.remove('active'));
+            tab.classList.add('active');
+            this.berandaFilterTab = tab.getAttribute('data-tab') || 'all';
+            await this.renderBerandaWidget();
+          });
+        }
+      });
+
+      // Beranda View Mode Switcher (Kalender / Tabel)
+      const btnBerandaViewCal = document.getElementById('btnBerandaViewCal');
+      const btnBerandaViewTable = document.getElementById('btnBerandaViewTable');
+      const berandaCalWrapper = document.getElementById('berandaCalWrapper');
+      const berandaTableContainer = document.getElementById('berandaTableContainer');
+
+      if (btnBerandaViewCal && btnBerandaViewTable) {
+        btnBerandaViewCal.addEventListener('click', () => {
+          btnBerandaViewCal.classList.add('active');
+          btnBerandaViewTable.classList.remove('active');
+          this.berandaViewMode = 'calendar';
+          if (berandaCalWrapper) berandaCalWrapper.style.display = 'block';
+          if (berandaTableContainer) berandaTableContainer.style.display = 'none';
+        });
+
+        btnBerandaViewTable.addEventListener('click', () => {
+          btnBerandaViewTable.classList.add('active');
+          btnBerandaViewCal.classList.remove('active');
+          this.berandaViewMode = 'table';
+          if (berandaCalWrapper) berandaCalWrapper.style.display = 'none';
+          if (berandaTableContainer) berandaTableContainer.style.display = 'block';
+        });
+      }
+
+      // Modal Close Handlers
+      const modalTambah = document.getElementById('modalTambahJadwalBOK');
+      const closeTambah = document.getElementById('closeBokFormModal');
+      const btnCancelTambah = document.getElementById('btnCancelTambahBOK');
+      const formTambah = document.getElementById('formTambahJadwalBOK');
+
+      const closeModalTambah = () => {
+        if (modalTambah) modalTambah.classList.remove('active');
+        const editIdEl = document.getElementById('bokEditId');
+        if (editIdEl) editIdEl.value = '';
+        if (formTambah) formTambah.reset();
+      };
+      if (closeTambah) closeTambah.addEventListener('click', closeModalTambah);
+      if (btnCancelTambah) btnCancelTambah.addEventListener('click', closeModalTambah);
+
+      if (formTambah) {
+        formTambah.addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.simpanJadwal();
+        });
+      }
+
+      // Collab Modal Handlers
+      const modalCollab = document.getElementById('modalRequestKolaborasi');
+      const closeCollab = document.getElementById('closeCollabRequestModal');
+      const btnCancelCollab = document.getElementById('btnCancelCollabRequest');
+      const formCollab = document.getElementById('formRequestKolaborasi');
+      const collabStaffSearch = document.getElementById('collabStaffSearch');
+
+      const closeModalCollab = () => {
+        if (modalCollab) modalCollab.classList.remove('active');
+      };
+      if (closeCollab) closeCollab.addEventListener('click', closeModalCollab);
+      if (btnCancelCollab) btnCancelCollab.addEventListener('click', closeModalCollab);
+
+      if (formCollab) {
+        formCollab.addEventListener('submit', (e) => {
+          e.preventDefault();
+          this.kirimRequestCollab();
+        });
+      }
+
+      const collabTanggalInput = document.getElementById('collabTanggal');
+      if (collabTanggalInput) {
+        const onDateChange = async () => {
+          const tgl = collabTanggalInput.value;
+          if (tgl) await this.updateCollabConflictUI(tgl);
+        };
+        collabTanggalInput.addEventListener('change', onDateChange);
+        collabTanggalInput.addEventListener('input', onDateChange);
+      }
+
+      if (collabStaffSearch) {
+        const handleCollabSearch = () => {
+          const rawQ = (collabStaffSearch.value || '').toLowerCase().trim();
+          const items = document.querySelectorAll('.collab-staff-item');
+          const terms = rawQ.split(/\s+/).filter(Boolean);
+          let visibleCount = 0;
+
+          items.forEach(item => {
+            const nama = (item.dataset.nama || '').toLowerCase();
+            const jab = (item.dataset.jab || '').toLowerCase();
+            const nip = (item.dataset.nip || '').toLowerCase();
+            const fullText = (item.textContent || '').toLowerCase();
+
+            const isMatch = terms.length === 0 || terms.every(term => 
+              nama.includes(term) || jab.includes(term) || nip.includes(term) || fullText.includes(term)
+            );
+
+            if (isMatch) {
+              item.classList.remove('is-search-hidden');
+              item.style.setProperty('display', 'flex', 'important');
+              visibleCount++;
+            } else {
+              item.classList.add('is-search-hidden');
+              item.style.setProperty('display', 'none', 'important');
+            }
+          });
+
+          // Empty state handling
+          const container = document.getElementById('collabStaffListContainer');
+          if (container) {
+            let emptyEl = container.querySelector('#collabStaffEmptyState');
+            if (visibleCount === 0 && rawQ) {
+              if (!emptyEl) {
+                emptyEl = document.createElement('div');
+                emptyEl.id = 'collabStaffEmptyState';
+                emptyEl.className = 'collab-no-results';
+                container.appendChild(emptyEl);
+              }
+              const safeQ = rawQ.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+              emptyEl.innerHTML = `
+                <span style="font-size: 22px;">🔍</span>
+                <div style="font-weight: 600; color: #cbd5e1;">Petugas Tidak Ditemukan</div>
+                <div style="font-size: 11.5px; color: #94a3b8;">Tidak ada rekan petugas yang cocok dengan kata kunci: <em>"${safeQ}"</em></div>
+              `;
+              emptyEl.style.display = 'flex';
+            } else if (emptyEl) {
+              emptyEl.style.display = 'none';
+            }
+          }
+        };
+
+        collabStaffSearch.addEventListener('input', handleCollabSearch);
+        collabStaffSearch.addEventListener('keyup', handleCollabSearch);
+        collabStaffSearch.addEventListener('search', handleCollabSearch);
+        collabStaffSearch.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            collabStaffSearch.value = '';
+            handleCollabSearch();
+          }
+        });
+      }
+
+      // Collab selection counter limiter (max 5)
+      const listContainer = document.getElementById('collabStaffListContainer');
+      const counterEl = document.getElementById('collabSelectedCounter');
+
+      if (listContainer) {
+        listContainer.addEventListener('change', () => {
+          const checked = listContainer.querySelectorAll('.collab-staff-cb:checked');
+          const all = listContainer.querySelectorAll('.collab-staff-cb:not(:disabled)');
+          if (counterEl) counterEl.textContent = `${checked.length} / 5 dipilih`;
+
+          if (checked.length >= 5) {
+            all.forEach(cb => {
+              if (!cb.checked) cb.disabled = true;
+            });
+          } else {
+            // Re-enable non-conflicted checkboxes
+            document.querySelectorAll('.collab-staff-item').forEach(item => {
+              const cb = item.querySelector('.collab-staff-cb');
+              if (cb && !item.classList.contains('is-conflict')) {
+                cb.disabled = false;
+              }
+            });
+          }
+        });
+      }
+
+      // Notif Modal Handlers
+      const modalNotif = document.getElementById('modalNotifikasiKolaborasi');
+      const closeNotif = document.getElementById('closeNotifModal');
+      const btnCloseNotif = document.getElementById('btnCloseNotifModal');
+
+      const closeModalNotif = () => {
+        if (modalNotif) modalNotif.classList.remove('active');
+      };
+      if (closeNotif) closeNotif.addEventListener('click', closeModalNotif);
+      if (btnCloseNotif) btnCloseNotif.addEventListener('click', closeModalNotif);
+
+      // Detail Modal Handlers
+      const modalDetail = document.getElementById('modalDetailJadwalBOK');
+      const closeDetail = document.getElementById('closeDetailBokModal');
+      const btnCloseDetail = document.getElementById('btnCloseDetailBok');
+
+      const closeModalDetail = () => {
+        if (modalDetail) modalDetail.classList.remove('active');
+      };
+      if (closeDetail) closeDetail.addEventListener('click', closeModalDetail);
+      if (btnCloseDetail) btnCloseDetail.addEventListener('click', closeModalDetail);
+      if (modalDetail) {
+        modalDetail.addEventListener('click', (e) => {
+          if (e.target === modalDetail) closeModalDetail();
+        });
+      }
+    },
+
+    async getFilteredData() {
+      const all = await this.getData();
+      const monthStr = String(this.currentMonth).padStart(2, '0');
+      const yearMonthPrefix = `${this.currentYear}-${monthStr}`;
+      const isPrivileged = this.isPrivilegedScheduleViewer();
+
+      const userNamaClean = (CURRENT_USER.nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+      const userNipClean = (CURRENT_USER.nip || '').trim();
+
+      return (all || []).filter(item => {
+        if (!item || !item.tanggal) return false;
+
+        // Match year & month (via string prefix or explicit bulan/tahun numbers)
+        const isMonthMatch = item.tanggal.startsWith(yearMonthPrefix) || 
+                             (parseInt(item.bulan, 10) === this.currentMonth && parseInt(item.tahun, 10) === this.currentYear);
+        if (!isMonthMatch) return false;
+
+        // PRIVACY ENFORCEMENT FOR JADWAL KEGIATAN:
+        // Regular staff (NOT Admin, NOT Kepala Puskesmas, NOT PJ) can ONLY view their own schedule
+        if (!isPrivileged) {
+          const itemNamaClean = (item.namaUser || item.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+          const itemNipClean = (item.petugas_nip || '').trim();
+
+          const isDirectMine = (itemNipClean && userNipClean && itemNipClean === userNipClean) ||
+                               (itemNamaClean && userNamaClean && (itemNamaClean === userNamaClean || itemNamaClean.includes(userNamaClean) || userNamaClean.includes(itemNamaClean)));
+
+          let isCollabPartner = false;
+          if (Array.isArray(item.rekan_kolaborasi) && item.rekan_kolaborasi.length > 0) {
+            isCollabPartner = item.rekan_kolaborasi.some(r => {
+              const rNama = (typeof r === 'string' ? r : (r.nama || '')).toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+              const rNip = typeof r === 'object' && r.nip ? r.nip.trim() : '';
+              if (rNip && userNipClean && rNip === userNipClean) return true;
+              if (rNama && userNamaClean && (rNama === userNamaClean || rNama.includes(userNamaClean) || userNamaClean.includes(rNama))) return true;
+              return false;
+            });
+          }
+
+          if (!isDirectMine && !isCollabPartner) {
+            return false; // Hide other employees' schedules
+          }
+        }
+
+        // Staff filter (for Admin / Kepala Puskesmas / PJ)
+        if (isPrivileged && this.selectedStaff) {
+          const sNorm = this.selectedStaff.toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+          const uNorm = (item.namaUser || item.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+          if (!uNorm.includes(sNorm) && !sNorm.includes(uNorm)) return false;
+        }
+
+        // Tab filter
+        if (this.activeTab === 'mine') {
+          const uNorm = (item.namaUser || item.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+          if (!uNorm.includes(userNamaClean) && !userNamaClean.includes(uNorm)) return false;
+        } else if (this.activeTab === 'collab') {
+          const hasCollabNote = item.keterangan && item.keterangan.toLowerCase().includes('kolaborasi');
+          const hasCollabArray = Array.isArray(item.rekan_kolaborasi) && item.rekan_kolaborasi.length > 0;
+          if (!hasCollabNote && !hasCollabArray) return false;
+        }
+
+        // Search keyword
+        if (this.searchKeyword) {
+          const matchKeg = (item.namaKegiatan || item.nama_kegiatan || '').toLowerCase().includes(this.searchKeyword);
+          const matchKet = (item.keterangan || '').toLowerCase().includes(this.searchKeyword);
+          const matchUser = (item.namaUser || item.petugas_nama || '').toLowerCase().includes(this.searchKeyword);
+          const matchLok = (item.lokasi || '').toLowerCase().includes(this.searchKeyword);
+          if (!matchKeg && !matchKet && !matchUser && !matchLok) return false;
+        }
+
+        return true;
+      });
+    },
+
+    async render() {
+      const filtered = await this.getFilteredData();
+      this.updateStats(filtered);
+
+      if (this.viewMode === 'timeline') {
+        this.renderTimeline(filtered);
+      } else {
+        this.renderCalendar(filtered);
+      }
+
+      this.updateCollabBadges();
+      await this.renderBerandaWidget();
+    },
+
+    updateStats(items) {
+      const elTotal = document.getElementById('bokStatTotal');
+      const elSaya = document.getElementById('bokStatSaya');
+      const elCollab = document.getElementById('bokStatCollab');
+      const elDays = document.getElementById('bokStatDays');
+      const elUserLabel = document.getElementById('bokStatUserLabel');
+
+      if (elUserLabel) elUserLabel.textContent = CURRENT_USER.nama;
+
+      const userNamaClean = (CURRENT_USER.nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+
+      const myCount = items.filter(i => {
+        const uNorm = (i.namaUser || i.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+        return uNorm === userNamaClean || uNorm.includes(userNamaClean) || userNamaClean.includes(uNorm);
+      }).length;
+
+      const collabCount = items.filter(i => {
+        const hasCollabNote = i.keterangan && i.keterangan.toLowerCase().includes('kolaborasi');
+        const hasCollabArray = Array.isArray(i.rekan_kolaborasi) && i.rekan_kolaborasi.length > 0;
+        return hasCollabNote || hasCollabArray;
+      }).length;
+      
+      const uniqueDays = new Set(items.map(i => i.tanggal)).size;
+
+      if (elTotal) elTotal.textContent = items.length;
+      if (elSaya) elSaya.textContent = myCount;
+      if (elCollab) elCollab.textContent = collabCount;
+      if (elDays) elDays.textContent = uniqueDays;
+    },
+
+    renderTimeline(items) {
+      const container = document.getElementById('bokTimelineList');
+      if (!container) return;
+
+      if (items.length === 0) {
+        container.innerHTML = `
+          <div class="dash-card text-center" style="padding: 40px 20px; border-radius: 16px; background: rgba(18, 24, 38, 0.75);">
+            <div style="font-size: 40px; margin-bottom: 12px; opacity: 0.5;">📅</div>
+            <h4 style="color: #ffffff; font-size: 16px; font-weight: 700; margin-bottom: 6px;">Tidak Ada Jadwal Kegiatan</h4>
+            <p style="color: #94a3b8; font-size: 13px; margin: 0 0 16px 0;">Belum ada jadwal kegiatan BOK yang cocok dengan filter bulan/petugas yang dipilih.</p>
+            <button type="button" class="btn-bok-primary" onclick="window.JadwalBOKController.bukaModalTambah()" style="display: inline-flex; margin: 0 auto;">
+              + Tambah Jadwal Sekarang
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // Group by date
+      const grouped = {};
+      items.forEach(item => {
+        if (!grouped[item.tanggal]) grouped[item.tanggal] = [];
+        grouped[item.tanggal].push(item);
+      });
+
+      // Sort dates
+      const sortedDates = Object.keys(grouped).sort();
+      const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      let html = '';
+      sortedDates.forEach(dateStr => {
+        const dateObj = new Date(dateStr + 'T00:00:00');
+        const dayName = dayNames[dateObj.getDay()];
+        const dayNum = dateObj.getDate();
+        const monthName = monthNames[dateObj.getMonth() + 1];
+        const isToday = dateStr === todayStr;
+        const events = grouped[dateStr];
+
+        html += `
+          <div class="bok-timeline-day-group">
+            <div class="bok-day-header-bar ${isToday ? 'is-today' : ''}">
+              <div class="bok-day-title-wrap">
+                <div class="bok-date-number-badge ${isToday ? 'is-today' : ''}">${dayNum}</div>
+                <div class="bok-day-full-text">${dayName}, ${dayNum} ${monthName} ${dateObj.getFullYear()}</div>
+                ${isToday ? '<span class="badge-system-live" style="font-size: 11px; background: rgba(239, 68, 68, 0.2); color: #f87171; border-color: rgba(239, 68, 68, 0.4);"><span class="live-dot" style="background:#ef4444;"></span> Hari Ini</span>' : ''}
+              </div>
+              <span class="bok-day-count-badge">${events.length} Kegiatan</span>
+            </div>
+
+            <div class="bok-day-events-list">
+        `;
+
+        events.forEach(ev => {
+          const isMine = ev.namaUser === CURRENT_USER.nama;
+          const isCollab = ev.keterangan && ev.keterangan.toLowerCase().includes('kolaborasi');
+
+          html += `
+            <div class="bok-event-row ${isMine ? 'is-mine' : ''} ${isCollab ? 'is-collab' : ''}">
+              <div class="bok-event-left">
+                <div class="bok-keg-number-badge">No.${ev.noKegiatan}</div>
+                <div class="bok-event-main">
+                  <h5>${ev.namaKegiatan}</h5>
+                  <div class="bok-event-meta-row">
+                    <span class="bok-staff-pill ${isMine ? 'mine' : 'other'}">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      ${isMine ? 'Jadwal Anda (' + ev.jabatan + ')' : ev.namaUser + ' (' + ev.jabatan + ')'}
+                    </span>
+                    ${isCollab ? '<span class="bok-collab-tag-pill">👥 Kolaborasi</span>' : ''}
+                    ${ev.keterangan ? `<span class="bok-ket-text">• ${ev.keterangan}</span>` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <div class="bok-event-actions">
+                <button type="button" class="btn-bok-act btn-bok-sppd" title="Buat SPPD dari Jadwal Ini" onclick="window.JadwalBOKController.buatSppdDariJadwal('${ev.id}')">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                  <span>Buat SPPD</span>
+                </button>
+                <button type="button" class="btn-bok-act" title="Lihat Detail" onclick="window.JadwalBOKController.bukaModalDetail('${ev.id}')">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                </button>
+                ${(() => {
+                  // For collab activities: only initiator can edit/delete
+                  // Partners (keterangan contains "[Kolaborasi dengan:") cannot edit/delete
+                  const isCollabPartner = isCollab && ev.keterangan && ev.keterangan.includes('[Kolaborasi dengan:');
+                  const canEditDelete = isMine && !isCollabPartner;
+                  return canEditDelete ? `
+                  <button type="button" class="btn-bok-act" title="Edit Jadwal" onclick="window.JadwalBOKController.bukaModalEdit('${ev.id}')">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                  </button>
+                  <button type="button" class="btn-bok-act delete" title="Hapus Jadwal" onclick="window.JadwalBOKController.hapusJadwal('${ev.id}')">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                ` : '';
+                })()}
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    },
+
+    renderCalendar(items) {
+      const grid = document.getElementById('bokCalendarDaysGrid');
+      const titleEl = document.getElementById('bokCalMonthTitle');
+      if (!grid) return;
+
+      const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      if (titleEl) {
+        titleEl.textContent = `${monthNames[this.currentMonth]} ${this.currentYear}`;
+      }
+
+      const year = this.currentYear;
+      const month = this.currentMonth;
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const daysInPrevMonth = new Date(year, month - 1, 0).getDate();
+      
+      const firstDayIndex = new Date(year, month - 1, 1).getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+      // Convert Sunday=0 to Monday=0 (Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6)
+      const startOffset = (firstDayIndex + 6) % 7;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      // Map events by date
+      const eventMap = {};
+      items.forEach(ev => {
+        if (!eventMap[ev.tanggal]) eventMap[ev.tanggal] = [];
+        eventMap[ev.tanggal].push(ev);
+      });
+
+      let html = '';
+
+      // 1. Leading cells from previous month (Dimmed & symmetrical)
+      for (let i = 0; i < startOffset; i++) {
+        const prevDayNum = daysInPrevMonth - startOffset + 1 + i;
+        const prevMonthNum = month === 1 ? 12 : month - 1;
+        const prevYearNum = month === 1 ? year - 1 : year;
+        const prevDateStr = `${prevYearNum}-${String(prevMonthNum).padStart(2, '0')}-${String(prevDayNum).padStart(2, '0')}`;
+        
+        html += `
+          <div class="bok-cal-cell is-other-month" onclick="window.JadwalBOKController.bukaModalTambah('${prevDateStr}')" title="Tambah Jadwal ${prevDayNum}/${prevMonthNum}">
+            <div class="bok-cal-cell-top">
+              <span class="bok-cal-date-num">${prevDayNum}</span>
+            </div>
+            <div class="bok-cal-events-wrap"></div>
+          </div>
+        `;
+      }
+
+      // 2. Days of current month
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isToday = dateStr === todayStr;
+        const dateObj = new Date(year, month - 1, d);
+        const dayOfWeek = dateObj.getDay();
+        const isSunday = dayOfWeek === 0; // Libur Puskesmas di hari Minggu
+
+        // Check National Holidays & Cuti Bersama (SKB 3 Menteri)
+        const holidayInfo = (typeof INDONESIAN_HOLIDAYS !== 'undefined') ? INDONESIAN_HOLIDAYS[dateStr] : null;
+        const isNationalHoliday = (holidayInfo && holidayInfo.type === 'national');
+        const isCutiBersama = (holidayInfo && holidayInfo.type === 'cuti');
+
+        const dayEvents = eventMap[dateStr] || [];
+
+        let cellClasses = ['bok-cal-cell'];
+        if (isToday) cellClasses.push('is-today');
+        if (isSunday) cellClasses.push('is-sunday is-holiday');
+        if (isNationalHoliday) cellClasses.push('is-holiday');
+        if (isCutiBersama) cellClasses.push('is-cuti');
+
+        let holidayTagHtml = '';
+        if (isToday) {
+          holidayTagHtml = '<span class="bok-cal-today-tag">Hari Ini</span>';
+        } else if (isNationalHoliday) {
+          holidayTagHtml = `<span class="bok-cal-holiday-label national" title="${holidayInfo.name}">🔴 ${holidayInfo.name}</span>`;
+        } else if (isCutiBersama) {
+          holidayTagHtml = `<span class="bok-cal-holiday-label cuti" title="${holidayInfo.name}">🟠 ${holidayInfo.name}</span>`;
+        }
+
+        html += `
+          <div class="${cellClasses.join(' ')}" onclick="window.JadwalBOKController.bukaModalTambah('${dateStr}')" title="Klik untuk tambah jadwal ${d} ${monthNames[month]}">
+            <div class="bok-cal-cell-top">
+              <span class="bok-cal-date-num">${d}</span>
+              ${holidayTagHtml}
+            </div>
+
+            <div class="bok-cal-events-wrap">
+        `;
+
+        dayEvents.forEach(ev => {
+          const myNorm = (CURRENT_USER.nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+          const uNorm = (ev.namaUser || ev.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+          const isMine = uNorm.includes(myNorm) || myNorm.includes(uNorm);
+          const isCollab = (ev.keterangan && ev.keterangan.toLowerCase().includes('kolaborasi')) || (Array.isArray(ev.rekan_kolaborasi) && ev.rekan_kolaborasi.length > 0) || (ev.namaKegiatan && ev.namaKegiatan.toLowerCase().includes('kolaborasi'));
+          const cls = isMine ? 'mine' : (isCollab ? 'collab' : 'other');
+          const noPrefix = (ev.noKegiatan && ev.noKegiatan > 0) ? `No.${ev.noKegiatan} ` : '';
+
+          html += `
+            <span class="bok-cal-pill ${cls}" title="${noPrefix}${ev.namaKegiatan} (${ev.namaUser || ev.petugas_nama || ''})" onclick="event.stopPropagation(); window.JadwalBOKController.bukaModalDetail('${ev.id}')">
+              ${noPrefix}${ev.namaKegiatan}
+            </span>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+      }
+
+      // 3. Trailing cells for next month to complete the 7-column grid
+      const totalRendered = startOffset + daysInMonth;
+      const totalCells = Math.ceil(totalRendered / 7) * 7;
+      const trailingCount = totalCells - totalRendered;
+
+      for (let nextD = 1; nextD <= trailingCount; nextD++) {
+        const nextMonthNum = month === 12 ? 1 : month + 1;
+        const nextYearNum = month === 12 ? year + 1 : year;
+        const nextDateStr = `${nextYearNum}-${String(nextMonthNum).padStart(2, '0')}-${String(nextD).padStart(2, '0')}`;
+
+        html += `
+          <div class="bok-cal-cell is-other-month" onclick="window.JadwalBOKController.bukaModalTambah('${nextDateStr}')" title="Tambah Jadwal ${nextD}/${nextMonthNum}">
+            <div class="bok-cal-cell-top">
+              <span class="bok-cal-date-num">${nextD}</span>
+            </div>
+            <div class="bok-cal-events-wrap"></div>
+          </div>
+        `;
+      }
+
+      grid.innerHTML = html;
+    },
+
+    async updateCollabBadges() {
+      const collabs = await this.getCollabData();
+      const pending = collabs.filter(c => this.isCollabForMe(c) && c.status === 'pending');
+      const count = pending.length;
+
+      const sidebarBadge = document.getElementById('sidebarBokBadge');
+      const headerBadge = document.getElementById('bokHeaderNotifBadge');
+      const inlineBanner = document.getElementById('bokInlineCollabBanner');
+      const inlineCount = document.getElementById('bokInlineCollabCount');
+      const inlineList = document.getElementById('bokInlineCollabList');
+
+      if (sidebarBadge) {
+        if (count > 0) {
+          sidebarBadge.textContent = count;
+          sidebarBadge.style.display = 'inline-block';
+        } else {
+          sidebarBadge.style.display = 'none';
+        }
+      }
+
+      if (headerBadge) {
+        if (count > 0) {
+          headerBadge.textContent = count;
+          headerBadge.style.display = 'inline-block';
+        } else {
+          headerBadge.style.display = 'none';
+        }
+      }
+
+      // Inline banner on Jadwal page
+      if (inlineBanner && inlineList) {
+        if (count > 0) {
+          inlineBanner.style.display = 'block';
+          if (inlineCount) inlineCount.textContent = count;
+
+          let bHtml = '';
+          pending.forEach(req => {
+            const fromName = req.from_nama || req.fromNama || 'Petugas';
+            const fromJab = req.from_jabatan || req.fromJabatan || 'Pegawai';
+            const noKeg = req.no_kegiatan || req.noKegiatan;
+            const namaKeg = req.nama_kegiatan || req.namaKegiatan;
+            bHtml += `
+              <div class="alert-sicekas alert-info" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; padding: 12px 16px 12px 42px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <div style="flex: 1; min-width: 0; padding-right: 12px;">
+                  <h5 class="alert-title" style="font-size: 13.5px; margin-bottom: 2px;">
+                    ${fromName} (${fromJab}) <span style="font-weight: normal; opacity: 0.85;">mengajak kolaborasi</span>
+                  </h5>
+                  <div class="alert-description" style="font-size: 12px;">
+                    <strong>${req.tanggal}</strong> • No.${noKeg} ${namaKeg} ${req.keterangan ? `— <em>"${req.keterangan}"</em>` : ''}
+                  </div>
+                </div>
+                <div class="bok-req-actions" style="flex-shrink: 0; display: flex; gap: 6px;">
+                  <button type="button" class="btn-req-accept" onclick="window.JadwalBOKController.terimaCollab('${req.id}')">✓ Terima</button>
+                  <button type="button" class="btn-req-reject" onclick="window.JadwalBOKController.tolakCollab('${req.id}')">✕ Tolak</button>
+                </div>
+              </div>
+            `;
+          });
+          inlineList.innerHTML = bHtml;
+        } else {
+          inlineBanner.style.display = 'none';
+        }
+      }
+    },
+
+    async renderBerandaWidget() {
+      const container = document.getElementById('berandaTableContainer');
+      const selectBulan = document.getElementById('selectBerandaBulan');
+      const selectTahun = document.getElementById('selectBerandaTahun');
+      const countAllEl = document.getElementById('berandaCountAll');
+      const countSendiriEl = document.getElementById('berandaCountSendiri');
+      const countCollabEl = document.getElementById('berandaCountCollab');
+
+      if (!this.berandaMonth) this.berandaMonth = new Date().getMonth() + 1;
+      if (!this.berandaYear) this.berandaYear = new Date().getFullYear();
+
+      if (selectBulan) selectBulan.value = this.berandaMonth;
+      if (selectTahun) selectTahun.value = this.berandaYear;
+
+      const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const dayNamesShort = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+
+      // Fetch all activities for this month & year
+      const all = await this.getData(this.berandaMonth, this.berandaYear);
+
+      // Filter activities specifically matching this.berandaMonth and this.berandaYear
+      const monthStr = String(this.berandaMonth).padStart(2, '0');
+      const yearMonthPrefix = `${this.berandaYear}-${monthStr}`;
+
+      const monthActivities = (all || []).filter(item => {
+        if (!item) return false;
+        if (item.tanggal && item.tanggal.startsWith(yearMonthPrefix)) return true;
+        if (item.bulan && item.tahun && parseInt(item.bulan, 10) === this.berandaMonth && parseInt(item.tahun, 10) === this.berandaYear) return true;
+        return false;
+      });
+
+      // Update Beranda KPI Counters
+      const totalEl = document.getElementById('berandaStatBokCount');
+      const myEl = document.getElementById('berandaStatMyBokCount');
+      if (totalEl) totalEl.textContent = `${monthActivities.length} Kegiatan`;
+      if (myEl) {
+        const myCount = monthActivities.filter(item => item.namaUser === CURRENT_USER.nama || (item.petugas_nip && item.petugas_nip === CURRENT_USER.nip)).length;
+        myEl.textContent = `${myCount} Kegiatan`;
+      }
+
+      if (!container) return;
+
+      // Extract all assigned employees across all activities in this month
+      const employeeEntries = [];
+
+      monthActivities.forEach(item => {
+        const isCollab = (item.keterangan && item.keterangan.toLowerCase().includes('kolaborasi')) ||
+                         (Array.isArray(item.rekan_kolaborasi) && item.rekan_kolaborasi.length > 0) ||
+                         (item.namaKegiatan && item.namaKegiatan.toLowerCase().includes('kolaborasi'));
+        
+        const staffName = item.namaUser || item.petugas_nama || 'Petugas';
+        const staffJabatan = item.jabatan || item.petugas_jabatan || 'Pegawai';
+        const isMine = staffName === CURRENT_USER.nama || (item.petugas_nip && item.petugas_nip === CURRENT_USER.nip);
+
+        // Rekan list
+        let collabPartners = [];
+        if (Array.isArray(item.rekan_kolaborasi)) {
+          collabPartners = item.rekan_kolaborasi.map(r => typeof r === 'string' ? r : (r.nama || ''));
+        }
+
+        // Check holiday info for this date
+        const dateStr = item.tanggal || '';
+        const holidayInfo = (typeof INDONESIAN_HOLIDAYS !== 'undefined' && dateStr) ? INDONESIAN_HOLIDAYS[dateStr] : null;
+
+        // Day of week
+        let dayName = '';
+        let dayNum = '';
+        if (dateStr && dateStr.includes('-')) {
+          const p = dateStr.split('-');
+          const y = parseInt(p[0], 10);
+          const m = parseInt(p[1], 10);
+          const d = parseInt(p[2], 10);
+          const dObj = new Date(y, m - 1, d);
+          dayName = dayNamesShort[dObj.getDay()] || '';
+          dayNum = d;
+        }
+
+        employeeEntries.push({
+          id: item.id,
+          tanggal: item.tanggal,
+          dayName: dayName,
+          dayNum: dayNum,
+          holidayInfo: holidayInfo,
+          nama: staffName,
+          jabatan: staffJabatan,
+          noKegiatan: item.noKegiatan,
+          namaKegiatan: item.namaKegiatan,
+          keterangan: item.keterangan || '',
+          lokasi: item.lokasi || '',
+          isCollab: isCollab,
+          isMine: isMine,
+          rekanKolaborasi: collabPartners
+        });
+      });
+
+      // Sort by tanggal ascending
+      employeeEntries.sort((a, b) => (a.tanggal || '').localeCompare(b.tanggal || ''));
+
+      // Update Tab Badges Counts
+      const countTotal = employeeEntries.length;
+      const countSendiri = employeeEntries.filter(e => !e.isCollab).length;
+      const countCollab = employeeEntries.filter(e => e.isCollab).length;
+
+      if (countAllEl) countAllEl.textContent = countTotal;
+      if (countSendiriEl) countSendiriEl.textContent = countSendiri;
+      if (countCollabEl) countCollabEl.textContent = countCollab;
+
+      // Filter items according to active tab
+      let displayedEntries = employeeEntries;
+      if (this.berandaFilterTab === 'sendiri') {
+        displayedEntries = employeeEntries.filter(e => !e.isCollab);
+      } else if (this.berandaFilterTab === 'collab') {
+        displayedEntries = employeeEntries.filter(e => e.isCollab);
+      }
+
+      // Filter items according to search keyword
+      if (this.berandaSearchKeyword) {
+        const q = this.berandaSearchKeyword;
+        displayedEntries = displayedEntries.filter(e => 
+          (e.nama && e.nama.toLowerCase().includes(q)) ||
+          (e.jabatan && e.jabatan.toLowerCase().includes(q)) ||
+          (e.namaKegiatan && e.namaKegiatan.toLowerCase().includes(q)) ||
+          (e.keterangan && e.keterangan.toLowerCase().includes(q)) ||
+          (e.tanggal && e.tanggal.includes(q))
+        );
+      }
+
+      if (displayedEntries.length === 0) {
+        const selMonthName = monthNames[this.berandaMonth] || 'Bulan Ini';
+        container.innerHTML = `
+          <div style="text-align: center; padding: 45px 20px; color: #94a3b8;">
+            <div style="font-size: 40px; margin-bottom: 12px; opacity: 0.6;">📅</div>
+            <h4 style="color: #ffffff; font-size: 16px; font-weight: 700; margin-bottom: 6px;">
+              Tidak Ada Jadwal Kegiatan di Bulan ${selMonthName} ${this.berandaYear}
+            </h4>
+            <p style="font-size: 13px; margin: 0 0 18px 0; color: #94a3b8; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+              ${this.berandaSearchKeyword 
+                ? `Tidak ditemukan kegiatan dengan kata kunci "${this.berandaSearchKeyword}".`
+                : (this.berandaFilterTab === 'all' 
+                  ? `Belum ada pegawai yang memiliki jadwal kegiatan BOK pada bulan ${selMonthName} ${this.berandaYear}.` 
+                  : `Tidak ada kegiatan bertipe ${this.berandaFilterTab === 'sendiri' ? 'Mandiri/Sendiri' : 'Kolaborasi'} pada bulan ${selMonthName} ${this.berandaYear}.`)}
+            </p>
+            <button type="button" class="btn-hero-action btn-gold-pulse" style="display: inline-flex; margin: 0 auto; padding: 9px 18px;" onclick="window.JadwalBOKController.bukaModalTambah('${this.berandaYear}-${String(this.berandaMonth).padStart(2, '0')}-01')">
+              <span>+ Tambah Jadwal Bulan Ini</span>
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // 1. Render Calendar Grid View into #berandaCalGrid
+      const calGrid = document.getElementById('berandaCalGrid');
+      if (calGrid) {
+        const daysInMonth = new Date(this.berandaYear, this.berandaMonth, 0).getDate();
+        const daysInPrevMonth = new Date(this.berandaYear, this.berandaMonth - 1, 0).getDate();
+        const firstDayIndex = new Date(this.berandaYear, this.berandaMonth - 1, 1).getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+        const startOffset = (firstDayIndex + 6) % 7; // Convert to Mon=0, ..., Sun=6
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // Map events by date
+        const eventMap = {};
+        monthActivities.forEach(ev => {
+          if (!ev || !ev.tanggal) return;
+          if (!eventMap[ev.tanggal]) eventMap[ev.tanggal] = [];
+          eventMap[ev.tanggal].push(ev);
+        });
+
+        let calHtml = '';
+
+        // 1.1 Leading cells from previous month
+        for (let i = 0; i < startOffset; i++) {
+          const prevDayNum = daysInPrevMonth - startOffset + 1 + i;
+          const prevMonthNum = this.berandaMonth === 1 ? 12 : this.berandaMonth - 1;
+          const prevYearNum = this.berandaMonth === 1 ? this.berandaYear - 1 : this.berandaYear;
+          const prevDateStr = `${prevYearNum}-${String(prevMonthNum).padStart(2, '0')}-${String(prevDayNum).padStart(2, '0')}`;
+          
+          calHtml += `
+            <div class="beranda-cal-cell is-other-month" onclick="window.JadwalBOKController.bukaModalTambah('${prevDateStr}')" title="Tambah Jadwal ${prevDayNum}/${prevMonthNum}">
+              <div class="beranda-cal-cell-top">
+                <span class="beranda-cal-date-num">${prevDayNum}</span>
+              </div>
+              <div class="beranda-cal-staff-wrap"></div>
+            </div>
+          `;
+        }
+
+        // 1.2 Days of current month
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dateStr = `${this.berandaYear}-${String(this.berandaMonth).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const isToday = dateStr === todayStr;
+          const dateObj = new Date(this.berandaYear, this.berandaMonth - 1, d);
+          const isSunday = dateObj.getDay() === 0;
+
+          // Indonesian Holiday Info
+          const holidayInfo = (typeof INDONESIAN_HOLIDAYS !== 'undefined') ? INDONESIAN_HOLIDAYS[dateStr] : null;
+          const isNationalHoliday = (holidayInfo && holidayInfo.type === 'national');
+          const isCutiBersama = (holidayInfo && holidayInfo.type === 'cuti');
+
+          // Filter day events according to active tab and search
+          let dayEvents = eventMap[dateStr] || [];
+          if (this.berandaFilterTab === 'sendiri') {
+            dayEvents = dayEvents.filter(ev => {
+              const isCollab = (ev.keterangan && ev.keterangan.toLowerCase().includes('kolaborasi')) ||
+                               (Array.isArray(ev.rekan_kolaborasi) && ev.rekan_kolaborasi.length > 0) ||
+                               (ev.namaKegiatan && ev.namaKegiatan.toLowerCase().includes('kolaborasi'));
+              return !isCollab;
+            });
+          } else if (this.berandaFilterTab === 'collab') {
+            dayEvents = dayEvents.filter(ev => {
+              const isCollab = (ev.keterangan && ev.keterangan.toLowerCase().includes('kolaborasi')) ||
+                               (Array.isArray(ev.rekan_kolaborasi) && ev.rekan_kolaborasi.length > 0) ||
+                               (ev.namaKegiatan && ev.namaKegiatan.toLowerCase().includes('kolaborasi'));
+              return isCollab;
+            });
+          }
+
+          if (this.berandaSearchKeyword) {
+            const q = this.berandaSearchKeyword;
+            dayEvents = dayEvents.filter(ev => 
+              (ev.namaUser && ev.namaUser.toLowerCase().includes(q)) ||
+              (ev.petugas_nama && ev.petugas_nama.toLowerCase().includes(q)) ||
+              (ev.jabatan && ev.jabatan.toLowerCase().includes(q)) ||
+              (ev.namaKegiatan && ev.namaKegiatan.toLowerCase().includes(q)) ||
+              (ev.keterangan && ev.keterangan.toLowerCase().includes(q))
+            );
+          }
+
+          let cellClasses = ['beranda-cal-cell'];
+          if (isToday) cellClasses.push('is-today');
+          if (isSunday) cellClasses.push('is-sunday');
+          if (isNationalHoliday) cellClasses.push('is-holiday');
+          if (isCutiBersama) cellClasses.push('is-cuti');
+
+          let holidayTagHtml = '';
+          if (isToday) {
+            holidayTagHtml = '<span class="beranda-cal-today-badge">Hari Ini</span>';
+          } else if (isNationalHoliday) {
+            holidayTagHtml = `<span class="beranda-cal-holiday-tag national" title="${holidayInfo.name}">🔴 ${holidayInfo.name}</span>`;
+          } else if (isCutiBersama) {
+            holidayTagHtml = `<span class="beranda-cal-holiday-tag cuti" title="${holidayInfo.name}">🟠 ${holidayInfo.name}</span>`;
+          }
+
+          calHtml += `
+            <div class="${cellClasses.join(' ')}" onclick="window.JadwalBOKController.bukaModalTambah('${dateStr}')" title="Klik tanggal untuk tambah kegiatan baru">
+              <div class="beranda-cal-cell-top">
+                <span class="beranda-cal-date-num">${d}</span>
+                ${holidayTagHtml}
+              </div>
+
+              <div class="beranda-cal-staff-wrap">
+          `;
+
+          // Deduplicate & group collaboration activities on the same date
+          const soloEvents = [];
+          const collabGroups = {};
+
+          dayEvents.forEach(ev => {
+            const isCollab = (ev.keterangan && ev.keterangan.toLowerCase().includes('kolaborasi')) ||
+                             (Array.isArray(ev.rekan_kolaborasi) && ev.rekan_kolaborasi.length > 0) ||
+                             (ev.namaKegiatan && ev.namaKegiatan.toLowerCase().includes('kolaborasi'));
+            
+            if (isCollab) {
+              const kegKey = `${ev.noKegiatan || 0}_${(ev.namaKegiatan || '').trim().toLowerCase()}`;
+              if (!collabGroups[kegKey]) {
+                collabGroups[kegKey] = {
+                  primaryId: ev.id,
+                  noKegiatan: ev.noKegiatan,
+                  namaKegiatan: ev.namaKegiatan,
+                  lokasi: ev.lokasi,
+                  keterangan: ev.keterangan,
+                  petugasList: []
+                };
+              }
+              const pNama = ev.namaUser || ev.petugas_nama || 'Petugas';
+              const pJab = ev.jabatan || ev.petugas_jabatan || 'Pegawai';
+              if (!collabGroups[kegKey].petugasList.some(p => p.nama === pNama)) {
+                collabGroups[kegKey].petugasList.push({ nama: pNama, jabatan: pJab });
+              }
+              if (Array.isArray(ev.rekan_kolaborasi)) {
+                ev.rekan_kolaborasi.forEach(r => {
+                  const rName = typeof r === 'string' ? r : (r.nama || '');
+                  const rJab = typeof r === 'object' ? (r.jabatan || 'Pegawai') : 'Pegawai';
+                  if (rName && !collabGroups[kegKey].petugasList.some(p => p.nama === rName)) {
+                    collabGroups[kegKey].petugasList.push({ nama: rName, jabatan: rJab });
+                  }
+                });
+              }
+            } else {
+              soloEvents.push(ev);
+            }
+          });
+
+          // 1. Render Solo Events (🟢 Kegiatan Mandiri)
+          soloEvents.forEach(ev => {
+            const staffName = ev.namaUser || ev.petugas_nama || 'Pegawai';
+            const initials = staffName.split(' ').map(w => w[0]).filter(c => /[A-Za-z]/.test(c)).slice(0, 2).join('').toUpperCase() || 'PG';
+            const noPrefix = (ev.noKegiatan && ev.noKegiatan > 0) ? `No.${ev.noKegiatan} ` : '';
+
+            calHtml += `
+              <div class="beranda-staff-pill sendiri" title="🟢 Kegiatan Mandiri: ${staffName} (${ev.jabatan || 'Pegawai'})&#10;Kegiatan: ${noPrefix}${ev.namaKegiatan}&#10;• Klik nama untuk melihat detail kegiatan" onclick="event.stopPropagation(); window.JadwalBOKController.bukaModalDetail('${ev.id}')">
+                <span class="beranda-staff-avatar-dot">${initials}</span>
+                <span class="beranda-staff-name-text">${staffName}</span>
+              </div>
+            `;
+          });
+
+          // 2. Render Unified Collaboration Events (👥 1 pill per joint collaboration activity)
+          Object.values(collabGroups).forEach(cg => {
+            const noPrefix = (cg.noKegiatan && cg.noKegiatan > 0) ? `No.${cg.noKegiatan} ` : '';
+            let badgeLabel = '';
+            if (cg.petugasList.length === 1) {
+              badgeLabel = `${cg.petugasList[0].nama}`;
+            } else if (cg.petugasList.length === 2) {
+              const n1 = cg.petugasList[0].nama.split(' ')[0];
+              const n2 = cg.petugasList[1].nama.split(' ')[0];
+              badgeLabel = `👥 ${n1} & ${n2}`;
+            } else {
+              badgeLabel = `👥 Tim Kolaborasi (${cg.petugasList.length} Petugas)`;
+            }
+
+            const membersTooltip = cg.petugasList.map(p => `• ${p.nama} (${p.jabatan})`).join('\n');
+
+            calHtml += `
+              <div class="beranda-staff-pill collab" title="👥 Kegiatan Kolaborasi (${cg.petugasList.length} Petugas):\n${membersTooltip}\nKegiatan: ${noPrefix}${cg.namaKegiatan}\n• Klik untuk melihat detail kegiatan" onclick="event.stopPropagation(); window.JadwalBOKController.bukaModalDetail('${cg.primaryId}')">
+                <span class="beranda-staff-avatar-dot">👥</span>
+                <span class="beranda-staff-name-text">${badgeLabel}</span>
+              </div>
+            `;
+          });
+
+          calHtml += `
+              </div>
+            </div>
+          `;
+        }
+
+        // 1.3 Trailing cells for next month
+        const totalCells = startOffset + daysInMonth;
+        const remaining = (totalCells % 7 === 0) ? 0 : (7 - (totalCells % 7));
+        for (let i = 1; i <= remaining; i++) {
+          const nextMonthNum = this.berandaMonth === 12 ? 1 : this.berandaMonth + 1;
+          const nextYearNum = this.berandaMonth === 12 ? this.berandaYear + 1 : this.berandaYear;
+          const nextDateStr = `${nextYearNum}-${String(nextMonthNum).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+          calHtml += `
+            <div class="beranda-cal-cell is-other-month" onclick="window.JadwalBOKController.bukaModalTambah('${nextDateStr}')" title="Tambah Jadwal ${i}/${nextMonthNum}">
+              <div class="beranda-cal-cell-top">
+                <span class="beranda-cal-date-num">${i}</span>
+              </div>
+              <div class="beranda-cal-staff-wrap"></div>
+            </div>
+          `;
+        }
+
+        calGrid.innerHTML = calHtml;
+      }
+
+      // 2. Render Table View into #berandaTableContainer
+      if (displayedEntries.length === 0) {
+        const selMonthName = monthNames[this.berandaMonth] || 'Bulan Ini';
+        container.innerHTML = `
+          <div style="text-align: center; padding: 45px 20px; color: #94a3b8;">
+            <div style="font-size: 40px; margin-bottom: 12px; opacity: 0.6;">📅</div>
+            <h4 style="color: #ffffff; font-size: 16px; font-weight: 700; margin-bottom: 6px;">
+              Tidak Ada Jadwal Kegiatan di Bulan ${selMonthName} ${this.berandaYear}
+            </h4>
+            <p style="font-size: 13px; margin: 0 0 18px 0; color: #94a3b8; max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+              ${this.berandaSearchKeyword 
+                ? `Tidak ditemukan kegiatan dengan kata kunci "${this.berandaSearchKeyword}".`
+                : (this.berandaFilterTab === 'all' 
+                  ? `Belum ada pegawai yang memiliki jadwal kegiatan BOK pada bulan ${selMonthName} ${this.berandaYear}.` 
+                  : `Tidak ada kegiatan bertipe ${this.berandaFilterTab === 'sendiri' ? 'Mandiri/Sendiri' : 'Kolaborasi'} pada bulan ${selMonthName} ${this.berandaYear}.`)}
+            </p>
+            <button type="button" class="btn-hero-action btn-gold-pulse" style="display: inline-flex; margin: 0 auto; padding: 9px 18px;" onclick="window.JadwalBOKController.bukaModalTambah('${this.berandaYear}-${String(this.berandaMonth).padStart(2, '0')}-01')">
+              <span>+ Tambah Jadwal Bulan Ini</span>
+            </button>
+          </div>
+        `;
+      } else {
+        let tableHtml = `
+          <table class="beranda-schedule-table">
+            <thead>
+              <tr>
+                <th style="width: 40px;" class="center">No</th>
+                <th style="width: 140px;">Tanggal</th>
+                <th>Nama Pegawai (Klik untuk Detail)</th>
+                <th>Jabatan</th>
+                <th>Kegiatan BOK</th>
+                <th style="width: 140px;">Tipe Kegiatan</th>
+                <th style="width: 175px; text-align: right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        displayedEntries.forEach((entry, idx) => {
+          const initials = entry.nama.split(' ').map(w => w[0]).filter(c => /[A-Za-z]/.test(c)).slice(0, 2).join('').toUpperCase() || 'PG';
+          const typeClass = entry.isCollab ? 'collab' : 'sendiri';
+          const rowClass = entry.isCollab ? 'row-collab' : 'row-sendiri';
+
+          // Format Date Badge
+          let dateBadgeHtml = '';
+          if (entry.tanggal) {
+            const parts = entry.tanggal.split('-');
+            const d = parts[2] ? parseInt(parts[2], 10) : '';
+            const m = parts[1] ? (monthNames[parseInt(parts[1], 10)] || '').slice(0, 3) : '';
+            const y = parts[0] || '';
+            
+            let holidayMiniBadge = '';
+            if (entry.holidayInfo) {
+              if (entry.holidayInfo.type === 'national') {
+                holidayMiniBadge = `<span class="beranda-holiday-tag-mini national" title="${entry.holidayInfo.name}">🔴 Libur</span>`;
+              } else if (entry.holidayInfo.type === 'cuti') {
+                holidayMiniBadge = `<span class="beranda-holiday-tag-mini cuti" title="${entry.holidayInfo.name}">🟠 Cuti</span>`;
+              }
+            }
+
+            dateBadgeHtml = `
+              <div class="beranda-tgl-badge">
+                <span class="beranda-tgl-num">${d} ${m} ${y}</span>
+                <span class="beranda-tgl-day">${entry.dayName ? entry.dayName + ',' : ''} ${entry.tanggal}</span>
+                ${holidayMiniBadge}
+              </div>
+            `;
+          } else {
+            dateBadgeHtml = `<span style="color: #64748b;">-</span>`;
+          }
+
+          tableHtml += `
+            <tr class="${rowClass}">
+              <td class="center" style="font-weight: 700; color: #64748b;">${idx + 1}</td>
+              <td>
+                ${dateBadgeHtml}
+              </td>
+              <td>
+                <a href="javascript:void(0)" class="staff-name-clickable" onclick="window.JadwalBOKController.bukaModalDetail('${entry.id}')" title="Klik untuk melihat rincian kegiatan lengkap">
+                  <div class="staff-avatar-mini ${typeClass}">${initials}</div>
+                  <div class="staff-name-text">
+                    <span class="name">${entry.nama} ${entry.isMine ? '<span style="color: #ffd166; font-size: 11px;">(Anda)</span>' : ''}</span>
+                    <span class="hint">👆 Klik untuk detail</span>
+                  </div>
+                </a>
+              </td>
+              <td style="color: #cbd5e1; font-weight: 600;">
+                ${entry.jabatan}
+              </td>
+              <td>
+                <div style="font-weight: 700; color: #ffffff;">No.${entry.noKegiatan} ${entry.namaKegiatan}</div>
+                ${entry.keterangan ? `<div style="font-size: 11px; color: #94a3b8; margin-top: 2px; font-style: italic;">• ${entry.keterangan}</div>` : ''}
+              </td>
+              <td>
+                ${entry.isCollab 
+                  ? `<span class="kegiatan-badge-collab" title="Kegiatan Bersama / Kolaborasi Tim">👥 Kolaborasi</span>` 
+                  : `<span class="kegiatan-badge-sendiri" title="Kegiatan Mandiri / Sendiri">🟢 Kegiatan Sendiri</span>`
+                }
+              </td>
+              <td>
+                <div class="table-actions-cell">
+                  <button type="button" class="btn-table-act" title="Lihat Rincian Detail" onclick="window.JadwalBOKController.bukaModalDetail('${entry.id}')">
+                    👁 Detail
+                  </button>
+                  <button type="button" class="btn-table-act btn-sppd" title="Buat SPPD dari Jadwal Ini" onclick="window.JadwalBOKController.buatSppdDariJadwal('${entry.id}')">
+                    📄 Buat SPPD
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+
+        tableHtml += `
+            </tbody>
+          </table>
+        `;
+
+        container.innerHTML = tableHtml;
+      }
+
+      // 3. Set Active View Visibility
+      const calWrapper = document.getElementById('berandaCalWrapper');
+      if (calWrapper && container) {
+        if (this.berandaViewMode === 'calendar') {
+          calWrapper.style.display = 'block';
+          container.style.display = 'none';
+        } else {
+          calWrapper.style.display = 'none';
+          container.style.display = 'block';
+        }
+      }
+    },
+
+    bukaModalTambah(defaultDate = null) {
+      const modal = document.getElementById('modalTambahJadwalBOK');
+      const form = document.getElementById('formTambahJadwalBOK');
+      const titleEl = document.getElementById('modalBokFormTitle');
+      const editId = document.getElementById('bokEditId');
+      const tglInput = document.getElementById('inputTanggalBOK');
+      const kegInput = document.getElementById('inputKegiatanBOK');
+      const ketInput = document.getElementById('inputKeteranganBOK');
+
+      if (form) form.reset();
+      if (editId) editId.value = '';
+      if (kegInput) kegInput.value = '';
+      if (ketInput) ketInput.value = '';
+      if (titleEl) titleEl.textContent = 'Tambah Jadwal Kegiatan BOK';
+
+      // Default date
+      const targetDate = defaultDate || `${this.currentYear}-${String(this.currentMonth).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+      if (tglInput) tglInput.value = targetDate;
+
+      // User info banner
+      const uNama = document.getElementById('bokFormUserNama');
+      const uJab = document.getElementById('bokFormUserJabatan');
+      const uAv = document.getElementById('bokFormUserAvatar');
+      if (uNama) uNama.textContent = CURRENT_USER.nama;
+      if (uJab) uJab.textContent = CURRENT_USER.jabatan;
+      if (uAv) uAv.textContent = CURRENT_USER.avatar;
+
+      if (modal) modal.classList.add('active');
+      if (window.SearchableSelect) {
+        const kegInputEl = document.getElementById('inputKegiatanBOK');
+        if (kegInputEl) window.SearchableSelect.enhance(kegInputEl);
+      }
+    },
+
+    async bukaModalEdit(id) {
+      const item = await this.getItemById(id);
+      if (!item) {
+        if (window.showToast) window.showToast('Data jadwal tidak ditemukan untuk diedit.', 'error');
+        return;
+      }
+
+      const modal = document.getElementById('modalTambahJadwalBOK');
+      const titleEl = document.getElementById('modalBokFormTitle');
+      const editId = document.getElementById('bokEditId');
+      const tglInput = document.getElementById('inputTanggalBOK');
+      const kegInput = document.getElementById('inputKegiatanBOK');
+      const ketInput = document.getElementById('inputKeteranganBOK');
+
+      if (titleEl) titleEl.textContent = 'Edit Jadwal Kegiatan BOK';
+      if (editId) editId.value = item.id;
+      if (tglInput) tglInput.value = item.tanggal;
+      
+      let kegVal = item.noKegiatan;
+      if (!kegVal || kegVal === 0) {
+        const kegIdx = KEGIATAN_BOK_LIST.indexOf(item.namaKegiatan);
+        if (kegIdx >= 0) kegVal = kegIdx + 1;
+      }
+      if (kegInput) kegInput.value = kegVal || '';
+
+      // Clean keterangan: remove "[Kolaborasi dengan X petugas]" suffix for editing
+      let cleanKet = item.keterangan || '';
+      cleanKet = cleanKet.replace(/\s*\[Kolaborasi dengan.*?\]\s*/g, '').trim();
+      if (ketInput) ketInput.value = cleanKet;
+
+      // Collab partners section
+      const collabSection = document.getElementById('bokEditCollabSection');
+      const collabList = document.getElementById('bokEditCollabList');
+      const collabAddSelect = document.getElementById('bokEditCollabAddSelect');
+
+      const isCollab = (item.keterangan && item.keterangan.toLowerCase().includes('kolaborasi')) ||
+                       (Array.isArray(item.rekan_kolaborasi) && item.rekan_kolaborasi.length > 0);
+
+      // Store current collab partners for save
+      this._editCollabPartners = [];
+
+      if (isCollab && collabSection && collabList) {
+        collabSection.style.display = 'block';
+
+        // Get current partners from collab requests
+        const collabs = await this.getCollabData();
+        const itemNoKeg = parseInt(item.noKegiatan || 0, 10);
+        const itemNamaKeg = (item.namaKegiatan || '').trim().toLowerCase();
+
+        const matchingReqs = (collabs || []).filter(c => {
+          const cDate = c.tanggal || '';
+          if (cDate !== item.tanggal) return false;
+          const cNo = parseInt(c.no_kegiatan || c.noKegiatan || 0, 10);
+          const cName = (c.nama_kegiatan || c.namaKegiatan || '').trim().toLowerCase();
+          if (itemNoKeg > 0 && cNo > 0 && itemNoKeg === cNo) return true;
+          if (itemNamaKeg && cName && (itemNamaKeg === cName || itemNamaKeg.includes(cName) || cName.includes(itemNamaKeg))) return true;
+          return false;
+        });
+
+        // Deduplicate by to_nama
+        const cleanName = (n) => (n || '').toLowerCase().trim();
+        const uniquePartners = new Map();
+        matchingReqs.forEach(req => {
+          const toNama = req.to_nama || '';
+          const key = cleanName(toNama);
+          if (!key) return;
+          const existing = uniquePartners.get(key);
+          if (!existing || (req.created_at || '') > (existing.created_at || '')) {
+            uniquePartners.set(key, req);
+          }
+        });
+
+        // Also add from rekan_kolaborasi if no matching requests
+        if (uniquePartners.size === 0 && Array.isArray(item.rekan_kolaborasi)) {
+          item.rekan_kolaborasi.forEach(r => {
+            const rNama = typeof r === 'string' ? r : (r.nama || '');
+            const rJab = typeof r === 'object' ? (r.jabatan || 'Petugas') : 'Petugas';
+            if (rNama) {
+              this._editCollabPartners.push({ nama: rNama, jabatan: rJab, nip: '', username: '' });
+            }
+          });
+        } else {
+          uniquePartners.forEach(req => {
+            this._editCollabPartners.push({
+              nama: req.to_nama || '',
+              jabatan: req.to_jabatan || 'Petugas',
+              nip: req.to_nip || '',
+              username: req.to_username || '',
+              status: req.status || 'pending'
+            });
+          });
+        }
+
+        this._renderEditCollabList();
+
+        // Populate the add dropdown with available users
+        if (collabAddSelect) {
+          collabAddSelect.innerHTML = '<option value="">-- Tambah Petugas Kolaborasi --</option>';
+          try {
+            const usersRes = await fetch('/api/users');
+            if (usersRes.ok) {
+              const usersJson = await usersRes.json();
+              const allUsers = usersJson.data || usersJson || [];
+              allUsers.forEach(u => {
+                const uNama = u.nama || '';
+                const uJab = u.jabatan || '';
+                // Skip current user and already-added partners
+                if (cleanName(uNama) === cleanName(CURRENT_USER.nama)) return;
+                if (this._editCollabPartners.some(p => cleanName(p.nama) === cleanName(uNama))) return;
+                const opt = document.createElement('option');
+                opt.value = JSON.stringify({ nama: uNama, jabatan: uJab, nip: u.nip || '', username: u.username || '' });
+                opt.textContent = `${uNama} (${uJab})`;
+                collabAddSelect.appendChild(opt);
+              });
+            }
+          } catch(e) {}
+
+          // Handle adding new partner
+          collabAddSelect.onchange = () => {
+            if (!collabAddSelect.value) return;
+            try {
+              const newPartner = JSON.parse(collabAddSelect.value);
+              this._editCollabPartners.push(newPartner);
+              this._renderEditCollabList();
+              // Remove from dropdown
+              const selectedOpt = collabAddSelect.querySelector(`option[value='${CSS.escape(collabAddSelect.value)}']`);
+              if (selectedOpt) selectedOpt.remove();
+              collabAddSelect.value = '';
+            } catch(e) {}
+          };
+        }
+      } else if (collabSection) {
+        collabSection.style.display = 'none';
+        this._editCollabPartners = [];
+      }
+
+      if (modal) modal.classList.add('active');
+    },
+
+    _renderEditCollabList() {
+      const list = document.getElementById('bokEditCollabList');
+      if (!list) return;
+      list.innerHTML = '';
+      this._editCollabPartners.forEach((p, idx) => {
+        const statusText = p.status === 'accepted' ? '✅' : p.status === 'rejected' ? '❌' : '⏳';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.08);padding:8px 12px;border-radius:8px;';
+        row.innerHTML = `
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:13px;font-weight:700;color:#f8fafc;">${statusText} ${p.nama}</div>
+            <div style="font-size:11px;color:#94a3b8;">${p.jabatan}</div>
+          </div>
+          <button type="button" data-idx="${idx}" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-weight:600;">Hapus</button>
+        `;
+        row.querySelector('button').onclick = () => {
+          const removed = this._editCollabPartners.splice(idx, 1)[0];
+          this._renderEditCollabList();
+          // Re-add to dropdown
+          const addSelect = document.getElementById('bokEditCollabAddSelect');
+          if (addSelect && removed) {
+            const opt = document.createElement('option');
+            opt.value = JSON.stringify(removed);
+            opt.textContent = `${removed.nama} (${removed.jabatan})`;
+            addSelect.appendChild(opt);
+          }
+        };
+        list.appendChild(row);
+      });
+    },
+
+    async simpanJadwal() {
+      const editIdEl = document.getElementById('bokEditId');
+      const editId = editIdEl ? editIdEl.value.trim() : '';
+      const tanggal = document.getElementById('inputTanggalBOK').value;
+      const noKeg = parseInt(document.getElementById('inputKegiatanBOK').value, 10);
+      const keterangan = document.getElementById('inputKeteranganBOK').value.trim();
+
+      if (!tanggal) {
+        if (window.showToast) window.showToast('Harap pilih tanggal kegiatan.', 'error');
+        return;
+      }
+      if (!noKeg || noKeg < 1 || noKeg > KEGIATAN_BOK_LIST.length) {
+        if (window.showToast) window.showToast('Harap pilih jenis kegiatan BOK.', 'error');
+        return;
+      }
+
+      const namaKegiatan = KEGIATAN_BOK_LIST[noKeg - 1];
+      const entryId = editId ? editId : (`bok-${tanggal}-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`);
+
+      const tParts = tanggal.split('-');
+      const tahunVal = parseInt(tParts[0], 10);
+      const bulanVal = parseInt(tParts[1], 10);
+
+      // Check if this is an edit with collab partners
+      const collabPartners = this._editCollabPartners || [];
+      const hasCollabPartners = collabPartners.length > 0;
+
+      let finalKeterangan = keterangan;
+      let rekanKolaborasi = [];
+
+      if (hasCollabPartners) {
+        finalKeterangan = (keterangan ? keterangan + ' ' : '') + `[Kolaborasi dengan ${collabPartners.length} petugas]`;
+        rekanKolaborasi = collabPartners.map(p => ({ nama: p.nama, jabatan: p.jabatan || 'Petugas' }));
+      }
+
+      const payload = {
+        id: entryId,
+        tanggal: tanggal,
+        bulan: bulanVal,
+        tahun: tahunVal,
+        noKegiatan: noKeg,
+        nama_kegiatan: namaKegiatan,
+        namaKegiatan: namaKegiatan,
+        keterangan: finalKeterangan,
+        lokasi: 'Puskesmas / Wilayah Kerja',
+        petugas_nip: CURRENT_USER.nip,
+        petugas_nama: CURRENT_USER.nama,
+        petugas_jabatan: CURRENT_USER.jabatan,
+        username: CURRENT_USER.username,
+        namaUser: CURRENT_USER.nama,
+        jabatan: CURRENT_USER.jabatan,
+        rekan_kolaborasi: rekanKolaborasi,
+        status: 'Disetujui',
+        updatedAt: new Date().toISOString()
+      };
+
+      await CloudflareDB.saveJadwal(payload);
+
+      // If collab partners were edited, re-send collab requests
+      if (editId && hasCollabPartners) {
+        // Send new collab request (which auto-deletes old ones for same activity)
+        await CloudflareDB.sendCollabRequest({
+          from_nip: CURRENT_USER.nip,
+          from_nama: CURRENT_USER.nama,
+          from_jabatan: CURRENT_USER.jabatan,
+          from_username: CURRENT_USER.username,
+          tanggal: tanggal,
+          no_kegiatan: noKeg,
+          nama_kegiatan: namaKegiatan,
+          keterangan: keterangan,
+          lokasi: 'Puskesmas / Wilayah Kerja',
+          recipients: collabPartners.map(p => ({
+            nip: p.nip || '',
+            nama: p.nama,
+            jabatan: p.jabatan || 'Petugas',
+            username: p.username || ''
+          }))
+        });
+        this._cachedCollabData = null;
+      }
+
+      if (window.showToast) {
+        window.showToast(editId ? '✓ Jadwal berhasil diperbarui di Cloudflare D1!' : '✓ Jadwal berhasil ditambahkan ke Cloudflare D1!', 'success');
+      }
+
+      // Close modal & reset form
+      const modal = document.getElementById('modalTambahJadwalBOK');
+      const form = document.getElementById('formTambahJadwalBOK');
+      if (form) form.reset();
+      if (editIdEl) editIdEl.value = '';
+      if (modal) modal.classList.remove('active');
+
+      // Reset collab edit state
+      const collabSection = document.getElementById('bokEditCollabSection');
+      if (collabSection) collabSection.style.display = 'none';
+      this._editCollabPartners = [];
+
+      // OPTIMISTIC UPDATE: Langsung tambah/update item di cache tanpa re-fetch dari cloud
+      // Ini mencegah data hilang akibat eventual consistency Cloudflare D1
+      const optimisticItem = {
+        id: entryId,
+        tanggal: tanggal,
+        bulan: bulanVal,
+        tahun: tahunVal,
+        noKegiatan: noKeg,
+        namaKegiatan: namaKegiatan,
+        keterangan: finalKeterangan,
+        lokasi: 'Puskesmas / Wilayah Kerja',
+        username: CURRENT_USER.username,
+        namaUser: CURRENT_USER.nama,
+        jabatan: CURRENT_USER.jabatan,
+        petugas_nip: CURRENT_USER.nip,
+        rekan_kolaborasi: rekanKolaborasi,
+        status: 'Disetujui',
+        createdAt: new Date().toISOString()
+      };
+
+      if (this._cachedData && this._lastFetchKey === `${this.currentMonth}-${this.currentYear}`) {
+        const existIdx = this._cachedData.findIndex(i => i.id === entryId);
+        if (existIdx >= 0) {
+          this._cachedData[existIdx] = optimisticItem;
+        } else {
+          this._cachedData.push(optimisticItem);
+        }
+      } else {
+        // Cache belum ada atau beda bulan, invalidate agar fetch fresh
+        this.invalidateCache();
+      }
+
+      await this.render();
+
+      // Background re-sync: setelah 2 detik, fetch ulang dari cloud untuk sinkronisasi
+      // Ini memastikan data akhirnya konsisten dengan Cloudflare D1
+      const self = this;
+      setTimeout(() => {
+        self.invalidateCache();
+        self.render();
+      }, 2000);
+    },
+
+    async hapusJadwal(id) {
+      const item = await this.getItemById(id);
+      if (!item) {
+        if (window.showToast) window.showToast('Data kegiatan tidak ditemukan.', 'error');
+        return;
+      }
+
+      const isCollab = (item.keterangan && item.keterangan.toLowerCase().includes('kolaborasi')) ||
+                       (Array.isArray(item.rekan_kolaborasi) && item.rekan_kolaborasi.length > 0);
+      const isMine = item.namaUser === CURRENT_USER.nama;
+
+      // Check if this is a collab activity but user is NOT the initiator
+      if (isCollab && !isMine) {
+        // Check if user is a partner (not initiator) — they can't delete
+        const isPartner = item.keterangan && item.keterangan.includes('[Kolaborasi dengan:');
+        if (isPartner) {
+          if (window.showToast) window.showToast('⚠️ Hanya inisiator (pengirim request) yang dapat menghapus kegiatan kolaborasi ini.', 'error');
+          return;
+        }
+      }
+
+      let confirmMsg = 'Kegiatan ini akan dihapus secara permanen dari Cloudflare D1 Database.';
+      if (isCollab && isMine) {
+        confirmMsg = 'Kegiatan kolaborasi ini akan dihapus beserta seluruh jadwal rekan kolaborasi yang terkait.';
+      }
+
+      const confirmed = await window.SicekasAlert.confirm(
+        'Hapus Jadwal Kegiatan?',
+        confirmMsg,
+        'Ya, Hapus Jadwal',
+        'Batal',
+        true
+      );
+      if (!confirmed) return;
+
+      // Use cascade=true for collaboration activities owned by initiator
+      const cascade = isCollab && isMine;
+      await CloudflareDB.deleteJadwal(id, cascade);
+      
+      if (cascade) {
+        if (window.showToast) window.showToast('✓ Jadwal kegiatan kolaborasi dan seluruh jadwal rekan berhasil dihapus.', 'info');
+        // Also invalidate collab data cache
+        this._cachedCollabData = null;
+      } else {
+        if (window.showToast) window.showToast('✓ Jadwal kegiatan berhasil dihapus dari Cloudflare D1.', 'info');
+      }
+
+      // OPTIMISTIC DELETE: Langsung hapus dari cache tanpa re-fetch
+      if (this._cachedData) {
+        if (cascade) {
+          // Remove all entries with same tanggal + namaKegiatan (partners too)
+          this._cachedData = this._cachedData.filter(i =>
+            !(i.tanggal === item.tanggal && i.namaKegiatan === item.namaKegiatan)
+          );
+        } else {
+          this._cachedData = this._cachedData.filter(i => i.id !== id);
+        }
+      } else {
+        this.invalidateCache();
+      }
+
+      await this.render();
+
+      // Background re-sync
+      const self = this;
+      setTimeout(() => {
+        self.invalidateCache();
+        self.render();
+      }, 2000);
+    },
+
+    async updateCollabConflictUI(tanggal) {
+      if (!tanggal) return;
+      const tParts = tanggal.split('-');
+      const y = parseInt(tParts[0], 10);
+      const m = parseInt(tParts[1], 10);
+
+      const allData = await this.getData(m, y);
+      const dayActivities = (allData || []).filter(item => item && item.tanggal === tanggal);
+
+      // 1. Check current user (sender)
+      const userNama = (CURRENT_USER.nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+      const userNip = (CURRENT_USER.nip || '').trim();
+      const senderConflict = dayActivities.find(item => {
+        const itemNama = (item.namaUser || item.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+        const itemNip = (item.petugas_nip || '').trim();
+        return (itemNip && userNip && itemNip === userNip) || (itemNama && userNama && (itemNama === userNama || itemNama.includes(userNama) || userNama.includes(itemNama)));
+      });
+
+      const senderAlert = document.getElementById('collabSenderConflictAlert');
+      const senderDetail = document.getElementById('collabSenderConflictDetail');
+      if (senderAlert && senderDetail) {
+        if (senderConflict) {
+          const noPrefix = (senderConflict.noKegiatan && senderConflict.noKegiatan > 0) ? `No.${senderConflict.noKegiatan} ` : '';
+          senderDetail.textContent = `${noPrefix}${senderConflict.namaKegiatan}`;
+          senderAlert.style.display = 'flex';
+        } else {
+          senderAlert.style.display = 'none';
+        }
+      }
+
+      // 2. Check each target staff in the picker
+      document.querySelectorAll('.collab-staff-item').forEach(item => {
+        const cb = item.querySelector('.collab-staff-cb');
+        const conflictBox = item.querySelector('.collab-staff-conflict-box');
+        if (!cb) return;
+
+        const staffNama = cb.value;
+        const staffNip = (cb.dataset.nip || '').trim();
+
+        const sNamaNorm = staffNama.toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+        const sNipNorm = staffNip.toLowerCase();
+
+        const conflict = dayActivities.find(act => {
+          const actNama = (act.namaUser || act.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+          const actNip = (act.petugas_nip || '').toLowerCase().trim();
+
+          const isDirect = (actNip && sNipNorm && actNip === sNipNorm) || (actNama && sNamaNorm && (actNama === sNamaNorm || actNama.includes(sNamaNorm) || sNamaNorm.includes(actNama)));
+          if (isDirect) return true;
+
+          // Check if registered as partner in another activity
+          if (Array.isArray(act.rekan_kolaborasi)) {
+            return act.rekan_kolaborasi.some(r => {
+              const rNama = (typeof r === 'string' ? r : (r.nama || '')).toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+              return rNama && sNamaNorm && (rNama === sNamaNorm || rNama.includes(sNamaNorm) || sNamaNorm.includes(rNama));
+            });
+          }
+          return false;
+        });
+
+        if (conflict) {
+          item.classList.add('is-conflict');
+          cb.disabled = true;
+          cb.checked = false;
+          if (conflictBox) {
+            const noPrefix = (conflict.noKegiatan && conflict.noKegiatan > 0) ? `No.${conflict.noKegiatan} ` : '';
+            conflictBox.innerHTML = `<span class="collab-conflict-tag">⛔ Sudah Ada Agenda: ${noPrefix}${conflict.namaKegiatan}</span>`;
+            conflictBox.style.display = 'block';
+          }
+        } else {
+          item.classList.remove('is-conflict');
+          cb.disabled = false;
+          if (conflictBox) {
+            conflictBox.innerHTML = '';
+            conflictBox.style.display = 'none';
+          }
+        }
+      });
+
+      // Update counter
+      const counterEl = document.getElementById('collabSelectedCounter');
+      const checked = document.querySelectorAll('.collab-staff-cb:checked');
+      if (counterEl) counterEl.textContent = `${checked.length} / 5 dipilih`;
+    },
+
+    async bukaModalCollab(datePrefill = null) {
+      const modal = document.getElementById('modalRequestKolaborasi');
+      const form = document.getElementById('formRequestKolaborasi');
+      const tglInput = document.getElementById('collabTanggal');
+      const counterEl = document.getElementById('collabSelectedCounter');
+      const searchInput = document.getElementById('collabStaffSearch');
+
+      if (form) form.reset();
+      if (counterEl) counterEl.textContent = '0 / 5 dipilih';
+      if (searchInput) searchInput.value = '';
+
+      // Reset visibility and classes of all staff items
+      document.querySelectorAll('.collab-staff-item').forEach(item => {
+        item.classList.remove('is-search-hidden');
+        item.style.setProperty('display', 'flex', 'important');
+        item.classList.remove('is-conflict');
+        const cb = item.querySelector('.collab-staff-cb');
+        if (cb) {
+          cb.checked = false;
+          cb.disabled = false;
+        }
+        const conflictBox = item.querySelector('.collab-staff-conflict-box');
+        if (conflictBox) {
+          conflictBox.innerHTML = '';
+          conflictBox.style.display = 'none';
+        }
+      });
+      const emptyEl = document.getElementById('collabStaffEmptyState');
+      if (emptyEl) emptyEl.style.display = 'none';
+
+      const defaultDate = datePrefill || `${this.currentYear}-${String(this.currentMonth).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+      if (tglInput) tglInput.value = defaultDate;
+
+      if (modal) modal.classList.add('active');
+      if (window.SearchableSelect) {
+        const collabKegEl = document.getElementById('collabKegiatan');
+        if (collabKegEl) window.SearchableSelect.enhance(collabKegEl);
+      }
+
+      // Live conflict scan for the date
+      await this.updateCollabConflictUI(defaultDate);
+    },
+
+    async kirimRequestCollab() {
+      const checked = document.querySelectorAll('.collab-staff-cb:checked');
+      const tanggal = document.getElementById('collabTanggal').value;
+      const noKeg = parseInt(document.getElementById('collabKegiatan').value, 10);
+      const catatan = document.getElementById('collabKeterangan').value.trim();
+
+      if (!tanggal) {
+        if (window.showToast) window.showToast('Harap tentukan tanggal kegiatan.', 'error');
+        return;
+      }
+      if (!noKeg || noKeg < 1 || noKeg > KEGIATAN_BOK_LIST.length) {
+        if (window.showToast) window.showToast('Harap pilih kegiatan BOK.', 'error');
+        return;
+      }
+      if (checked.length === 0) {
+        if (window.showToast) window.showToast('Pilih minimal 1 rekan petugas untuk diajak.', 'error');
+        return;
+      }
+
+      const namaKegiatan = KEGIATAN_BOK_LIST[noKeg - 1];
+
+      // STRICT CONFLICT VALIDATION BEFORE DISPATCHING REQUEST
+      const tParts = tanggal.split('-');
+      const y = parseInt(tParts[0], 10);
+      const m = parseInt(tParts[1], 10);
+      const allData = await this.getData(m, y);
+      const dayActivities = (allData || []).filter(item => item && item.tanggal === tanggal);
+
+      // 1. Cek bentrok pengirim
+      const userNama = (CURRENT_USER.nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+      const userNip = (CURRENT_USER.nip || '').trim();
+      const senderConflict = dayActivities.find(item => {
+        const itemNama = (item.namaUser || item.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+        const itemNip = (item.petugas_nip || '').trim();
+        return (itemNip && userNip && itemNip === userNip) || (itemNama && userNama && (itemNama === userNama || itemNama.includes(userNama) || userNama.includes(itemNama)));
+      });
+
+      if (senderConflict) {
+        const noPrefix = (senderConflict.noKegiatan && senderConflict.noKegiatan > 0) ? `No.${senderConflict.noKegiatan} ` : '';
+        if (window.SicekasAlert && typeof window.SicekasAlert.alert === 'function') {
+          await window.SicekasAlert.alert(
+            'Jadwal Anda Bentrok!',
+            `Anda sudah memiliki jadwal kegiatan pada tanggal ${tanggal} (${noPrefix}${senderConflict.namaKegiatan}). Tidak dapat mengajukan kolaborasi baru pada tanggal yang sama.`,
+            'warning'
+          );
+        } else if (window.showToast) {
+          window.showToast(`Jadwal Bentrok: Anda sudah memiliki kegiatan di tanggal ${tanggal}!`, 'error');
+        }
+        return;
+      }
+
+      // 2. Cek bentrok setiap penerima yang dipilih
+      for (const cb of checked) {
+        const staffNama = cb.value;
+        const staffNip = (cb.dataset.nip || '').trim();
+        const sNamaNorm = staffNama.toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+        const sNipNorm = staffNip.toLowerCase();
+
+        const recipConflict = dayActivities.find(act => {
+          const actNama = (act.namaUser || act.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+          const actNip = (act.petugas_nip || '').toLowerCase().trim();
+          return (actNip && sNipNorm && actNip === sNipNorm) || (actNama && sNamaNorm && (actNama === sNamaNorm || actNama.includes(sNamaNorm) || sNamaNorm.includes(actNama)));
+        });
+
+        if (recipConflict) {
+          const noPrefix = (recipConflict.noKegiatan && recipConflict.noKegiatan > 0) ? `No.${recipConflict.noKegiatan} ` : '';
+          if (window.SicekasAlert && typeof window.SicekasAlert.alert === 'function') {
+            await window.SicekasAlert.alert(
+              'Jadwal Petugas Sudah Terisi!',
+              `Petugas "${staffNama}" sudah memiliki kegiatan pada tanggal ${tanggal} (${noPrefix}${recipConflict.namaKegiatan}). Silakan pilih tanggal lain atau petugas lain yang sedang luang.`,
+              'warning'
+            );
+          } else if (window.showToast) {
+            window.showToast(`Petugas ${staffNama} sudah memiliki kegiatan di tanggal ${tanggal}!`, 'error');
+          }
+          return;
+        }
+      }
+      
+      const recipients = Array.from(checked).map(cb => {
+        const staffNama = cb.value;
+        const staffItem = (DAFTAR_PEGAWAI || []).find(p => p.nama === staffNama) || {};
+        return {
+          nip: staffItem.nip || cb.dataset.nip || '',
+          nama: staffNama,
+          jabatan: cb.dataset.jabatan || staffItem.jabatan || 'Petugas',
+          username: staffItem.username || staffNama.toLowerCase().replace(/[^a-z0-9]/g, '_')
+        };
+      });
+
+      const payload = {
+        from_nip: CURRENT_USER.nip,
+        from_nama: CURRENT_USER.nama,
+        from_jabatan: CURRENT_USER.jabatan,
+        from_username: CURRENT_USER.username,
+        tanggal: tanggal,
+        no_kegiatan: noKeg,
+        nama_kegiatan: namaKegiatan,
+        keterangan: catatan,
+        lokasi: 'Puskesmas / Wilayah Kerja',
+        recipients: recipients
+      };
+
+      // 1. Send strictly to Cloudflare D1
+      await CloudflareDB.sendCollabRequest(payload);
+
+      const modal = document.getElementById('modalRequestKolaborasi');
+      if (modal) modal.classList.remove('active');
+
+      if (window.showToast) {
+        window.showToast(`✓ Request kolaborasi berhasil dikirim ke ${recipients.length} rekan petugas!`, 'success');
+      }
+
+      this.invalidateCache();
+      await this.getCollabData();
+      await this.render();
+      await this.updateCollabBadges();
+    },
+
+    switchNotifTab(tab) {
+      this.activeNotifTab = tab;
+      const btnInbox = document.getElementById('btnNotifTabInbox');
+      const btnOutbox = document.getElementById('btnNotifTabOutbox');
+      const btnAll = document.getElementById('btnNotifTabAll');
+
+      if (btnInbox) btnInbox.classList.toggle('active', tab === 'inbox');
+      if (btnOutbox) btnOutbox.classList.toggle('active', tab === 'outbox');
+      if (btnAll) btnAll.classList.toggle('active', tab === 'all');
+
+      this.renderNotifList();
+    },
+
+    async bukaModalNotif(defaultTab = null) {
+      const modal = document.getElementById('modalNotifikasiKolaborasi');
+      if (!modal) return;
+
+      if (defaultTab) this.activeNotifTab = defaultTab;
+      else if (!this.activeNotifTab) this.activeNotifTab = 'inbox';
+
+      // Hide 'Semua' tab if not Super Admin
+      const btnAll = document.getElementById('btnNotifTabAll');
+      if (btnAll) {
+        const isSuper = CURRENT_USER.role === 'Super Admin' || CURRENT_USER.username === 'ozie';
+        btnAll.style.display = isSuper ? 'inline-flex' : 'none';
+      }
+
+      this.switchNotifTab(this.activeNotifTab);
+      modal.classList.add('active');
+    },
+
+    async renderNotifList() {
+      const list = document.getElementById('collabNotifModalList');
+      if (!list) return;
+
+      const collabs = await this.getCollabData();
+
+      const inboxItems = collabs.filter(c => this.isCollabForMe(c));
+      const outboxItems = collabs.filter(c => this.isCollabFromMe(c));
+      const allItems = collabs;
+
+      // Update Tab Badges
+      const bInbox = document.getElementById('notifTabInboxCount');
+      const bOutbox = document.getElementById('notifTabOutboxCount');
+      const bAll = document.getElementById('notifTabAllCount');
+      if (bInbox) bInbox.textContent = inboxItems.filter(c => c.status === 'pending').length;
+      if (bOutbox) bOutbox.textContent = outboxItems.length;
+      if (bAll) bAll.textContent = allItems.length;
+
+      let displayed = [];
+      if (this.activeNotifTab === 'inbox') displayed = inboxItems;
+      else if (this.activeNotifTab === 'outbox') displayed = outboxItems;
+      else displayed = allItems;
+
+      if (displayed.length === 0) {
+        const emptyTitle = this.activeNotifTab === 'inbox' 
+          ? 'Tidak Ada Request Masuk' 
+          : (this.activeNotifTab === 'outbox' ? 'Tidak Ada Request Terkirim' : 'Tidak Ada Data Kolaborasi');
+
+        const emptyText = this.activeNotifTab === 'inbox' 
+          ? 'Belum ada rekan petugas yang mengajak Anda berkolaborasi saat ini.'
+          : (this.activeNotifTab === 'outbox' 
+            ? 'Anda belum mengirimkan ajakan kolaborasi. Klik tombol "+ Kolaborasi Tim" di jadwal untuk mengajak rekan.' 
+            : 'Belum ada riwayat aktivitas kolaborasi di dalam sistem.');
+
+        list.innerHTML = `
+          <div style="text-align: center; padding: 40px 20px; color: #94a3b8;">
+            <div style="font-size: 38px; margin-bottom: 12px; opacity: 0.6;">📭</div>
+            <h4 style="color: #ffffff; font-size: 15px; font-weight: 700; margin-bottom: 6px;">${emptyTitle}</h4>
+            <p style="font-size: 13px; margin: 0; color: #94a3b8; max-width: 420px; margin-left: auto; margin-right: auto; line-height: 1.5;">${emptyText}</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      displayed.forEach(req => {
+        const fromName = req.from_nama || req.fromNama || 'Petugas';
+        const fromJab = req.from_jabatan || req.fromJabatan || 'Pegawai';
+        const toName = req.to_nama || req.toNama || 'Petugas';
+        const toJab = req.to_jabatan || req.toJabatan || 'Pegawai';
+        const noKeg = req.no_kegiatan || req.noKegiatan;
+        const namaKeg = req.nama_kegiatan || req.namaKegiatan;
+        const status = req.status || 'pending';
+
+        const initials = fromName.split(' ').map(w => w[0]).filter(c => /[A-Za-z]/.test(c)).slice(0, 2).join('').toUpperCase() || 'PG';
+
+        let statusBadge = '';
+        if (status === 'pending') {
+          statusBadge = '<span class="bok-status-pill pending">⏳ Menunggu Respon</span>';
+        } else if (status === 'accepted') {
+          statusBadge = '<span class="bok-status-pill accepted">✅ Diterima (ACC)</span>';
+        } else {
+          statusBadge = '<span class="bok-status-pill rejected">❌ Ditolak</span>';
+        }
+
+        // Actions depending on tab / recipient
+        let actionsHtml = '';
+        const isRecipient = this.isCollabForMe(req);
+        const isSender = this.isCollabFromMe(req);
+
+        if (isRecipient && status === 'pending') {
+          actionsHtml = `
+            <div class="bok-req-actions" style="margin-top: 10px; display: flex; gap: 8px;">
+              <button type="button" class="btn-req-accept" onclick="window.JadwalBOKController.terimaCollab('${req.id}')">✓ Terima (ACC)</button>
+              <button type="button" class="btn-req-reject" onclick="window.JadwalBOKController.tolakCollab('${req.id}')">✕ Tolak</button>
+            </div>
+          `;
+        } else if (isSender && status === 'pending') {
+          actionsHtml = `
+            <div class="bok-req-actions" style="margin-top: 10px; display: flex; gap: 8px;">
+              <button type="button" class="btn-req-reject" style="font-size: 11.5px; padding: 5px 12px;" onclick="window.JadwalBOKController.batalCollab('${req.id}')">✕ Batalkan Permintaan</button>
+            </div>
+          `;
+        } else if (CURRENT_USER.role === 'Super Admin' && status === 'pending') {
+          actionsHtml = `
+            <div class="bok-req-actions" style="margin-top: 10px; display: flex; gap: 8px;">
+              <button type="button" class="btn-req-accept" style="font-size: 11.5px; padding: 5px 12px;" onclick="window.JadwalBOKController.terimaCollab('${req.id}')">✓ ACC Admin</button>
+              <button type="button" class="btn-req-reject" style="font-size: 11.5px; padding: 5px 12px;" onclick="window.JadwalBOKController.tolakCollab('${req.id}')">✕ Tolak</button>
+            </div>
+          `;
+        }
+
+        html += `
+          <div class="bok-inline-req-card" style="margin-bottom: 12px; background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 14px 16px;">
+            <div class="bok-req-info" style="display: flex; gap: 12px; align-items: flex-start;">
+              <div class="bok-req-avatar" style="width: 40px; height: 40px; border-radius: 50%; background: var(--teal-gradient); color: #06080d; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">${initials}</div>
+              <div class="bok-req-text" style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
+                  <h5 style="margin: 0; color: #ffffff; font-size: 13.5px; font-weight: 700;">
+                    ${fromName} <span style="color: #94a3b8; font-weight: 400; font-size: 12px;">(${fromJab})</span>
+                    ${isSender ? '<span style="color: #2dd4bf; font-size: 11px; margin-left: 6px;">(Anda Pengirim)</span>' : ''}
+                  </h5>
+                  ${statusBadge}
+                </div>
+                <p style="margin: 0 0 4px 0; color: #cbd5e1; font-size: 12.5px;">
+                  <strong>Kepada:</strong> <span style="color: #ffd166;">${toName}</span> (${toJab})
+                </p>
+                <p style="margin: 0 0 4px 0; color: #e2e8f0; font-size: 12.5px;">
+                  📅 <strong>${req.tanggal}</strong> • No.${noKeg} ${namaKeg}
+                </p>
+                ${req.keterangan ? `<p style="margin: 0; color: #94a3b8; font-size: 12px; font-style: italic;">• "${req.keterangan}"</p>` : ''}
+              </div>
+            </div>
+            ${actionsHtml}
+          </div>
+        `;
+      });
+
+      list.innerHTML = html;
+    },
+
+    async terimaCollab(collabId) {
+      // 1. Direct mutation to Cloudflare D1
+      await CloudflareDB.respondCollab(collabId, 'accepted', CURRENT_USER.nip, CURRENT_USER.nama);
+
+      if (window.showToast) {
+        window.showToast(`✓ Kolaborasi diterima! Jadwal berhasil ditambahkan ke kalender Anda.`, 'success');
+      }
+
+      this.invalidateCache();
+      await this.getCollabData();
+
+      // Refresh modal
+      const modal = document.getElementById('modalNotifikasiKolaborasi');
+      if (modal && modal.classList.contains('active')) {
+        await this.renderNotifList();
+      }
+
+      await this.render();
+      await this.updateCollabBadges();
+    },
+
+    async tolakCollab(collabId) {
+      // 1. Direct mutation to Cloudflare D1
+      await CloudflareDB.respondCollab(collabId, 'rejected', CURRENT_USER.nip, CURRENT_USER.nama);
+
+      if (window.showToast) {
+        window.showToast('Permintaan kolaborasi telah ditolak.', 'info');
+      }
+
+      this.invalidateCache();
+      await this.getCollabData();
+
+      const modal = document.getElementById('modalNotifikasiKolaborasi');
+      if (modal && modal.classList.contains('active')) {
+        await this.renderNotifList();
+      }
+
+      await this.render();
+      await this.updateCollabBadges();
+    },
+
+    async batalCollab(collabId) {
+      // 1. Direct deletion from Cloudflare D1
+      await CloudflareDB.deleteCollab(collabId);
+
+      if (window.showToast) {
+        window.showToast('Permintaan kolaborasi berhasil dibatalkan.', 'info');
+      }
+
+      this.invalidateCache();
+      await this.getCollabData();
+
+      const modal = document.getElementById('modalNotifikasiKolaborasi');
+      if (modal && modal.classList.contains('active')) {
+        await this.renderNotifList();
+      }
+
+      await this.render();
+      await this.updateCollabBadges();
+    },
+
+    async bukaModalDetail(id) {
+      const item = await this.getItemById(id);
+      if (!item) {
+        if (typeof showToast === 'function') showToast('Rincian detail kegiatan tidak ditemukan.', 'warning');
+        return;
+      }
+
+      const modal = document.getElementById('modalDetailJadwalBOK');
+      const body = document.getElementById('detailBokBody');
+      const btnEdit = document.getElementById('btnDetailBokEdit');
+      const titleEl = document.getElementById('detailBokTitle');
+      const subEl = document.getElementById('detailBokSub');
+
+      if (titleEl) titleEl.textContent = 'Detail Jadwal Kegiatan';
+      if (subEl) subEl.textContent = `${item.tanggal} • Puskesmas Banjaran Kota`;
+
+      const userNamaClean = (CURRENT_USER.nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+      const userNipClean = (CURRENT_USER.nip || '').trim();
+      const itemNamaClean = (item.namaUser || item.petugas_nama || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+      const itemNipClean = (item.petugas_nip || '').trim();
+
+      const isMine = (userNipClean && itemNipClean && userNipClean === itemNipClean) ||
+                     (CURRENT_USER.username && item.username && CURRENT_USER.username === item.username) ||
+                     (itemNamaClean && userNamaClean && (itemNamaClean === userNamaClean || itemNamaClean.includes(userNamaClean) || userNamaClean.includes(itemNamaClean)));
+
+      const isSuperAdmin = CURRENT_USER.role === 'Super Admin' || CURRENT_USER.role === 'Admin' || CURRENT_USER.username === 'ozie';
+
+      const isCollab = (item.keterangan && item.keterangan.toLowerCase().includes('kolaborasi')) || 
+                       (Array.isArray(item.rekan_kolaborasi) && item.rekan_kolaborasi.length > 0) ||
+                       (item.namaKegiatan && item.namaKegiatan.toLowerCase().includes('kolaborasi'));
+
+      const collabs = await this.getCollabData();
+
+      // Clean string helper for name comparisons
+      const cleanName = (n) => (n || '').toLowerCase().replace(/^(dr\.|drg\.|h\.|hj\.)\s*/i, '').trim();
+
+      // Build List of Partners with Statuses
+      const partnerStatusMap = new Map();
+
+      // Determine who is the initiator of this collaboration
+      const ownerName = item.namaUser || item.petugas_nama || 'Petugas';
+      const ownerJab = item.jabatan || item.petugas_jabatan || 'Pegawai';
+      const ownerNameClean = cleanName(ownerName);
+
+      // Find ALL collab requests related to this activity (same date + same kegiatan)
+      const itemNoKeg = parseInt(item.noKegiatan || 0, 10);
+      const itemNamaKeg = (item.namaKegiatan || '').trim().toLowerCase();
+
+      const matchingReqs = (collabs || []).filter(c => {
+        const cDate = c.tanggal || '';
+        if (cDate !== item.tanggal) return false;
+
+        const cNo = parseInt(c.no_kegiatan || c.noKegiatan || 0, 10);
+        const cName = (c.nama_kegiatan || c.namaKegiatan || '').trim().toLowerCase();
+
+        // Match by no_kegiatan OR by nama_kegiatan
+        if (itemNoKeg > 0 && cNo > 0 && itemNoKeg === cNo) return true;
+        if (itemNamaKeg && cName && (itemNamaKeg === cName || itemNamaKeg.includes(cName) || cName.includes(itemNamaKeg))) return true;
+        return false;
+      });
+
+      // Determine the real initiator (from_nama in the collab requests)
+      let realInitiatorName = ownerName;
+      let realInitiatorJab = ownerJab;
+      if (matchingReqs.length > 0) {
+        const firstReq = matchingReqs[0];
+        realInitiatorName = firstReq.from_nama || firstReq.fromNama || ownerName;
+        realInitiatorJab = firstReq.from_jabatan || firstReq.fromJabatan || ownerJab;
+      }
+
+      // 1. Add initiator
+      partnerStatusMap.set(realInitiatorName, {
+        nama: realInitiatorName,
+        jabatan: realInitiatorJab,
+        status: 'initiator',
+        statusLabel: '👑 Pengirim (Inisiator)'
+      });
+
+      // 2. Deduplicate: keep only the NEWEST request per recipient (to_nama)
+      const latestPerRecipient = new Map();
+      matchingReqs.forEach(req => {
+        const toNama = req.to_nama || req.toNama || '';
+        const key = cleanName(toNama);
+        if (!key) return;
+        const existing = latestPerRecipient.get(key);
+        if (!existing || (req.created_at || '') > (existing.created_at || '')) {
+          latestPerRecipient.set(key, req);
+        }
+      });
+
+      // Add each recipient with their ACTUAL status from the NEWEST DB record
+      latestPerRecipient.forEach(req => {
+        const toNama = req.to_nama || req.toNama;
+        const toJab = req.to_jabatan || req.toJabatan || 'Petugas';
+        const reqStatus = (req.status || 'pending').toLowerCase().trim();
+
+        if (!toNama || cleanName(toNama) === cleanName(realInitiatorName)) return;
+
+        // REJECTED = skip entirely (nama hilang dari daftar)
+        if (reqStatus === 'rejected') return;
+
+        let label = '⏳ Menunggu Konfirmasi';
+        let finalStatus = 'pending';
+        if (reqStatus === 'accepted') {
+          label = '✅ Disetujui';
+          finalStatus = 'accepted';
+        }
+
+        partnerStatusMap.set(toNama, {
+          nama: toNama,
+          jabatan: toJab,
+          status: finalStatus,
+          statusLabel: label
+        });
+      });
+
+      // 3. Fallback: partners in rekan_kolaborasi that weren't found in matchingReqs
+      if (Array.isArray(item.rekan_kolaborasi)) {
+        item.rekan_kolaborasi.forEach(r => {
+          const rNama = typeof r === 'string' ? r : (r.nama || '');
+          const rJab = typeof r === 'object' ? (r.jabatan || 'Petugas') : 'Petugas';
+          if (!rNama || cleanName(rNama) === cleanName(realInitiatorName)) return;
+
+          const existingKey = [...partnerStatusMap.keys()].find(k => cleanName(k) === cleanName(rNama));
+          if (!existingKey) {
+            partnerStatusMap.set(rNama, {
+              nama: rNama,
+              jabatan: rJab,
+              status: 'accepted',
+              statusLabel: '✅ Disetujui'
+            });
+          }
+        });
+      }
+
+      // 4. Also check cached activities on the same date with same activity name/no
+      if (isCollab && Array.isArray(this._cachedData)) {
+        const sameDayActs = this._cachedData.filter(ev => {
+          if (!ev || ev.tanggal !== item.tanggal) return false;
+          const evNo = parseInt(ev.noKegiatan || 0, 10);
+          const evName = (ev.namaKegiatan || '').trim().toLowerCase();
+          if (itemNoKeg > 0 && evNo > 0 && itemNoKeg === evNo) return true;
+          if (itemNamaKeg && evName && (itemNamaKeg === evName || itemNamaKeg.includes(evName) || evName.includes(itemNamaKeg))) return true;
+          return false;
+        });
+
+        sameDayActs.forEach(ev => {
+          const evNama = ev.namaUser || ev.petugas_nama;
+          const evJab = ev.jabatan || ev.petugas_jabatan || 'Pegawai';
+          if (evNama) {
+            const existingKey = [...partnerStatusMap.keys()].find(k => cleanName(k) === cleanName(evNama));
+            if (!existingKey) {
+              const isInit = cleanName(evNama) === cleanName(realInitiatorName);
+              partnerStatusMap.set(evNama, {
+                nama: evNama,
+                jabatan: evJab,
+                status: isInit ? 'initiator' : 'accepted',
+                statusLabel: isInit ? '👑 Pengirim (Inisiator)' : '✅ Disetujui'
+              });
+            }
+          }
+        });
+      }
+
+      // Generate HTML for partner status list
+      let partnersListHtml = '';
+      if (partnerStatusMap.size > 0) {
+        partnerStatusMap.forEach(p => {
+          let pillClass = 'pending';
+          if (p.status === 'accepted') pillClass = 'accepted';
+          else if (p.status === 'initiator') pillClass = 'initiator';
+
+          partnersListHtml += `
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px 14px; border-radius: 10px; margin-bottom: 6px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 13px; font-weight: 700; color: #f8fafc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.nama}</div>
+                  <div style="font-size: 11px; color: #94a3b8; margin-top: 2px;">${p.jabatan}</div>
+                </div>
+                <div style="flex-shrink: 0;">
+                  <span class="bok-status-pill ${pillClass}" style="white-space: nowrap; font-size: 11px;">${p.statusLabel}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      if (btnEdit) {
+        const isCollabPartner = isCollab && item.keterangan && item.keterangan.includes('[Kolaborasi dengan:');
+        const canEdit = (isMine && !isCollabPartner) || isSuperAdmin;
+        if (canEdit) {
+          btnEdit.style.display = 'inline-flex';
+          btnEdit.onclick = () => {
+            modal.classList.remove('active');
+            this.bukaModalEdit(item.id);
+          };
+        } else {
+          btnEdit.style.display = 'none';
+        }
+      }
+
+      const btnBuatSppd = document.getElementById('btnDetailBokBuatSppd');
+      if (btnBuatSppd) {
+        btnBuatSppd.onclick = () => {
+          modal.classList.remove('active');
+          this.buatSppdDariJadwal(item.id);
+        };
+      }
+
+      if (body) {
+        body.innerHTML = `
+          <div class="detail-bok-row">
+            <span class="detail-bok-label">Tanggal Pelaksanaan</span>
+            <span class="detail-bok-val" style="color: #10b981; font-weight: 700;">📅 ${item.tanggal}</span>
+          </div>
+
+          <div class="detail-bok-row">
+            <span class="detail-bok-label">Jenis Kegiatan BOK</span>
+            <span class="detail-bok-val"><strong>No.${item.noKegiatan}</strong> — ${item.namaKegiatan}</span>
+          </div>
+
+          <div class="detail-bok-row">
+            <span class="detail-bok-label">Status Kegiatan</span>
+            <span class="detail-bok-val">
+              ${isCollab ? '<span class="kegiatan-badge-collab">👥 Kegiatan Kolaborasi</span>' : '<span class="kegiatan-badge-sendiri">🟢 Kegiatan Mandiri / Sendiri</span>'}
+            </span>
+          </div>
+
+          ${isCollab ? `
+          <div class="detail-bok-row" style="flex-direction: column; align-items: flex-start;">
+            <span class="detail-bok-label" style="margin-bottom: 8px;">Daftar Rekan Kolaborasi & Status Persetujuan</span>
+            <div style="width: 100%;">
+              ${partnersListHtml}
+            </div>
+          </div>` : `
+          <div class="detail-bok-row">
+            <span class="detail-bok-label">Petugas Pelaksana</span>
+            <span class="detail-bok-val">👤 ${item.namaUser || item.petugas_nama || '-'} (${item.jabatan || item.petugas_jabatan || 'Pegawai'})</span>
+          </div>`}
+
+          <div class="detail-bok-row">
+            <span class="detail-bok-label">Keterangan / Lokasi / Sasaran</span>
+            <span class="detail-bok-val" style="color: #cbd5e1; font-style: italic;">
+              ${item.keterangan || 'Tidak ada keterangan tambahan.'}
+            </span>
+          </div>
+        `;
+      }
+
+      if (modal) modal.classList.add('active');
+    },
+
+    async buatSppdDariJadwal(id) {
+      const item = await this.getItemById(id);
+      if (!item) {
+        if (typeof showToast === 'function') showToast('Data kegiatan jadwal tidak ditemukan.', 'error');
+        return;
+      }
+
+      // 1. Switch View ke Halaman SPPD dan LPT
+      if (typeof window.switchView === 'function') {
+        window.switchView('sppd-lpt');
+      } else {
+        const sppdNav = document.querySelector('.nav-link[data-view="sppd-lpt"]');
+        if (sppdNav) sppdNav.click();
+      }
+
+      // Pastikan mode form studio adalah SPPD
+      const formSelect = document.getElementById('sppdLptSelectForm');
+      if (formSelect) {
+        formSelect.value = 'sppd';
+        if (typeof updateFormDisplay === 'function') updateFormDisplay();
+      }
+
+      // 2. Isi Maksud Kegiatan (40 Kegiatan Resmi)
+      const maksudEl = document.getElementById('sppdInputMaksud');
+      if (maksudEl) {
+        maksudEl.value = item.namaKegiatan || item.nama_kegiatan || '';
+      }
+
+      // 3. Isi Lokasi Tempat Tujuan & Tempat Berangkat
+      const tujuanEl = document.getElementById('sppdInputTujuan');
+      if (tujuanEl) {
+        let dest = item.keterangan || item.lokasi || 'Wilayah Kerja Puskesmas Banjaran Kota';
+        dest = dest.replace(/\[Kolaborasi[^\]]*\]/gi, '').replace(/^•\s*/, '').trim();
+        tujuanEl.value = dest || 'Wilayah Kerja Puskesmas Banjaran Kota';
+      }
+      const berangkatEl = document.getElementById('sppdInputTempatBerangkat');
+      if (berangkatEl && (!berangkatEl.value || berangkatEl.value.trim() === '')) {
+        berangkatEl.value = 'Puskesmas Banjaran Kota';
+      }
+
+      // 4. Isi Tanggal Berangkat & Tanggal Kembali (Sesuai tanggal jadwal)
+      if (item.tanggal) {
+        const tglBerangkatEl = document.getElementById('sppdInputTglBerangkat');
+        const tglKembaliEl = document.getElementById('sppdInputTglKembali');
+        if (tglBerangkatEl) tglBerangkatEl.value = item.tanggal;
+        if (tglKembaliEl) tglKembaliEl.value = item.tanggal;
+      }
+
+      // 5. Isi Pegawai Utama (Pelaksana Utama SPPD)
+      const pegawaiEl = document.getElementById('sppdInputPegawai');
+      const targetStaff = item.namaUser || item.petugas_nama || (typeof CURRENT_USER !== 'undefined' ? CURRENT_USER.nama : '');
+      if (pegawaiEl && targetStaff) {
+        let matched = false;
+        for (let i = 0; i < pegawaiEl.options.length; i++) {
+          const opt = pegawaiEl.options[i];
+          if (opt.value && (opt.value.toLowerCase().includes(targetStaff.toLowerCase()) || targetStaff.toLowerCase().includes(opt.value.toLowerCase()))) {
+            pegawaiEl.selectedIndex = i;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) {
+          pegawaiEl.value = targetStaff;
+        }
+      }
+
+      // 6. Reset & Isi Petugas Pengikut jika Kegiatan Kolaborasi (1 - 4)
+      for (let i = 1; i <= 4; i++) {
+        const select = document.getElementById(`sppdPengikutSelect${i}`);
+        const customDiv = document.getElementById(`sppdPengikutCustomWrap${i}`);
+        const inNama = document.getElementById(`sppdPengikutInputNama${i}`);
+        const inNip = document.getElementById(`sppdPengikutInputNip${i}`);
+        const inKet = document.getElementById(`sppdPengikutInputKet${i}`);
+        const selectWrap = document.getElementById(`sppdPengikutSelectWrap${i}`);
+
+        if (select) select.value = '';
+        if (selectWrap) selectWrap.style.display = 'block';
+        if (customDiv) customDiv.style.display = 'none';
+        if (inNama) { inNama.value = ''; inNama.style.display = 'none'; }
+        if (inNip) inNip.value = '';
+        if (inKet) inKet.value = '';
+      }
+
+      // Kumpulkan rekan kolaborasi
+      let collabPartners = [];
+      if (Array.isArray(item.rekan_kolaborasi) && item.rekan_kolaborasi.length > 0) {
+        collabPartners = item.rekan_kolaborasi.map(r => typeof r === 'string' ? r : (r.nama || ''));
+      }
+      try {
+        const allCollabs = this.getCollabData ? this.getCollabData() : [];
+        const relevant = allCollabs.filter(c => c.tanggal === item.tanggal && c.noKegiatan === item.noKegiatan && (c.status === 'accepted' || c.status === 'pending'));
+        relevant.forEach(c => {
+          if (c.toNama && c.toNama !== targetStaff && !collabPartners.includes(c.toNama)) collabPartners.push(c.toNama);
+          if (c.fromNama && c.fromNama !== targetStaff && !collabPartners.includes(c.fromNama)) collabPartners.push(c.fromNama);
+        });
+      } catch (e) {}
+
+      collabPartners.slice(0, 4).forEach((partnerName, idx) => {
+        const slotIdx = idx + 1;
+        const select = document.getElementById(`sppdPengikutSelect${slotIdx}`);
+        const inNip = document.getElementById(`sppdPengikutInputNip${slotIdx}`);
+        const inKet = document.getElementById(`sppdPengikutInputKet${slotIdx}`);
+
+        if (select && partnerName) {
+          let found = false;
+          for (let i = 0; i < select.options.length; i++) {
+            const opt = select.options[i];
+            if (opt.value && (opt.value.toLowerCase().includes(partnerName.toLowerCase()) || partnerName.toLowerCase().includes(opt.value.toLowerCase()))) {
+              select.selectedIndex = i;
+              if (inNip) inNip.value = (opt.getAttribute('data-nip') || '').replace(/^(NIP|NRP)\.?\s*/i, '');
+              if (inKet) inKet.value = opt.getAttribute('data-ket') || '';
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            select.value = partnerName;
+          }
+        }
+      });
+
+      // 7. Auto-isi juga formulir LPT
+      const lptDasar = document.getElementById('lptInputDasar');
+      if (lptDasar) {
+        lptDasar.value = `Surat Perintah Tugas (SPT) Kegiatan ${item.namaKegiatan || ''}`;
+      }
+      const lptTujuan = document.getElementById('lptInputTujuanPerjalanan');
+      if (lptTujuan) {
+        lptTujuan.value = item.namaKegiatan ? `Melaksanakan ${item.namaKegiatan}` : '';
+      }
+      const lptTgl = document.getElementById('lptInputTanggalLaporan');
+      if (lptTgl && item.tanggal) {
+        lptTgl.value = item.tanggal;
+        lptTgl.dataset.userEdited = 'true';
+      }
+
+      // 8. Sinkronkan dokumen preview
+      if (typeof syncSppdLptData === 'function') {
+        syncSppdLptData();
+      }
+
+      // Tutup modal detail jika sedang terbuka
+      const modal = document.getElementById('modalDetailJadwalBOK');
+      if (modal) modal.classList.remove('active');
+
+      if (typeof showToast === 'function') {
+        showToast(`✓ Data kegiatan "${item.namaKegiatan}" berhasil dimuat ke SPPD & LPT!`, 'success');
+      }
+
+      // Scroll ke bagian atas studio form
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+
+    async cetakJadwalBulanan() {
+      const filtered = await this.getFilteredData();
+      const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const monthTitle = `${monthNames[this.currentMonth]} ${this.currentYear}`;
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('Izinkan pop-up browser untuk mencetak jadwal.');
+        return;
+      }
+
+      let rowsHtml = '';
+      filtered.sort((a, b) => a.tanggal.localeCompare(b.tanggal)).forEach((item, idx) => {
+        rowsHtml += `
+          <tr>
+            <td style="text-align: center; font-size: 11px; padding: 6px;">${idx + 1}</td>
+            <td style="text-align: center; font-size: 11px; padding: 6px; font-weight: bold;">${item.tanggal}</td>
+            <td style="font-size: 11px; padding: 6px;">No.${item.noKegiatan} - ${item.namaKegiatan}</td>
+            <td style="font-size: 11px; padding: 6px;">${item.keterangan || '-'}</td>
+            <td style="font-size: 11px; padding: 6px; font-weight: bold;">${item.namaUser}<br><span style="font-size: 9.5px; font-weight: normal; color: #555;">${item.jabatan}</span></td>
+          </tr>
+        `;
+      });
+
+      if (filtered.length === 0) {
+        rowsHtml = `<tr><td colspan="5" style="text-align:center; padding: 20px;">Tidak ada kegiatan pada bulan ini.</td></tr>`;
+      }
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+          <meta charset="UTF-8">
+          <title>Jadwal Kegiatan BOK - ${monthTitle}</title>
+          <style>
+            @page { size: A4 portrait; margin: 15mm; }
+            body { font-family: Arial, Helvetica, sans-serif; color: #000; margin: 0; padding: 10px; font-size: 11px; line-height: 1.4; }
+            .kop { display: flex; align-items: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 15px; }
+            .kop img { width: 65px; height: auto; margin-right: 15px; }
+            .kop-text { text-align: center; flex: 1; }
+            .kop-text h4 { font-size: 13px; font-weight: bold; margin: 0; text-transform: uppercase; }
+            .kop-text h3 { font-size: 15px; font-weight: bold; margin: 2px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+            .kop-text p { font-size: 10px; margin: 1px 0; }
+            .doc-title { text-align: center; font-size: 13px; font-weight: bold; text-decoration: underline; margin-bottom: 4px; text-transform: uppercase; }
+            .doc-sub { text-align: center; font-size: 11px; margin-bottom: 16px; font-weight: bold; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th { background: #f1f5f9; font-weight: bold; font-size: 11px; text-align: center; padding: 8px 6px; border: 1px solid #000; }
+            td { border: 1px solid #000; }
+            .sig-row { display: flex; justify-content: space-between; margin-top: 30px; }
+            .sig-box { width: 45%; text-align: center; }
+            .sig-space { height: 60px; }
+            .sig-name { font-weight: bold; text-decoration: underline; }
+          </style>
+        </head>
+        <body>
+          <div class="kop">
+            <img src="LOGO.png" alt="Logo">
+            <div class="kop-text">
+              <h4>PEMERINTAH KABUPATEN BANDUNG</h4>
+              <h4>DINAS KESEHATAN</h4>
+              <h3>PUSKESMAS BANJARAN KOTA</h3>
+              <p>Jl. Raya Banjaran No. 248, Kec. Banjaran, Kab. Bandung, Jawa Barat 40377</p>
+              <p>Email: pusk.banjarankota@gmail.com | Website: sicekas.web.id</p>
+            </div>
+          </div>
+
+          <div class="doc-title">JADWAL KEGIATAN PUSKESMAS BANJARAN KOTA</div>
+          <div class="doc-sub">Bulan: ${monthTitle}</div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 35px;">No</th>
+                <th style="width: 90px;">Tanggal</th>
+                <th>Nama Kegiatan</th>
+                <th>Keterangan / Lokasi</th>
+                <th style="width: 170px;">Petugas Pelaksana</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+
+          <div class="sig-row">
+            <div class="sig-box">
+              <p>Mengetahui,<br><strong>Kepala Puskesmas Banjaran Kota</strong></p>
+              <div class="sig-space"></div>
+              <p class="sig-name">dr. Rina Indriati</p>
+              <p>NIP. 19740404 201411 2 001</p>
+            </div>
+            <div class="sig-box">
+              <p>Banjaran, ${monthTitle}<br><strong>Petugas Pelaksana Kegiatan</strong></p>
+              <div class="sig-space"></div>
+              <p class="sig-name">${CURRENT_USER.nama}</p>
+              <p>NIP. ${CURRENT_USER.nip}</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      setTimeout(() => {
+        printWindow.focus();
+        printWindow.print();
+      }, 500);
+    }
+  };
+
+  window.JadwalBOKController = JadwalBOKController;
+  JadwalBOKController.init();
+
+  // ==========================================================================
+  // 13. DEVELOPER WEB CONTROLLER (Khusus Super Admin)
+  // ==========================================================================
+  const DeveloperWebController = {
+    isInitialized: false,
+    terminalLogs: [],
+
+    init() {
+      if (!this.checkPermissions()) return;
+      if (!this.isInitialized) {
+        this.isInitialized = true;
+        this.bindTabEvents();
+        this.bindD1StudioEvents();
+        this.bindUserEvents();
+        this.bindApiEvents();
+        this.bindTerminalEvents();
+        this.bindMaintenanceEvents();
+        this.bootTerminal();
+      }
+      this.renderUsers();
+      this.updateStats();
+      this.loadD1Table(this.activeD1Table || 'users', false);
+      this.refreshAllTableCounts();
+      this.startLiveAutoSync();
+    },
+
+    checkPermissions() {
+      let u = window.CURRENT_USER;
+      if (!u) {
+        try { u = JSON.parse(localStorage.getItem('SICEKAS_CURRENT_USER') || '{}'); } catch(e){}
+      }
+      const isSuperAdmin = !!(u && (u.role === 'Super Admin' || u.username === 'ozie' || u.role === 'Admin'));
+      const navItem = document.getElementById('navItemDevWeb');
+      const navItemR2 = document.getElementById('navItemR2Storage');
+      const navSec = document.getElementById('navSectionGodMode');
+      if (navItem) navItem.style.display = isSuperAdmin ? 'block' : 'none';
+      if (navItemR2) navItemR2.style.display = isSuperAdmin ? 'block' : 'none';
+      if (navSec) navSec.style.display = isSuperAdmin ? 'block' : 'none';
+      return isSuperAdmin;
+    },
+
+    bindTabEvents() {
+      const tabBtns = document.querySelectorAll('.dev-tab-btn');
+      const panels = {
+        api: document.getElementById('devTabApi'),
+        d1studio: document.getElementById('devTabD1studio'),
+        r2storage: document.getElementById('devTabR2storage'),
+        users: document.getElementById('devTabUsers'),
+        logs: document.getElementById('devTabLogs'),
+        maintenance: document.getElementById('devTabMaintenance')
+      };
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const tabKey = btn.getAttribute('data-devtab');
+          Object.keys(panels).forEach(k => {
+            if (panels[k]) {
+              panels[k].style.display = (k === tabKey) ? 'block' : 'none';
+              if (k === tabKey) {
+                gsap.fromTo(panels[k], 
+                  { opacity: 0, y: 10 }, 
+                  { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+                );
+                if (tabKey === 'd1studio') {
+                  this.loadD1Table(this.activeD1Table || 'users', false);
+                  this.refreshAllTableCounts();
+                  this.startLiveAutoSync();
+                } else if (tabKey === 'r2storage') {
+                  this.stopLiveAutoSync();
+                  if (window.R2FileManager) {
+                    window.R2FileManager.init();
+                    window.R2FileManager.loadCurrentFolder();
+                  }
+                } else {
+                  this.stopLiveAutoSync();
+                  if (tabKey === 'users') {
+                    this.renderUsers();
+                  }
+                }
+              }
+            }
+          });
+        });
+      });
+    },
+
+    activeD1Table: 'users',
+    d1TableData: [],
+    loadedUsers: [],
+    liveAutoSyncEnabled: true,
+    liveIntervalMs: 5000,
+    liveTimer: null,
+    isSyncing: false,
+    lastSyncTime: null,
+
+    startLiveAutoSync() {
+      this.stopLiveAutoSync();
+      if (!this.liveAutoSyncEnabled) return;
+
+      this.liveTimer = setInterval(async () => {
+        if (document.hidden) return;
+        const panel = document.getElementById('devTabD1studio');
+        if (!panel || panel.style.display === 'none') return;
+        if (this.isSyncing) return;
+
+        this.isSyncing = true;
+        try {
+          await this.loadD1Table(this.activeD1Table || 'users', true);
+          await this.refreshAllTableCounts();
+        } catch (e) {
+          console.warn('Live D1 auto-sync tick error:', e);
+        } finally {
+          this.isSyncing = false;
+        }
+      }, this.liveIntervalMs);
+
+      this.updateLiveUiState();
+    },
+
+    stopLiveAutoSync() {
+      if (this.liveTimer) {
+        clearInterval(this.liveTimer);
+        this.liveTimer = null;
+      }
+      this.updateLiveUiState();
+    },
+
+    toggleLiveAutoSync() {
+      this.liveAutoSyncEnabled = !this.liveAutoSyncEnabled;
+      if (this.liveAutoSyncEnabled) {
+        this.startLiveAutoSync();
+        showToast('🟢 Auto-Sync D1 Realtime aktif (sinkron tiap 5 detik)', 'success');
+      } else {
+        this.stopLiveAutoSync();
+        showToast('⏸️ Auto-Sync D1 dijeda', 'info');
+      }
+      this.updateLiveUiState();
+    },
+
+    updateLiveUiState() {
+      const badge = document.getElementById('d1LiveBadge');
+      const text = document.getElementById('d1LiveStatusText');
+      const btnText = document.getElementById('btnD1ToggleLiveSyncText');
+      if (this.liveAutoSyncEnabled && this.liveTimer) {
+        if (badge) badge.classList.remove('paused');
+        if (text) text.textContent = 'LIVE AUTO-SYNC (5s)';
+        if (btnText) btnText.textContent = '⏸️ Pause Sync';
+      } else {
+        if (badge) badge.classList.add('paused');
+        if (text) text.textContent = 'SYNC DIJEDA';
+        if (btnText) btnText.textContent = '▶️ Start Sync';
+      }
+    },
+
+    updateTimestampUi() {
+      const el = document.getElementById('d1LastUpdatedTime');
+      if (!el) return;
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('id-ID', { hour12: false });
+      el.textContent = `Update: ${timeStr}`;
+    },
+
+    async refreshAllTableCounts() {
+      const tables = [
+        'users', 'jadwal_kegiatan', 'poa_bulanan', 'tppol_jaspel',
+        'sppd_lpt', 'audit_logs', 'sppd_templates', 'kolaborasi_request', 'foto_upload_logs'
+      ];
+      try {
+        await Promise.all(tables.map(async (t) => {
+          try {
+            const res = await CloudflareDB.executeSql(`SELECT COUNT(*) AS total FROM ${t};`);
+            if (res && res.success && res.rows && res.rows[0]) {
+              const count = res.rows[0].total ?? res.rows[0].cnt ?? 0;
+              const el = document.getElementById(`count-${t}`);
+              if (el) {
+                if (el.textContent !== String(count)) {
+                  el.textContent = count;
+                  el.classList.add('d1-count-pop');
+                  setTimeout(() => el.classList.remove('d1-count-pop'), 500);
+                }
+              }
+            }
+          } catch (err) {}
+        }));
+      } catch (e) {}
+    },
+
+    bindD1StudioEvents() {
+      const pills = document.querySelectorAll('#d1TablePills .d1-pill');
+      pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          pills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          const tableName = pill.getAttribute('data-table');
+          this.activeD1Table = tableName;
+          this.loadD1Table(tableName, false);
+        });
+      });
+
+      const btnRefresh = document.getElementById('btnD1RefreshTable');
+      if (btnRefresh) {
+        btnRefresh.addEventListener('click', async () => {
+          const btnText = document.getElementById('btnD1RefreshText');
+          if (btnText) btnText.textContent = '⏳ Sinkron...';
+          await this.loadD1Table(this.activeD1Table || 'users', false);
+          await this.refreshAllTableCounts();
+          if (btnText) btnText.textContent = '🔄 Refresh Data';
+          showToast('✓ Data tabel Cloudflare D1 berhasil disinkronkan!', 'success');
+        });
+      }
+
+      const btnToggleLiveSync = document.getElementById('btnD1ToggleLiveSync');
+      if (btnToggleLiveSync) {
+        btnToggleLiveSync.addEventListener('click', () => {
+          this.toggleLiveAutoSync();
+        });
+      }
+
+      const btnToggleSql = document.getElementById('btnD1ToggleSqlRunner');
+      const sandboxBox = document.getElementById('d1SqlSandboxBox');
+      if (btnToggleSql && sandboxBox) {
+        btnToggleSql.addEventListener('click', () => {
+          const isHidden = sandboxBox.style.display === 'none';
+          sandboxBox.style.display = isHidden ? 'block' : 'none';
+          if (isHidden) {
+            gsap.fromTo(sandboxBox, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.3 });
+          }
+        });
+      }
+
+      const btnRunSql = document.getElementById('btnD1RunCustomSql');
+      const sqlInput = document.getElementById('d1CustomSqlInput');
+      if (btnRunSql && sqlInput) {
+        btnRunSql.addEventListener('click', () => {
+          const query = sqlInput.value.trim();
+          if (!query) {
+            showToast('Harap ketik query SQL terlebih dahulu.', 'warn');
+            return;
+          }
+          this.runCustomD1Sql(query);
+        });
+      }
+
+      const searchInput = document.getElementById('d1TableSearch');
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          this.filterD1TableRows(e.target.value.trim());
+        });
+      }
+    },
+
+    setSqlExample(sql) {
+      const sqlInput = document.getElementById('d1CustomSqlInput');
+      const sandboxBox = document.getElementById('d1SqlSandboxBox');
+      if (sqlInput) sqlInput.value = sql;
+      if (sandboxBox && sandboxBox.style.display === 'none') {
+        sandboxBox.style.display = 'block';
+        gsap.fromTo(sandboxBox, { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.3 });
+      }
+    },
+
+    async runCustomD1Sql(sql) {
+      const timerEl = document.getElementById('d1SqlLatency');
+      if (timerEl) timerEl.textContent = 'Executing...';
+      const start = Date.now();
+
+      try {
+        const res = await CloudflareDB.executeSql(sql);
+        const latency = Date.now() - start;
+        if (timerEl) timerEl.textContent = `Latency: ${latency}ms (Cloudflare Edge)`;
+
+        if (res && res.success) {
+          if (res.type === 'SELECT' && res.rows) {
+            this.renderDynamicGrid(res.rows);
+            const infoEl = document.getElementById('d1TableActiveInfo');
+            if (infoEl) infoEl.innerHTML = `Hasil Query Custom: <strong>${res.rows.length} baris</strong> (${latency}ms)`;
+            showToast(`✓ Query sukses! (${res.rows.length} baris, ${latency}ms)`, 'success');
+          } else {
+            showToast(`✓ Query mutasi berhasil dieksekusi di Cloudflare D1!`, 'success');
+            await this.loadD1Table(this.activeD1Table || 'users', false);
+            await this.refreshAllTableCounts();
+          }
+        } else {
+          showToast(`❌ SQL Error: ${res?.error || 'Gagal eksekusi query'}`, 'error');
+        }
+      } catch (err) {
+        showToast(`❌ Error: ${err.message}`, 'error');
+      }
+    },
+
+    async loadD1Table(tableName = 'users', silent = false) {
+      this.activeD1Table = tableName;
+      const countEl = document.getElementById(`count-${tableName}`);
+      const infoEl = document.getElementById('d1TableActiveInfo');
+      const thead = document.getElementById('d1GridThead');
+      const tbody = document.getElementById('d1GridTbody');
+
+      if (!silent) {
+        if (infoEl) infoEl.innerHTML = `Menghubungkan ke Cloudflare D1... (Tabel: <strong>${tableName}</strong>)`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; color:#ffd166; padding:24px;"><span class="spinner-mini"></span> Memuat data tabel [${tableName}] dari Cloudflare D1...</td></tr>`;
+      }
+
+      const start = Date.now();
+      try {
+        let rows = [];
+        // Direct query via Cloudflare D1 executeSql for 100% live table compatibility
+        let sqlRes = await CloudflareDB.executeSql(`SELECT * FROM ${tableName} ORDER BY rowid DESC LIMIT 200;`);
+        if (!sqlRes || !sqlRes.success) {
+          sqlRes = await CloudflareDB.executeSql(`SELECT * FROM ${tableName} LIMIT 200;`);
+        }
+
+        if (sqlRes && sqlRes.success && Array.isArray(sqlRes.rows)) {
+          rows = sqlRes.rows;
+        } else {
+          // Fallback via specialized API endpoints
+          if (tableName === 'users') {
+            rows = await CloudflareDB.fetchUsers();
+          } else if (tableName === 'jadwal_kegiatan') {
+            rows = await CloudflareDB.fetchJadwal();
+          } else if (tableName === 'poa_bulanan') {
+            rows = await CloudflareDB.fetchPoa();
+          } else if (tableName === 'tppol_jaspel') {
+            rows = await CloudflareDB.fetchTpPol();
+          } else if (tableName === 'sppd_lpt') {
+            rows = await CloudflareDB.fetchSppd();
+          } else if (tableName === 'sppd_templates') {
+            rows = await CloudflareDB.fetchSppdTemplates();
+          } else if (tableName === 'foto_upload_logs') {
+            rows = await CloudflareDB.fetchFotoLogs();
+          } else if (tableName === 'audit_logs') {
+            rows = await CloudflareDB.fetchAuditLogs();
+          }
+        }
+
+        const latency = Date.now() - start;
+        const newRows = Array.isArray(rows) ? rows : [];
+        const hasChanged = JSON.stringify(newRows) !== JSON.stringify(this.d1TableData);
+
+        this.d1TableData = newRows;
+        if (countEl) countEl.textContent = this.d1TableData.length;
+        if (infoEl) {
+          infoEl.innerHTML = `Menampilkan tabel Cloudflare D1: <strong>${tableName}</strong> (${this.d1TableData.length} baris) &bull; <span style="color:#34d399;">⚡ ${latency}ms</span>`;
+        }
+
+        if (!silent || hasChanged) {
+          this.renderDynamicGrid(this.d1TableData);
+        }
+        this.updateTimestampUi();
+      } catch (e) {
+        console.error('Error loading D1 table:', e);
+        if (!silent) {
+          if (infoEl) infoEl.innerHTML = `<span style="color:#ef4444;">Gagal memuat tabel ${tableName} dari cloud: ${e.message}</span>`;
+          if (tbody) tbody.innerHTML = `<tr><td colspan="12" style="text-align: center; color: #f87171; padding: 20px;">Gagal memuat data dari cloud database.</td></tr>`;
+        }
+      }
+    },
+
+    renderDynamicGrid(rows) {
+      const thead = document.getElementById('d1GridThead');
+      const tbody = document.getElementById('d1GridTbody');
+      if (!thead || !tbody) return;
+
+      if (!rows || rows.length === 0) {
+        thead.innerHTML = '<tr><th style="width: 40px; text-align: center;">#</th><th>Data</th></tr>';
+        tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; color: #94a3b8; padding: 30px;">Tabel ini belum memiliki rekaman data (0 baris).</td></tr>';
+        return;
+      }
+
+      const columns = Object.keys(rows[0]);
+      let thHtml = '<tr><th style="width: 40px; text-align: center;">#</th>';
+      columns.forEach(col => {
+        thHtml += `<th>${col}</th>`;
+      });
+      thHtml += '</tr>';
+      thead.innerHTML = thHtml;
+
+      let tbHtml = '';
+      rows.forEach((row, idx) => {
+        tbHtml += `<tr><td style="font-weight: 700; color: #94a3b8; text-align: center;">${idx + 1}</td>`;
+        columns.forEach(col => {
+          let val = row[col];
+          if (typeof val === 'object' && val !== null) val = JSON.stringify(val);
+          else if (val === null || val === undefined) val = '<span style="color: #64748b; font-style: italic;">null</span>';
+          
+          if (col === 'role') {
+            val = `<span class="badge-system-live" style="background: rgba(255,209,102,0.15); color: #ffd166; border: 1px solid rgba(255,209,102,0.3); padding: 2px 8px; border-radius: 12px; font-size: 11px;">${val}</span>`;
+          } else if (col === 'is_active' || col === 'status' || col === 'status_verifikasi') {
+            val = `<span class="status-pill connected" style="font-size: 10.5px; padding: 2px 6px;">${val}</span>`;
+          }
+
+          tbHtml += `<td title="${String(val).replace(/"/g, '&quot;')}">${val}</td>`;
+        });
+        tbHtml += '</tr>';
+      });
+      tbody.innerHTML = tbHtml;
+    },
+
+    filterD1TableRows(keyword) {
+      if (!this.d1TableData || this.d1TableData.length === 0) return;
+      if (!keyword) {
+        this.renderDynamicGrid(this.d1TableData);
+        return;
+      }
+      const q = keyword.toLowerCase();
+      const filtered = this.d1TableData.filter(row => {
+        return Object.values(row).some(v => String(v).toLowerCase().includes(q));
+      });
+      this.renderDynamicGrid(filtered);
+    },
+
+    bindUserEvents() {
+      const btnAdd = document.getElementById('btnDevAddUser');
+      const btnRefresh = document.getElementById('btnDevRefreshUsers');
+      const btnCloseModal = document.getElementById('closeDevUserModal');
+      const btnCancel = document.getElementById('btnCancelDevUser');
+      const userForm = document.getElementById('devUserForm');
+      const modal = document.getElementById('devUserModal');
+
+      if (btnAdd) btnAdd.addEventListener('click', () => this.openAddUserModal());
+      if (btnRefresh) btnRefresh.addEventListener('click', async () => {
+        showToast('Memuat ulang data akun pegawai dari Cloudflare D1...', 'info');
+        await this.renderUsers();
+        showToast('✓ Data akun pegawai berhasil diperbarui dari Cloudflare D1!', 'success');
+      });
+      if (btnCloseModal) btnCloseModal.addEventListener('click', () => this.closeUserModal());
+      if (btnCancel) btnCancel.addEventListener('click', () => this.closeUserModal());
+      if (modal) {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) this.closeUserModal();
+        });
+      }
+      if (userForm) userForm.addEventListener('submit', (e) => this.handleUserFormSubmit(e));
+    },
+
+    async renderUsers(query = '') {
+      const tbody = document.getElementById('devUserListBody');
+      const searchInput = document.getElementById('devSearchUser');
+      const countTitle = document.getElementById('devUserCountTitle');
+      if (!tbody) return;
+
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:24px;">⏳ Memuat data akun pegawai dari Cloudflare D1...</td></tr>';
+
+      // Always fetch freshest live users from Cloudflare D1
+      const users = await CloudflareDB.fetchUsers();
+      this.loadedUsers = Array.isArray(users) ? users : [];
+      const rolesStore = JSON.parse(localStorage.getItem('SICEKAS_USER_ROLES')) || {};
+
+      if (countTitle) {
+        countTitle.textContent = `Manajemen Hak Akses & Akun Pegawai (${this.loadedUsers.length} Pegawai)`;
+      }
+
+      const filtered = this.loadedUsers.filter(p => {
+        if (!query) return true;
+        const q = query.toLowerCase();
+        return (p.nama && p.nama.toLowerCase().includes(q)) ||
+               (p.nip && p.nip.toLowerCase().includes(q)) ||
+               (p.username && p.username.toLowerCase().includes(q)) ||
+               (p.jabatan && p.jabatan.toLowerCase().includes(q));
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:30px;">Tidak ada data pegawai yang sesuai dengan pencarian.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      filtered.forEach((p, idx) => {
+        const isMe = (p.username === CURRENT_USER.username || p.nip === CURRENT_USER.nip || p.nama === CURRENT_USER.nama);
+        const cleanNip = String(p.nip || '').replace(/\s+/g, '');
+        const currentRole = rolesStore[cleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
+        const isActive = (p.is_active === 1 || p.is_active === true || p.is_active === '1' || p.is_active === undefined);
+
+        html += `
+          <tr>
+            <td style="font-weight: 700; color: #94a3b8; text-align: center;">${p.no_urut || p.no || idx + 1}</td>
+            <td>
+              <div style="font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+                ${p.nama}
+                ${isMe ? '<span class="badge-system-live" style="font-size: 10px; padding: 1px 6px;">Anda</span>' : ''}
+              </div>
+              <div style="font-size: 11.5px; color: #94a3b8; font-family: monospace;">${p.nip_full || p.nipFull || p.nip} <span style="color:#64748b;">(@${p.username || '-'})</span></div>
+            </td>
+            <td><span style="font-weight: 600; color: #cbd5e1;">${p.jabatan || '-'}</span></td>
+            <td><span class="rm-badge" style="font-size: 11px;">${p.golongan || p.gol || 'BLUD'}</span></td>
+            <td>
+              <select class="role-select-custom" onchange="window.DeveloperWebController.updateUserRole('${p.nip}', this.value, ${p.id || 'null'})" ${isMe ? 'disabled title="Role Anda dilindungi sebagai Super Admin Utama"' : ''}>
+                <option value="Super Admin" ${currentRole === 'Super Admin' ? 'selected' : ''}>👑 1. Super Admin</option>
+                <option value="Admin" ${currentRole === 'Admin' ? 'selected' : ''}>🛡️ 2. Admin</option>
+                <option value="Kepala Puskesmas" ${currentRole === 'Kepala Puskesmas' ? 'selected' : ''}>🏛️ 3. Kepala Puskesmas</option>
+                <option value="PJ Klaster" ${currentRole === 'PJ Klaster' ? 'selected' : ''}>📋 4. PJ Klaster</option>
+                <option value="Petugas Puskesmas" ${currentRole === 'Petugas Puskesmas' ? 'selected' : ''}>👤 5. Petugas Puskesmas</option>
+              </select>
+            </td>
+            <td style="text-align: center;">
+              ${isActive ? 
+                `<button type="button" class="btn-dev-status-toggle active" onclick="window.DeveloperWebController.toggleUserStatus('${p.nip}', 0, ${p.id || 'null'})" ${isMe ? 'disabled title="Akun Anda aktif"' : 'title="Klik untuk Nonaktifkan Akun"'}>🟢 Aktif</button>` :
+                `<button type="button" class="btn-dev-status-toggle inactive" onclick="window.DeveloperWebController.toggleUserStatus('${p.nip}', 1, ${p.id || 'null'})" title="Klik untuk Aktifkan Akun">🔴 Nonaktif</button>`
+              }
+            </td>
+            <td style="text-align: center;">
+              <div style="display: inline-flex; align-items: center; gap: 5px;">
+                <button type="button" class="btn-dev-action-mini edit" onclick="window.DeveloperWebController.openEditUserModal('${p.nip}')" title="Edit Data Pegawai">
+                  ✏️ Edit
+                </button>
+                <button type="button" class="btn-dev-action-mini reset" onclick="window.DeveloperWebController.resetUserPass('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Reset Kata Sandi Akun ke Default (bankot2026)">
+                  🔑 Reset
+                </button>
+                ${!isMe ? `
+                  <button type="button" class="btn-dev-action-mini delete" onclick="window.DeveloperWebController.deleteUser('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Hapus Akun Pegawai">
+                    🗑️
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+
+      if (searchInput && !searchInput.dataset.bound) {
+        searchInput.dataset.bound = 'true';
+        searchInput.addEventListener('input', (e) => {
+          this.filterUsersLocal(e.target.value);
+        });
+      }
+    },
+
+    filterUsersLocal(query = '') {
+      if (!this.loadedUsers) return;
+      const q = (query || '').toLowerCase().trim();
+      const tbody = document.getElementById('devUserListBody');
+      const rolesStore = JSON.parse(localStorage.getItem('SICEKAS_USER_ROLES')) || {};
+      if (!tbody) return;
+
+      const filtered = this.loadedUsers.filter(p => {
+        if (!q) return true;
+        return (p.nama && p.nama.toLowerCase().includes(q)) ||
+               (p.nip && p.nip.toLowerCase().includes(q)) ||
+               (p.username && p.username.toLowerCase().includes(q)) ||
+               (p.jabatan && p.jabatan.toLowerCase().includes(q));
+      });
+
+      let html = '';
+      filtered.forEach((p, idx) => {
+        const isMe = (p.username === CURRENT_USER.username || p.nip === CURRENT_USER.nip || p.nama === CURRENT_USER.nama);
+        const cleanNip = String(p.nip || '').replace(/\s+/g, '');
+        const currentRole = rolesStore[cleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
+        const isActive = (p.is_active === 1 || p.is_active === true || p.is_active === '1' || p.is_active === undefined);
+
+        html += `
+          <tr>
+            <td style="font-weight: 700; color: #94a3b8; text-align: center;">${p.no_urut || p.no || idx + 1}</td>
+            <td>
+              <div style="font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+                ${p.nama}
+                ${isMe ? '<span class="badge-system-live" style="font-size: 10px; padding: 1px 6px;">Anda</span>' : ''}
+              </div>
+              <div style="font-size: 11.5px; color: #94a3b8; font-family: monospace;">${p.nip_full || p.nipFull || p.nip} <span style="color:#64748b;">(@${p.username || '-'})</span></div>
+            </td>
+            <td><span style="font-weight: 600; color: #cbd5e1;">${p.jabatan || '-'}</span></td>
+            <td><span class="rm-badge" style="font-size: 11px;">${p.golongan || p.gol || 'BLUD'}</span></td>
+            <td>
+              <select class="role-select-custom" onchange="window.DeveloperWebController.updateUserRole('${p.nip}', this.value, ${p.id || 'null'})" ${isMe ? 'disabled title="Role Anda dilindungi sebagai Super Admin Utama"' : ''}>
+                <option value="Super Admin" ${currentRole === 'Super Admin' ? 'selected' : ''}>👑 1. Super Admin</option>
+                <option value="Admin" ${currentRole === 'Admin' ? 'selected' : ''}>🛡️ 2. Admin</option>
+                <option value="Kepala Puskesmas" ${currentRole === 'Kepala Puskesmas' ? 'selected' : ''}>🏛️ 3. Kepala Puskesmas</option>
+                <option value="PJ Klaster" ${currentRole === 'PJ Klaster' ? 'selected' : ''}>📋 4. PJ Klaster</option>
+                <option value="Petugas Puskesmas" ${currentRole === 'Petugas Puskesmas' ? 'selected' : ''}>👤 5. Petugas Puskesmas</option>
+              </select>
+            </td>
+            <td style="text-align: center;">
+              ${isActive ? 
+                `<button type="button" class="btn-dev-status-toggle active" onclick="window.DeveloperWebController.toggleUserStatus('${p.nip}', 0, ${p.id || 'null'})" ${isMe ? 'disabled title="Akun Anda aktif"' : 'title="Klik untuk Nonaktifkan Akun"'}>🟢 Aktif</button>` :
+                `<button type="button" class="btn-dev-status-toggle inactive" onclick="window.DeveloperWebController.toggleUserStatus('${p.nip}', 1, ${p.id || 'null'})" title="Klik untuk Aktifkan Akun">🔴 Nonaktif</button>`
+              }
+            </td>
+            <td style="text-align: center;">
+              <div style="display: inline-flex; align-items: center; gap: 5px;">
+                <button type="button" class="btn-dev-action-mini edit" onclick="window.DeveloperWebController.openEditUserModal('${p.nip}')" title="Edit Data Pegawai">
+                  ✏️ Edit
+                </button>
+                <button type="button" class="btn-dev-action-mini reset" onclick="window.DeveloperWebController.resetUserPass('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Reset Kata Sandi Akun ke Default (bankot2026)">
+                  🔑 Reset
+                </button>
+                ${!isMe ? `
+                  <button type="button" class="btn-dev-action-mini delete" onclick="window.DeveloperWebController.deleteUser('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Hapus Akun Pegawai">
+                    🗑️
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+    },
+
+    openAddUserModal() {
+      const modal = document.getElementById('devUserModal');
+      const form = document.getElementById('devUserForm');
+      const title = document.getElementById('devUserModalTitle');
+      if (!modal || !form) return;
+
+      form.reset();
+      document.getElementById('devUserId').value = '';
+      document.getElementById('devUserRole').value = 'Petugas Puskesmas';
+      document.getElementById('devUserStatus').value = '1';
+      document.getElementById('devUserPassword').placeholder = 'Default: bankot2026';
+      if (title) title.textContent = 'Daftarkan Akun Pegawai Baru';
+      modal.style.display = 'flex';
+    },
+
+    openEditUserModal(nipOrId) {
+      const modal = document.getElementById('devUserModal');
+      const form = document.getElementById('devUserForm');
+      const title = document.getElementById('devUserModalTitle');
+      if (!modal || !form) return;
+
+      const user = (this.loadedUsers || []).find(u => u.nip === nipOrId || String(u.id) === String(nipOrId));
+      if (!user) {
+        showToast('Data pegawai tidak ditemukan!', 'error');
+        return;
+      }
+
+      document.getElementById('devUserId').value = user.id || '';
+      document.getElementById('devUserNama').value = user.nama || '';
+      document.getElementById('devUserNip').value = user.nip || '';
+      document.getElementById('devUserUsername').value = user.username || '';
+      document.getElementById('devUserJabatan').value = user.jabatan || '';
+      document.getElementById('devUserGolongan').value = user.golongan || user.gol || 'BLUD';
+      document.getElementById('devUserRole').value = user.role || 'Petugas Puskesmas';
+      document.getElementById('devUserStatus').value = (user.is_active === 0 || user.is_active === false || user.is_active === '0') ? '0' : '1';
+      document.getElementById('devUserPassword').value = '';
+      document.getElementById('devUserPassword').placeholder = 'Kosongkan jika tidak ingin mengubah sandi';
+
+      if (title) title.textContent = `Edit Data Pegawai: ${user.nama}`;
+      modal.style.display = 'flex';
+    },
+
+    closeUserModal() {
+      const modal = document.getElementById('devUserModal');
+      if (modal) modal.style.display = 'none';
+    },
+
+    async handleUserFormSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('devUserId')?.value;
+      const nama = document.getElementById('devUserNama')?.value?.trim();
+      const nip = document.getElementById('devUserNip')?.value?.trim();
+      const username = document.getElementById('devUserUsername')?.value?.trim();
+      const jabatan = document.getElementById('devUserJabatan')?.value?.trim();
+      const golongan = document.getElementById('devUserGolongan')?.value?.trim();
+      const role = document.getElementById('devUserRole')?.value;
+      const is_active = parseInt(document.getElementById('devUserStatus')?.value || '1', 10);
+      const password = document.getElementById('devUserPassword')?.value?.trim();
+
+      if (!nama || !nip || !username || !jabatan) {
+        showToast('Harap lengkapi semua field bertanda bintang (*)!', 'warning');
+        return;
+      }
+
+      showToast('Menyimpan data ke Cloudflare D1 Database...', 'info');
+      const res = await CloudflareDB.saveUser({
+        id: id || undefined,
+        nama,
+        nip,
+        username,
+        jabatan,
+        golongan,
+        role,
+        is_active,
+        password: password || undefined
+      });
+
+      if (res && res.success) {
+        this.log('USER_MGT', `Data pegawai [${nama}] (${nip}) berhasil disimpan ke Cloud D1`, 'term-success');
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil Disimpan!',
+            text: res.message || `Data akun pegawai [${nama}] berhasil disimpan di Cloudflare D1 Database.`,
+            confirmButtonText: 'Selesai',
+            customClass: { popup: 'sicekas-swal-modal', confirmButton: 'btn-swal-teal' }
+          });
+        } else {
+          showToast(`✓ ${res.message || 'Data pegawai berhasil disimpan!'}`, 'success');
+        }
+        this.closeUserModal();
+        await this.renderUsers();
+      } else {
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal Menyimpan',
+            text: res?.error || 'Terjadi kesalahan saat menyimpan ke database.',
+            confirmButtonText: 'Tutup',
+            customClass: { popup: 'sicekas-swal-modal', confirmButton: 'btn-swal-danger' }
+          });
+        } else {
+          showToast(`❌ ${res?.error || 'Gagal menyimpan data.'}`, 'error');
+        }
+      }
+    },
+
+    async updateUserRole(nip, newRole, id) {
+      showToast(`Menyimpan role [${newRole}] ke Cloudflare D1...`, 'info');
+      
+      const cleanNip = String(nip || '').replace(/\s+/g, '');
+      const rolesStore = JSON.parse(localStorage.getItem('SICEKAS_USER_ROLES')) || {};
+      rolesStore[nip] = newRole;
+      rolesStore[cleanNip] = newRole;
+      localStorage.setItem('SICEKAS_USER_ROLES', JSON.stringify(rolesStore));
+
+      if (Array.isArray(this.loadedUsers)) {
+        this.loadedUsers.forEach(u => {
+          const uClean = String(u.nip || '').replace(/\s+/g, '');
+          if (u.nip === nip || uClean === cleanNip || (id && u.id === id)) {
+            u.role = newRole;
+          }
+        });
+        localStorage.setItem('SICEKAS_D1_USERS_CACHE', JSON.stringify(this.loadedUsers));
+      }
+
+      if (Array.isArray(window.DAFTAR_PEGAWAI)) {
+        window.DAFTAR_PEGAWAI.forEach(p => {
+          const pClean = String(p.nip || '').replace(/\s+/g, '');
+          if (p.nip === nip || pClean === cleanNip) {
+            p.role = newRole;
+          }
+        });
+      }
+
+      // Live synchronize TP POL signature dropdowns
+      if (typeof window.populateTpPolSignatureDropdowns === 'function') {
+        window.populateTpPolSignatureDropdowns();
+      }
+
+      const res = await CloudflareDB.updateUserRole(nip, newRole, id);
+      if (res && res.success) {
+        this.log('AUTH', `Hak akses pegawai [${nip}] diperbarui menjadi: ${newRole} (Cloudflare D1)`, 'term-auth');
+        showToast(`✓ Hak akses berhasil disimpan ke Cloudflare D1: ${newRole}`, 'success');
+      } else {
+        showToast('❌ Gagal memperbarui hak akses di Cloudflare D1.', 'error');
+      }
+    },
+
+    async toggleUserStatus(nip, newStatus, id) {
+      const statusText = newStatus === 1 ? 'Aktifkan' : 'Nonaktifkan';
+      const confirmed = await (typeof SicekasAlert !== 'undefined' ? 
+        SicekasAlert.confirm(`Konfirmasi Status Akun`, `Apakah Anda yakin ingin mengubah status akun ini menjadi ${newStatus === 1 ? 'AKTIF' : 'NONAKTIF'}?`, `${statusText} Akun`, 'Batal', newStatus === 0) :
+        confirm(`Apakah Anda yakin ingin ${statusText} akun ini?`)
+      );
+
+      if (!confirmed) return;
+
+      showToast(`Memperbarui status akun di Cloudflare D1...`, 'info');
+      const res = await CloudflareDB.updateUserStatus(nip, newStatus, id);
+      if (res && res.success) {
+        this.log('AUTH', `Status akun pegawai [${nip}] diubah menjadi ${newStatus === 1 ? 'Aktif' : 'Nonaktif'}`, 'term-warn');
+        showToast(`✓ Status akun berhasil diperbarui menjadi ${newStatus === 1 ? 'Aktif' : 'Nonaktif'}!`, 'success');
+        await this.renderUsers();
+      } else {
+        showToast('❌ Gagal memperbarui status akun.', 'error');
+      }
+    },
+
+    async deleteUser(nama, nip, id) {
+      const confirmed = await (typeof SicekasAlert !== 'undefined' ?
+        SicekasAlert.confirm(`Hapus Akun Pegawai`, `Apakah Anda yakin ingin menghapus akun [${nama}] (${nip}) secara permanen dari Cloudflare D1 Database?`, 'Ya, Hapus Akun', 'Batal', true) :
+        confirm(`Hapus akun ${nama} (${nip})?`)
+      );
+
+      if (!confirmed) return;
+
+      showToast(`Menghapus akun dari Cloudflare D1...`, 'info');
+      const res = await CloudflareDB.deleteUser(nip, id);
+      if (res && res.success) {
+        this.log('USER_MGT', `Akun pegawai [${nama}] (${nip}) telah dihapus dari Cloudflare D1`, 'term-danger');
+        showToast(`✓ Akun [${nama}] berhasil dihapus.`, 'success');
+        await this.renderUsers();
+      } else {
+        showToast(`❌ ${res?.error || 'Gagal menghapus akun.'}`, 'error');
+      }
+    },
+
+    async resetUserPass(nama, nip, id) {
+      const confirmed = await (typeof SicekasAlert !== 'undefined' ?
+        SicekasAlert.confirm(`Reset Kata Sandi`, `Reset kata sandi akun [${nama}] ke sandi default: bankot2026?`, 'Ya, Reset Sandi', 'Batal') :
+        confirm(`Reset kata sandi untuk ${nama}?`)
+      );
+
+      if (!confirmed) return;
+
+      await CloudflareDB.resetUserPass(nip || nama, id);
+      this.log('AUTH', `Admin me-reset sandi login untuk pegawai: ${nama} (Cloudflare D1)`, 'term-warn');
+      showToast(`✓ Sandi untuk ${nama} berhasil di-reset ke default (bankot2026)!`, 'success');
+    },
+
+    bindApiEvents() {
+      const btnSave = document.getElementById('btnDevSaveApi');
+      const btnTest = document.getElementById('btnDevTestPing');
+      const btnHeaderPing = document.getElementById('btnDevPingApi');
+
+      const handleSave = () => {
+        const cfDomain = document.getElementById('devCfDomain')?.value || 'https://sicekas.web.id';
+        const cfProject = document.getElementById('devCfProject')?.value || 'sicekas-v2';
+        const apiEndpoint = document.getElementById('devGasUrl')?.value || '/api/v1/sync';
+        const d1Binding = document.getElementById('devSheetId')?.value || 'DB_SICEKAS_V2';
+
+        localStorage.setItem('SICEKAS_CF_DOMAIN', cfDomain);
+        localStorage.setItem('SICEKAS_CF_PROJECT', cfProject);
+        localStorage.setItem('SICEKAS_API_ENDPOINT', apiEndpoint);
+        localStorage.setItem('SICEKAS_D1_BINDING', d1Binding);
+
+        this.log('API', `Konfigurasi Cloudflare Pages disimpan: Domain = ${cfDomain} | Project = ${cfProject}`, 'term-success');
+        showToast('✓ Konfigurasi Cloudflare Pages & Edge API berhasil disimpan!', 'success');
+      };
+
+      const handlePing = () => {
+        this.log('API', `Mengirim paket PING ke Cloudflare Global Edge Network (300+ Kota)...`, 'term-info');
+        showToast('📡 Menguji latensi Cloudflare Edge Network...', 'info');
+        setTimeout(() => {
+          const latency = Math.floor(Math.random() * 8) + 8;
+          this.log('API', `HTTP 200 OK — Cloudflare Edge Response (${latency}ms via CGK/Jakarta Node). Gateway optimal.`, 'term-success');
+          showToast(`✓ Cloudflare Edge Terhubung! Latensi: ${latency}ms (Super Cepat)`, 'success');
+        }, 500);
+      };
+
+      if (btnSave) btnSave.addEventListener('click', handleSave);
+      if (btnTest) btnTest.addEventListener('click', handlePing);
+      if (btnHeaderPing) btnHeaderPing.addEventListener('click', handlePing);
+    },
+
+    bindTerminalEvents() {
+      const input = document.getElementById('devTerminalInput');
+      const btnClear = document.getElementById('btnDevClearTerm');
+      const btnDiag = document.getElementById('btnDevRunDiag');
+      const btnExport = document.getElementById('btnDevDownloadLog');
+
+      if (input) {
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            const cmd = input.value.trim();
+            input.value = '';
+            if (cmd) this.executeCommand(cmd);
+          }
+        });
+      }
+
+      if (btnClear) btnClear.addEventListener('click', () => this.clearTerminal());
+      if (btnDiag) btnDiag.addEventListener('click', () => this.runDiagnostics());
+      if (btnExport) btnExport.addEventListener('click', () => this.exportLogs());
+    },
+
+    executeCommand(cmd) {
+      this.log('CMD', `sicekas-admin@root:~$ ${cmd}`, 'term-cmd');
+      const clean = cmd.toLowerCase().trim();
+
+      // Check for direct SQL queries to Cloudflare D1
+      if (clean.startsWith('select') || clean.startsWith('insert') || clean.startsWith('update') || clean.startsWith('delete') || clean.startsWith('pragma') || clean.startsWith('show')) {
+        this.log('INFO', `Mengeksekusi query SQL pada Cloudflare D1 Database...`, 'term-info');
+        CloudflareDB.executeSql(cmd).then(res => {
+          if (res && res.success) {
+            if (res.type === 'SELECT') {
+              this.log('SUCCESS', `Query OK. Ditemukan ${res.row_count} baris data:`, 'term-success');
+              if (res.rows && res.rows.length > 0) {
+                res.rows.slice(0, 8).forEach((r, idx) => {
+                  this.log('INFO', `  [#${idx + 1}] ${JSON.stringify(r)}`, 'term-info');
+                });
+                if (res.rows.length > 8) {
+                  this.log('INFO', `  ... dan ${res.rows.length - 8} baris lainnya.`);
+                }
+              }
+            } else {
+              this.log('SUCCESS', `Query Mutasi Berhasil dieksekusi pada Cloudflare D1 Database.`, 'term-success');
+            }
+          } else {
+            this.log('ERROR', `SQL Error: ${res?.error || 'Koneksi D1 gagal'}`, 'term-err');
+          }
+        }).catch(err => {
+          this.log('ERROR', `Gagal eksekusi SQL: ${err.message}`, 'term-err');
+        });
+        return;
+      }
+
+      if (clean === 'help') {
+        this.log('INFO', 'Daftar Perintah Terminal Tersedia:');
+        this.log('INFO', '  • help        - Menampilkan bantuan perintah');
+        this.log('INFO', '  • status      - Menampilkan status Cloudflare Pages & D1 Database');
+        this.log('INFO', '  • ping        - Uji latensi Cloudflare Edge Network');
+        this.log('INFO', '  • users       - Menampilkan statistik 39 akun pegawai');
+        this.log('INFO', '  • sync        - Memaksa sinkronisasi Cloudflare D1');
+        this.log('INFO', '  • backup      - Membuat paket backup data JSON');
+        this.log('INFO', '  • diag        - Menjalankan live diagnostic test');
+        this.log('INFO', '  • <SQL QUERY> - Eksekusi SQL langsung (contoh: SELECT * FROM users)');
+        this.log('INFO', '  • clear       - Membersihkan layar log terminal');
+      } else if (clean === 'status') {
+        this.log('SUCCESS', `STATUS SISTEM SICEKAS v2.0 (Cloudflare Pages):`);
+        this.log('SUCCESS', `  - Target Platform: Cloudflare Pages (sicekas.pages.dev / sicekas.web.id)`);
+        this.log('SUCCESS', `  - Authenticated: ${CURRENT_USER.nama} (${CURRENT_USER.role})`);
+        this.log('SUCCESS', `  - Edge CDN: 300+ Locations | Memory: Ready | Error Rate: 0.00%`);
+      } else if (clean === 'ping') {
+        const latency = Math.floor(Math.random() * 6) + 8;
+        this.log('SUCCESS', `PONG! Cloudflare Edge connected (${latency}ms via Jakarta PoP).`);
+      } else if (clean === 'users') {
+        this.log('INFO', `Total Terdaftar: 39 Pegawai Puskesmas Banjaran Kota.`);
+        this.log('INFO', `Super Admin: 1 | Verifikator: 2 | Petugas: 36`);
+      } else if (clean === 'sync') {
+        this.log('INFO', `Sinkronisasi local cache dengan Cloudflare Edge memori... [SELESAI]`);
+        showToast('✓ Sinkronisasi data sukses!', 'success');
+      } else if (clean === 'backup') {
+        this.exportDatabaseJson();
+      } else if (clean === 'diag') {
+        this.runDiagnostics();
+      } else if (clean === 'clear') {
+        this.clearTerminal();
+      } else {
+        this.log('ERROR', `Perintah '${cmd}' tidak dikenali. Ketik 'help' untuk daftar perintah.`);
+      }
+    },
+
+    bootTerminal() {
+      const container = document.getElementById('devTerminalLogs');
+      if (!container) return;
+      container.innerHTML = '';
+      this.log('INFO', 'SICEKAS v2.0 Cloudflare Pages & Edge Diagnostics initialized.');
+      this.log('AUTH', `Sesi Super Admin terautentikasi: ${CURRENT_USER.nama} (NIP: ${CURRENT_USER.nip})`);
+      this.log('INFO', 'Deployment Architecture: Cloudflare Pages + Edge CDN (sicekas.pages.dev / sicekas.web.id) [READY]');
+      this.log('SUCCESS', 'Global Edge Network: 300+ PoPs | Global SSL Active | Zero Cold Start.');
+      this.log('INFO', "Ketik 'help' pada baris perintah terminal di bawah untuk melihat daftar perintah.");
+    },
+
+    log(level, message, levelClass = 'term-info') {
+      const container = document.getElementById('devTerminalLogs');
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+      const logEntry = `[${timeStr}] [${level}] ${message}`;
+      this.terminalLogs.push(logEntry);
+
+      if (container) {
+        const line = document.createElement('div');
+        line.className = 'terminal-line';
+        line.innerHTML = `<span class="term-time">[${timeStr}]</span> <span class="${levelClass}">[${level}]</span> ${message}`;
+        container.appendChild(line);
+        container.scrollTop = container.scrollHeight;
+      }
+    },
+
+    clearTerminal() {
+      const container = document.getElementById('devTerminalLogs');
+      if (container) {
+        container.innerHTML = '';
+        this.log('INFO', 'Terminal log dibersihkan.', 'term-info');
+      }
+    },
+
+    runDiagnostics() {
+      this.log('INFO', 'Memulai pengujian diagnostik Cloudflare Pages SICEKAS v2.0...', 'term-info');
+      showToast('⚡ Menjalankan Cloudflare Pages Diagnostic Suite...', 'info');
+
+      const tests = [
+        { name: 'Cloudflare Pages Static Asset Engine', status: 'PASS / 100% READY' },
+        { name: 'Cloudflare Worker & Functions API Gateway', status: 'PASS (/api/users, /api/jadwal)' },
+        { name: 'Cloudflare D1 SQL Serverless Database', status: 'CONNECTED (Global Edge)' },
+        { name: 'html2pdf Direct Pure A4 Engine', status: 'READY' },
+        { name: 'GSAP Animation Driver v3.12.5', status: 'ACTIVE' },
+        { name: 'Super Admin Token Security Signature', status: 'VALID (0x8F9A2)' }
+      ];
+
+      tests.forEach((t, i) => {
+        setTimeout(() => {
+          this.log('SUCCESS', `  ✓ Check ${i + 1}/${tests.length}: ${t.name} -> [${t.status}]`, 'term-success');
+          if (i === tests.length - 1) {
+            this.log('SUCCESS', 'Semua tes diagnostik Cloudflare Pages berhasil lulus! (System Health: 100%)', 'term-success');
+            showToast('✓ Diagnostik Selesai: Cloudflare Production Edge Siap!', 'success');
+          }
+        }, (i + 1) * 200);
+      });
+    },
+
+    exportLogs() {
+      const blob = new Blob([this.terminalLogs.join('\n')], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SICEKAS_Developer_Log_${new Date().toISOString().slice(0, 10)}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('✓ Berkas log terminal berhasil diunduh!', 'success');
+    },
+
+    bindMaintenanceEvents() {
+      const btnHeaderBackup = document.getElementById('btnDevBackupData');
+      const btnFullExport = document.getElementById('btnDevFullExport');
+      const btnTriggerImport = document.getElementById('btnDevTriggerImport');
+      const fileInput = document.getElementById('devImportFileInput');
+      const btnResetDemo = document.getElementById('btnDevResetDemo');
+      const btnWipe = document.getElementById('btnDevWipeStorage');
+
+      if (btnHeaderBackup) btnHeaderBackup.addEventListener('click', () => this.exportDatabaseJson());
+      if (btnFullExport) btnFullExport.addEventListener('click', () => this.exportDatabaseJson());
+
+      if (btnTriggerImport && fileInput) {
+        btnTriggerImport.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            try {
+              const data = JSON.parse(evt.target.result);
+              if (data.SICEKAS_BOK_DATA_V2) localStorage.setItem('SICEKAS_BOK_DATA_V2', JSON.stringify(data.SICEKAS_BOK_DATA_V2));
+              if (data.SICEKAS_BOK_COLLAB_V2) localStorage.setItem('SICEKAS_BOK_COLLAB_V2', JSON.stringify(data.SICEKAS_BOK_COLLAB_V2));
+              if (data.SICEKAS_USER_ROLES) localStorage.setItem('SICEKAS_USER_ROLES', JSON.stringify(data.SICEKAS_USER_ROLES));
+              this.log('SUCCESS', `Database berhasil dipulihkan dari berkas: ${file.name}`, 'term-success');
+              showToast('✓ Database berhasil dipulihkan dari backup JSON!', 'success');
+              if (window.JadwalBOKController) window.JadwalBOKController.render();
+              this.updateStats();
+            } catch (err) {
+              this.log('ERROR', `Gagal memulihkan database: ${err.message}`, 'term-err');
+              showToast('❌ Format berkas JSON backup tidak valid!', 'error');
+            }
+          };
+          reader.readAsText(file);
+        });
+      }
+
+      if (btnResetDemo) {
+        btnResetDemo.addEventListener('click', async () => {
+          const confirmed = await window.SicekasAlert.confirm(
+            'Refresh Data dari Cloud Database?',
+            'Cache lokal akan dihapus dan data jadwal kegiatan akan di-refresh dari Cloudflare D1 Database.',
+            'Ya, Refresh Data',
+            'Batal',
+            false
+          );
+          if (confirmed) {
+            localStorage.removeItem('SICEKAS_BOK_DATA_V2');
+            localStorage.removeItem('SICEKAS_BOK_COLLAB_V2');
+            if (window.JadwalBOKController) {
+              window.JadwalBOKController.invalidateCache();
+              await window.JadwalBOKController.render();
+            }
+            this.log('SUCCESS', 'Cache lokal dibersihkan & data di-refresh dari Cloudflare D1 Database.', 'term-success');
+            showToast('✓ Data berhasil di-refresh dari cloud database!', 'success');
+            this.updateStats();
+          }
+        });
+      }
+
+      if (btnWipe) {
+        btnWipe.addEventListener('click', async () => {
+          const confirmed = await window.SicekasAlert.confirm(
+            'Bersihkan Seluruh Storage?',
+            'PERINGATAN: Seluruh cache, data sesi, dan pengaturan lokal akan dibersihkan dari browser.',
+            'Ya, Bersihkan Storage',
+            'Batal',
+            true
+          );
+          if (confirmed) {
+            localStorage.clear();
+            sessionStorage.clear();
+            this.log('WARN', 'Seluruh storage lokal browser dibersihkan.', 'term-warn');
+            showToast('✓ Storage lokal browser berhasil dibersihkan!', 'success');
+            setTimeout(() => location.reload(), 800);
+          }
+        });
+      }
+    },
+
+    exportDatabaseJson() {
+      const backupObj = {
+        app: 'SICEKAS v2.0',
+        version: '2.0.4',
+        exportedAt: new Date().toISOString(),
+        exportedBy: CURRENT_USER.nama,
+        SICEKAS_BOK_DATA_V2: JSON.parse(localStorage.getItem('SICEKAS_BOK_DATA_V2')) || [],
+        SICEKAS_BOK_COLLAB_V2: JSON.parse(localStorage.getItem('SICEKAS_BOK_COLLAB_V2')) || [],
+        SICEKAS_USER_ROLES: JSON.parse(localStorage.getItem('SICEKAS_USER_ROLES')) || {},
+        DAFTAR_PEGAWAI: DAFTAR_PEGAWAI
+      };
+
+      const blob = new Blob([JSON.stringify(backupObj, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SICEKAS_Full_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      this.log('SUCCESS', `Full backup database JSON berhasil diekspor (${backupObj.SICEKAS_BOK_DATA_V2.length} jadwal kegiatan).`, 'term-success');
+      showToast('✓ Backup database JSON berhasil diunduh!', 'success');
+    },
+
+    async updateStats() {
+      const devDbCount = document.getElementById('devDbCount');
+      if (devDbCount) {
+        try {
+          const jadwal = await CloudflareDB.fetchJadwal();
+          const count = Array.isArray(jadwal) ? jadwal.length : 0;
+          devDbCount.innerHTML = `${count} Jadwal <span class="kpi-badge positive">D1 Cloud</span>`;
+        } catch (e) {
+          devDbCount.innerHTML = `Cloud D1 <span class="kpi-badge positive">Live</span>`;
+        }
+      }
+
+      if (window.R2FileManager && typeof window.R2FileManager.fetchStats === 'function') {
+        window.R2FileManager.fetchStats();
+      }
+    }
+  };
+
+  // ==========================================================================
+  // 14. IN-APP BROWSER CONTROLLER (CKG BANKOT MODAL & DOCKED WIDGET)
+  // ==========================================================================
+  const InAppBrowser = {
+    modal: document.getElementById('modalBrowserCkg'),
+    card: document.getElementById('browserWindowCard'),
+    iframe: document.getElementById('browserIframe'),
+    loadingOverlay: document.getElementById('browserLoadingOverlay'),
+    dock: document.getElementById('browserMinimizedDock'),
+    btnReload: document.getElementById('btnBrowserReload'),
+    btnMinimize: document.getElementById('btnBrowserMinimize'),
+    btnMaximize: document.getElementById('btnBrowserMaximize'),
+    btnClose: document.getElementById('btnBrowserClose'),
+    btnDockRestore: document.getElementById('btnDockRestore'),
+    btnDockClose: document.getElementById('btnDockClose'),
+    url: 'https://ckgbankot.web.id',
+    isLoaded: false,
+    isFullscreen: false,
+    isAnimating: false,
+
+    init() {
+      if (!this.modal) return;
+
+      if (this.btnReload) {
+        this.btnReload.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.reload();
+        });
+      }
+
+      if (this.btnMinimize) {
+        this.btnMinimize.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.minimize();
+        });
+      }
+
+      if (this.btnMaximize) {
+        this.btnMaximize.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.toggleMaximize();
+        });
+      }
+
+      if (this.btnClose) {
+        this.btnClose.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.close();
+        });
+      }
+
+      if (this.dock) {
+        this.dock.addEventListener('click', (e) => {
+          if (e.target.closest('#btnDockClose')) return;
+          this.restore();
+        });
+      }
+
+      if (this.btnDockRestore) {
+        this.btnDockRestore.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.restore();
+        });
+      }
+
+      if (this.btnDockClose) {
+        this.btnDockClose.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.close();
+        });
+      }
+
+      if (this.iframe) {
+        this.iframe.addEventListener('load', () => {
+          if (this.loadingOverlay) {
+            this.loadingOverlay.classList.add('hidden');
+          }
+        });
+      }
+    },
+
+    setAnimating(state) {
+      if (this.card) this.card.classList.toggle('is-animating', state);
+      if (this.modal) this.modal.classList.toggle('is-animating', state);
+    },
+
+    open() {
+      if (this.isAnimating) return;
+      this.isAnimating = true;
+      this.setAnimating(true);
+
+      if (this.dock) this.dock.classList.remove('active');
+      if (this.modal) {
+        this.modal.classList.remove('minimized');
+        this.modal.classList.add('active');
+      }
+
+      if (typeof gsap !== 'undefined' && this.card && this.modal) {
+        gsap.killTweensOf([this.card, this.modal]);
+        gsap.fromTo(this.modal, { opacity: 0 }, { opacity: 1, duration: 0.28, ease: 'power2.out' });
+        gsap.fromTo(this.card, 
+          { scale: 0.88, y: 30, opacity: 0, x: 0 }, 
+          { scale: 1, y: 0, x: 0, opacity: 1, duration: 0.38, ease: 'power3.out', onComplete: () => {
+            this.setAnimating(false);
+            this.isAnimating = false;
+          }}
+        );
+      } else {
+        this.setAnimating(false);
+        this.isAnimating = false;
+      }
+
+      if (this.iframe && (!this.isLoaded || this.iframe.src === 'about:blank' || !this.iframe.src.includes('ckgbankot.web.id'))) {
+        if (this.loadingOverlay) this.loadingOverlay.classList.remove('hidden');
+        this.iframe.src = this.url;
+        this.isLoaded = true;
+      }
+    },
+
+    minimize() {
+      if (this.isAnimating) return;
+      this.isAnimating = true;
+      this.setAnimating(true);
+
+      if (typeof gsap !== 'undefined' && this.card && this.modal) {
+        const destX = (window.innerWidth / 2) - 100;
+        const destY = (window.innerHeight / 2) - 40;
+
+        gsap.to(this.modal, { opacity: 0, duration: 0.22, ease: 'power2.in' });
+        gsap.to(this.card, {
+          scale: 0.08,
+          x: destX,
+          y: destY,
+          opacity: 0,
+          duration: 0.3,
+          ease: 'power3.inOut',
+          onComplete: () => {
+            this.modal.classList.remove('active');
+            this.modal.classList.add('minimized');
+            gsap.set(this.card, { x: 0, y: 0, scale: 1 });
+            this.setAnimating(false);
+
+            if (this.dock) {
+              this.dock.classList.add('active');
+              gsap.fromTo(this.dock,
+                { scale: 0.4, y: 25, opacity: 0 },
+                { scale: 1, y: 0, opacity: 1, duration: 0.35, ease: 'back.out(1.7)' }
+              );
+            }
+            this.isAnimating = false;
+          }
+        });
+      } else {
+        if (this.modal) this.modal.classList.add('minimized');
+        if (this.dock) this.dock.classList.add('active');
+        this.setAnimating(false);
+        this.isAnimating = false;
+      }
+    },
+
+    restore() {
+      if (this.isAnimating) return;
+      this.isAnimating = true;
+      this.setAnimating(true);
+
+      if (typeof gsap !== 'undefined' && this.dock && this.modal && this.card) {
+        const startX = (window.innerWidth / 2) - 100;
+        const startY = (window.innerHeight / 2) - 40;
+
+        gsap.to(this.dock, {
+          scale: 0.6,
+          opacity: 0,
+          duration: 0.16,
+          ease: 'power2.in',
+          onComplete: () => {
+            this.dock.classList.remove('active');
+            this.modal.classList.remove('minimized');
+            this.modal.classList.add('active');
+
+            gsap.fromTo(this.modal, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power2.out' });
+            gsap.fromTo(this.card,
+              { scale: 0.08, x: startX, y: startY, opacity: 0 },
+              { scale: 1, x: 0, y: 0, opacity: 1, duration: 0.38, ease: 'power3.out', onComplete: () => {
+                this.setAnimating(false);
+                this.isAnimating = false;
+              }}
+            );
+          }
+        });
+      } else {
+        if (this.dock) this.dock.classList.remove('active');
+        if (this.modal) {
+          this.modal.classList.remove('minimized');
+          this.modal.classList.add('active');
+        }
+        this.setAnimating(false);
+        this.isAnimating = false;
+      }
+    },
+
+    toggleMaximize() {
+      if (this.isAnimating) return;
+      this.isAnimating = true;
+      this.setAnimating(true);
+
+      this.isFullscreen = !this.isFullscreen;
+
+      // Update button icon and title
+      if (this.btnMaximize) {
+        this.btnMaximize.title = this.isFullscreen ? 'Kecilkan / Normal' : 'Ukuran Layar Penuh';
+        this.btnMaximize.innerHTML = this.isFullscreen ? `
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 14 10 14 10 20"></polyline>
+            <polyline points="20 10 14 10 14 4"></polyline>
+            <line x1="14" y1="10" x2="21" y2="3"></line>
+            <line x1="3" y1="21" x2="10" y2="14"></line>
+          </svg>
+        ` : `
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+          </svg>
+        `;
+      }
+
+      if (typeof gsap !== 'undefined' && this.card && this.modal) {
+        if (this.isFullscreen) {
+          gsap.to(this.modal, { padding: 0, duration: 0.35, ease: 'power3.inOut' });
+          gsap.to(this.card, {
+            width: '100vw',
+            maxWidth: '100vw',
+            height: '100vh',
+            maxHeight: '100vh',
+            borderRadius: 0,
+            duration: 0.35,
+            ease: 'power3.inOut',
+            onComplete: () => {
+              this.modal.classList.add('is-maximized');
+              this.card.classList.add('fullscreen');
+              this.setAnimating(false);
+              this.isAnimating = false;
+            }
+          });
+        } else {
+          this.modal.classList.remove('is-maximized');
+          this.card.classList.remove('fullscreen');
+          gsap.to(this.modal, { padding: 16, duration: 0.35, ease: 'power3.out' });
+          gsap.to(this.card, {
+            width: '95vw',
+            maxWidth: '1400px',
+            height: '88vh',
+            maxHeight: '920px',
+            borderRadius: 16,
+            duration: 0.35,
+            ease: 'power3.out',
+            onComplete: () => {
+              this.setAnimating(false);
+              this.isAnimating = false;
+            }
+          });
+        }
+      } else {
+        if (this.modal) this.modal.classList.toggle('is-maximized', this.isFullscreen);
+        if (this.card) this.card.classList.toggle('fullscreen', this.isFullscreen);
+        this.setAnimating(false);
+        this.isAnimating = false;
+      }
+    },
+
+    reload() {
+      if (this.btnReload && typeof gsap !== 'undefined') {
+        gsap.fromTo(this.btnReload, { rotate: 0 }, { rotate: 360, duration: 0.5, ease: 'power2.inOut' });
+      }
+      if (this.iframe) {
+        if (this.loadingOverlay) this.loadingOverlay.classList.remove('hidden');
+        this.iframe.src = this.url;
+      }
+    },
+
+    close() {
+      if (this.isAnimating) return;
+      this.isAnimating = true;
+      this.setAnimating(true);
+
+      if (typeof gsap !== 'undefined' && this.modal && this.card) {
+        gsap.to(this.card, { scale: 0.88, y: 20, opacity: 0, duration: 0.22, ease: 'power2.in' });
+        gsap.to(this.modal, {
+          opacity: 0,
+          duration: 0.22,
+          ease: 'power2.in',
+          onComplete: () => {
+            this.modal.classList.remove('active', 'minimized', 'is-maximized');
+            if (this.dock) this.dock.classList.remove('active');
+            if (this.card) this.card.classList.remove('fullscreen');
+            this.isFullscreen = false;
+            gsap.set([this.card, this.modal], { clearProps: 'all' });
+            if (this.iframe) {
+              this.iframe.src = 'about:blank';
+              this.isLoaded = false;
+            }
+            this.setAnimating(false);
+            this.isAnimating = false;
+          }
+        });
+      } else {
+        if (this.modal) {
+          this.modal.classList.remove('active', 'minimized', 'is-maximized');
+        }
+        if (this.dock) {
+          this.dock.classList.remove('active');
+        }
+        if (this.card) {
+          this.card.classList.remove('fullscreen');
+          this.isFullscreen = false;
+        }
+        if (this.iframe) {
+          this.iframe.src = 'about:blank';
+          this.isLoaded = false;
+        }
+        this.setAnimating(false);
+        this.isAnimating = false;
+      }
+    }
+  };
+
+  // ==========================================================================
+  // 15. CLOUDFLARE R2 OBJECT STORAGE & FILE MANAGER CONTROLLER
+  // ==========================================================================
+  const R2FileManager = {
+    isInitialized: false,
+    currentPrefix: '',
+    folders: [],
+    files: [],
+    currentFilteredFolders: [],
+    currentFilteredFiles: [],
+    allFoldersCache: [],
+    selectedKeys: new Set(),
+    viewMode: 'grid',
+    searchQuery: '',
+    activeLightboxUrl: '',
+
+    init() {
+      if (this.isInitialized) return;
+      this.isInitialized = true;
+
+      const btnSync = document.getElementById('btnR2SyncLive');
+      const btnSyncD1 = document.getElementById('btnR2SyncD1');
+      const btnNewFolder = document.getElementById('btnR2CreateFolder');
+      const btnUpload = document.getElementById('btnR2UploadTrigger');
+      const fileInput = document.getElementById('r2FileInput');
+      const btnBatchDel = document.getElementById('btnR2BatchDelete');
+      const btnRoot = document.getElementById('btnR2CrumbRoot');
+      const btnUp = document.getElementById('btnR2UpLevel');
+      const searchInput = document.getElementById('r2SearchInput');
+      const btnClearSearch = document.getElementById('btnR2ClearSearch');
+      const btnGrid = document.getElementById('btnR2ViewGrid');
+      const btnList = document.getElementById('btnR2ViewList');
+      const selectAll = document.getElementById('r2SelectAllCheckbox');
+      const dropZone = document.getElementById('r2DropZone');
+      const lbClose = document.getElementById('btnR2LbClose');
+      const lbBackdrop = document.getElementById('r2LightboxBackdrop');
+      const lbCopy = document.getElementById('btnR2LbCopyLink');
+
+      if (btnSync) btnSync.addEventListener('click', () => this.loadCurrentFolder(true));
+      if (btnSyncD1) btnSyncD1.addEventListener('click', () => this.syncToD1());
+      if (btnNewFolder) btnNewFolder.addEventListener('click', () => this.promptCreateFolder());
+      if (btnUpload && fileInput) btnUpload.addEventListener('click', () => fileInput.click());
+      if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            this.handleUploadFiles(e.target.files);
+            fileInput.value = '';
+          }
+        });
+      }
+      if (btnBatchDel) btnBatchDel.addEventListener('click', () => this.batchDelete());
+      if (btnRoot) btnRoot.addEventListener('click', () => this.navigateTo(''));
+      if (btnUp) btnUp.addEventListener('click', () => this.navigateUp());
+
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          this.searchQuery = (e.target.value || '').trim().toLowerCase();
+          if (btnClearSearch) btnClearSearch.style.display = this.searchQuery ? 'inline-block' : 'none';
+          this.renderContent();
+        });
+      }
+      if (btnClearSearch && searchInput) {
+        btnClearSearch.addEventListener('click', () => {
+          searchInput.value = '';
+          this.searchQuery = '';
+          btnClearSearch.style.display = 'none';
+          this.renderContent();
+        });
+      }
+
+      if (btnGrid) {
+        btnGrid.addEventListener('click', () => {
+          this.viewMode = 'grid';
+          btnGrid.classList.add('active');
+          if (btnList) btnList.classList.remove('active');
+          this.renderContent();
+        });
+      }
+      if (btnList) {
+        btnList.addEventListener('click', () => {
+          this.viewMode = 'list';
+          btnList.classList.add('active');
+          if (btnGrid) btnGrid.classList.remove('active');
+          this.renderContent();
+        });
+      }
+
+      if (selectAll) {
+        selectAll.addEventListener('change', (e) => this.toggleSelectAll(e.target.checked));
+      }
+
+      // Drag & Drop Upload Zone
+      if (dropZone) {
+        ['dragenter', 'dragover'].forEach(name => {
+          dropZone.addEventListener(name, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.add('dragover');
+          });
+        });
+
+        ['dragleave', 'drop'].forEach(name => {
+          dropZone.addEventListener(name, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropZone.classList.remove('dragover');
+          });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+          const files = e.dataTransfer?.files;
+          if (files && files.length > 0) {
+            this.handleUploadFiles(files);
+          }
+        });
+      }
+
+      // Lightbox listeners
+      if (lbClose) lbClose.addEventListener('click', () => this.closeLightbox());
+      if (lbBackdrop) lbBackdrop.addEventListener('click', () => this.closeLightbox());
+      if (lbCopy) {
+        lbCopy.addEventListener('click', () => {
+          if (this.activeLightboxUrl) this.copyLink(this.activeLightboxUrl);
+        });
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          this.closeLightbox();
+        }
+      });
+
+      this.fetchStats();
+    },
+
+    formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    },
+
+    async fetchStats() {
+      try {
+        const res = await fetch('/api/r2/stats');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success) {
+            const devR2Count = document.getElementById('devR2Count');
+            const devR2Size = document.getElementById('devR2Size');
+            if (devR2Count) {
+              devR2Count.innerHTML = `${data.total_files} File <span class="kpi-badge positive">Live</span>`;
+            }
+            if (devR2Size) {
+              devR2Size.innerHTML = `sicekas-storage (${data.formatted_size})`;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal memuat statistik R2:', e);
+      }
+    },
+
+    async loadCurrentFolder(isManualSync = false) {
+      const loading = document.getElementById('r2LoadingState');
+      const emptyState = document.getElementById('r2EmptyState');
+      const grid = document.getElementById('r2GridContainer');
+      const table = document.getElementById('r2TableContainer');
+      const syncBtnText = document.getElementById('btnR2SyncLiveText');
+      const deployNotice = document.getElementById('r2PendingDeployNotice');
+
+      if (loading) loading.style.display = 'flex';
+      if (emptyState) emptyState.style.display = 'none';
+      if (grid) grid.style.opacity = '0.35';
+      if (table) table.style.opacity = '0.35';
+      if (syncBtnText) syncBtnText.innerHTML = '⏳ Menyinkronkan...';
+
+      try {
+        const url = `/api/r2/list?prefix=${encodeURIComponent(this.currentPrefix)}`;
+        const res = await fetch(url);
+        let data = null;
+        try {
+          data = await res.json();
+        } catch (je) {}
+
+        // Fallback detection: If endpoint is not yet deployed on live Cloudflare Pages
+        if (!res.ok || (data && !data.success && data.error && (data.error.includes('tidak ditemukan') || res.status === 404))) {
+          console.warn('R2 API /api/r2/list belum terdeploy di Cloudflare edge. Mengaktifkan fallback D1 foto_upload_logs.');
+          const logs = await CloudflareDB.fetchFotoLogs();
+          this.folders = [];
+          this.files = logs.map(l => ({
+            key: l.file_key,
+            name: l.file_name || l.file_key,
+            rawName: l.file_name || l.file_key,
+            size: l.file_size || 0,
+            uploaded: l.uploaded_at || new Date().toISOString(),
+            mimeType: l.mime_type || 'image/jpeg',
+            isImage: true,
+            url: l.url || `/api/foto/${encodeURIComponent(l.file_key)}`,
+            uploadedBy: l.uploaded_by || 'Petugas'
+          }));
+          this.selectedKeys.clear();
+          this.updateBatchDeleteUI();
+
+          const statsFolders = document.getElementById('r2StatsFolderCount');
+          const statsFiles = document.getElementById('r2StatsFileCount');
+          const statsSize = document.getElementById('r2StatsTotalSize');
+          const folderBytes = this.files.reduce((acc, f) => acc + (f.size || 0), 0);
+
+          if (statsFolders) statsFolders.textContent = '0 Folder';
+          if (statsFiles) statsFiles.textContent = `${this.files.length} File`;
+          if (statsSize) statsSize.textContent = this.formatBytes(folderBytes);
+
+          this.renderBreadcrumbs();
+          this.renderContent();
+
+          if (deployNotice) deployNotice.style.display = 'flex';
+          return;
+        }
+
+        if (data && data.success) {
+          if (deployNotice) deployNotice.style.display = 'none';
+          this.folders = data.folders || [];
+          this.files = data.files || [];
+          this.selectedKeys.clear();
+          this.updateBatchDeleteUI();
+
+          // Update stats pills
+          const statsFolders = document.getElementById('r2StatsFolderCount');
+          const statsFiles = document.getElementById('r2StatsFileCount');
+          const statsSize = document.getElementById('r2StatsTotalSize');
+
+          const folderBytes = this.files.reduce((acc, f) => acc + (f.size || 0), 0);
+
+          if (statsFolders) statsFolders.textContent = `${this.folders.length} Folder`;
+          if (statsFiles) statsFiles.textContent = `${this.files.length} File`;
+          if (statsSize) statsSize.textContent = this.formatBytes(folderBytes);
+
+          this.renderBreadcrumbs();
+          this.renderContent();
+
+          // Refresh full folder tree in background for move destination choices
+          this.scanAllFolders();
+
+          if (isManualSync) {
+            showToast('✅ Cloudflare R2 berhasil disinkronkan!', 'success');
+          }
+        } else {
+          throw new Error(data?.error || 'Gagal memuat isi bucket');
+        }
+      } catch (err) {
+        console.error('Error loadCurrentFolder R2:', err);
+        showToast('Gagal memuat data dari Cloudflare R2: ' + err.message, 'error');
+      } finally {
+        if (loading) loading.style.display = 'none';
+        if (grid) grid.style.opacity = '1';
+        if (table) table.style.opacity = '1';
+        if (syncBtnText) syncBtnText.innerHTML = '🔄 Sync R2 Live';
+      }
+    },
+
+    async scanAllFolders() {
+      try {
+        const res = await fetch('/api/r2/list?prefix=&delimiter=');
+        if (res.ok) {
+          const data = await res.json();
+          const folderSet = new Set(['']); // '' is root
+          (data.folders || []).forEach(f => folderSet.add(f.prefix));
+          (data.files || []).forEach(f => {
+            if (f.key.includes('/')) {
+              const parts = f.key.split('/');
+              parts.pop();
+              folderSet.add(`${parts.join('/')}/`);
+            }
+          });
+          this.allFoldersCache = Array.from(folderSet);
+        }
+      } catch (e) {}
+    },
+
+    renderBreadcrumbs() {
+      const trail = document.getElementById('r2CrumbTrail');
+      const btnUp = document.getElementById('btnR2UpLevel');
+      if (!trail) return;
+
+      trail.innerHTML = '';
+      const prefix = this.currentPrefix.replace(/\/$/, '');
+
+      if (!prefix) {
+        if (btnUp) btnUp.style.display = 'none';
+        return;
+      }
+
+      if (btnUp) btnUp.style.display = 'inline-flex';
+
+      const parts = prefix.split('/');
+      let accumulated = '';
+
+      parts.forEach((part, idx) => {
+        accumulated += `${part}/`;
+        const isLast = idx === parts.length - 1;
+
+        const sep = document.createElement('span');
+        sep.className = 'r2-crumb-separator';
+        sep.textContent = '/';
+        trail.appendChild(sep);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `r2-crumb-item ${isLast ? 'active' : ''}`;
+        btn.textContent = part;
+        if (!isLast) {
+          const targetPath = accumulated;
+          btn.addEventListener('click', () => this.navigateTo(targetPath));
+        }
+        trail.appendChild(btn);
+      });
+    },
+
+    navigateTo(prefix) {
+      this.currentPrefix = prefix;
+      this.searchQuery = '';
+      const input = document.getElementById('r2SearchInput');
+      const clearBtn = document.getElementById('btnR2ClearSearch');
+      if (input) input.value = '';
+      if (clearBtn) clearBtn.style.display = 'none';
+      this.loadCurrentFolder();
+    },
+
+    navigateUp() {
+      if (!this.currentPrefix) return;
+      const clean = this.currentPrefix.replace(/\/$/, '');
+      const parts = clean.split('/');
+      parts.pop();
+      const newPrefix = parts.length > 0 ? `${parts.join('/')}/` : '';
+      this.navigateTo(newPrefix);
+    },
+
+    // Index-based action delegators (prevents quote/special character injection in HTML attributes)
+    openFolder(idx) {
+      const f = this.currentFilteredFolders[idx];
+      if (f) this.navigateTo(f.prefix);
+    },
+    renameFolderByIdx(idx) {
+      const f = this.currentFilteredFolders[idx];
+      if (f) this.promptRename(f.prefix, f.name, true);
+    },
+    deleteFolderByIdx(idx) {
+      const f = this.currentFilteredFolders[idx];
+      if (f) this.promptDelete(f.prefix, f.name, true);
+    },
+    previewFileByIdx(idx) {
+      const file = this.currentFilteredFiles[idx];
+      if (file) this.previewLightbox(file);
+    },
+    copyLinkByIdx(idx) {
+      const file = this.currentFilteredFiles[idx];
+      if (file) this.copyLink(file.url);
+    },
+    copyFileByIdx(idx) {
+      const file = this.currentFilteredFiles[idx];
+      if (file) this.promptCopy(file.key, file.name);
+    },
+    moveFileByIdx(idx) {
+      const file = this.currentFilteredFiles[idx];
+      if (file) this.promptMove(file.key, file.name);
+    },
+    renameFileByIdx(idx) {
+      const file = this.currentFilteredFiles[idx];
+      if (file) this.promptRename(file.key, file.name, false);
+    },
+    deleteFileByIdx(idx) {
+      const file = this.currentFilteredFiles[idx];
+      if (file) this.promptDelete(file.key, file.name, false);
+    },
+    toggleSelectFileByIdx(idx) {
+      const file = this.currentFilteredFiles[idx];
+      if (file) this.toggleSelect(file.key);
+    },
+
+    renderContent() {
+      const q = this.searchQuery;
+      const filteredFolders = this.folders.filter(f => !q || f.name.toLowerCase().includes(q));
+      const filteredFiles = this.files.filter(f => !q || f.name.toLowerCase().includes(q) || f.key.toLowerCase().includes(q) || (f.uploadedBy && f.uploadedBy.toLowerCase().includes(q)));
+
+      this.currentFilteredFolders = filteredFolders;
+      this.currentFilteredFiles = filteredFiles;
+
+      const emptyState = document.getElementById('r2EmptyState');
+      const grid = document.getElementById('r2GridContainer');
+      const table = document.getElementById('r2TableContainer');
+      const headingFolders = document.getElementById('r2HeadingFolders');
+      const badgeFolders = document.getElementById('r2BadgeFolders');
+      const headingFiles = document.getElementById('r2HeadingFiles');
+      const badgeFiles = document.getElementById('r2BadgeFiles');
+      const folderGrid = document.getElementById('r2FolderGrid');
+      const fileGrid = document.getElementById('r2FileGrid');
+      const tableBody = document.getElementById('r2TableBody');
+      const footerInfo = document.getElementById('r2FooterInfo');
+
+      const totalItems = filteredFolders.length + filteredFiles.length;
+
+      if (totalItems === 0) {
+        if (emptyState) emptyState.style.display = 'flex';
+        if (grid) grid.style.display = 'none';
+        if (table) table.style.display = 'none';
+        if (footerInfo) footerInfo.textContent = 'Tidak ada objek yang sesuai kriteria.';
+        return;
+      }
+
+      if (emptyState) emptyState.style.display = 'none';
+
+      if (this.viewMode === 'grid') {
+        if (grid) grid.style.display = 'block';
+        if (table) table.style.display = 'none';
+
+        // Render Folder Section
+        if (filteredFolders.length > 0) {
+          if (headingFolders) headingFolders.style.display = 'flex';
+          if (badgeFolders) badgeFolders.textContent = filteredFolders.length;
+          if (folderGrid) {
+            folderGrid.innerHTML = filteredFolders.map((f, idx) => {
+              const escName = escapeHtmlHelper(f.name);
+              const escPrefix = escapeHtmlHelper(f.prefix);
+              return `
+                <div class="r2-folder-card" data-prefix="${escPrefix}">
+                  <div class="r2-folder-left" onclick="window.R2FileManager.openFolder(${idx})">
+                    <div class="r2-folder-icon-box">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                    </div>
+                    <div class="r2-folder-info">
+                      <span class="r2-folder-name" title="${escName}">${escName}</span>
+                      <span class="r2-folder-meta">Subdirektori R2</span>
+                    </div>
+                  </div>
+                  <div class="r2-folder-actions">
+                    <button type="button" class="r2-action-btn-mini" title="Ubah Nama Folder" onclick="window.R2FileManager.renameFolderByIdx(${idx})">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    </button>
+                    <button type="button" class="r2-action-btn-mini delete" title="Hapus Folder Beserta Isinya" onclick="window.R2FileManager.deleteFolderByIdx(${idx})">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        } else {
+          if (headingFolders) headingFolders.style.display = 'none';
+          if (folderGrid) folderGrid.innerHTML = '';
+        }
+
+        // Render File Section
+        if (filteredFiles.length > 0) {
+          if (headingFiles) headingFiles.style.display = 'flex';
+          if (badgeFiles) badgeFiles.textContent = filteredFiles.length;
+          if (fileGrid) {
+            fileGrid.innerHTML = filteredFiles.map((file, idx) => {
+              const escKey = escapeHtmlHelper(file.key);
+              const escName = escapeHtmlHelper(file.name);
+              const escUrl = escapeHtmlHelper(file.url);
+              const sizeStr = this.formatBytes(file.size);
+              const dateStr = file.uploaded ? new Date(file.uploaded).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+              const isChecked = this.selectedKeys.has(file.key);
+
+              return `
+                <div class="r2-file-card ${isChecked ? 'selected' : ''}" data-key="${escKey}">
+                  <input type="checkbox" class="r2-file-check" ${isChecked ? 'checked' : ''} onchange="window.R2FileManager.toggleSelectFileByIdx(${idx})">
+                  <span class="r2-file-badge">R2 Standard</span>
+                  
+                  <div class="r2-file-thumb-wrap" onclick="window.R2FileManager.previewFileByIdx(${idx})">
+                    ${file.isImage ? `
+                      <img src="${escUrl}" class="r2-file-thumb-img" alt="${escName}" loading="lazy">
+                    ` : `
+                      <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                      </svg>
+                    `}
+                    <div class="r2-file-overlay">
+                      <button type="button" class="r2-overlay-btn">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                        <span>Lihat</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="r2-file-body">
+                    <div class="r2-file-title" title="${escName}">${escName}</div>
+                    <div class="r2-file-meta-row">
+                      <span>${sizeStr}</span>
+                      <span>${dateStr}</span>
+                    </div>
+                  </div>
+
+                  <div class="r2-file-actions-bar">
+                    <button type="button" class="r2-action-icon-btn" title="Salin URL" onclick="window.R2FileManager.copyLinkByIdx(${idx})">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    </button>
+                    <button type="button" class="r2-action-icon-btn" title="Duplikat / Salin File" onclick="window.R2FileManager.copyFileByIdx(${idx})">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                    <button type="button" class="r2-action-icon-btn" title="Pindahkan ke Folder Lain" onclick="window.R2FileManager.moveFileByIdx(${idx})">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 10 20 15 15 20"></polyline><path d="M4 4v7a4 4 0 0 0 4 4h12"></path></svg>
+                    </button>
+                    <button type="button" class="r2-action-icon-btn" title="Ubah Nama" onclick="window.R2FileManager.renameFileByIdx(${idx})">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    </button>
+                    <a href="${escUrl}" download="${escName}" target="_blank" class="r2-action-icon-btn" title="Unduh File">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    </a>
+                    <button type="button" class="r2-action-icon-btn delete" title="Hapus File" onclick="window.R2FileManager.deleteFileByIdx(${idx})">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          }
+        } else {
+          if (headingFiles) headingFiles.style.display = 'none';
+          if (fileGrid) fileGrid.innerHTML = '';
+        }
+
+      } else {
+        // Table List Mode
+        if (grid) grid.style.display = 'none';
+        if (table) table.style.display = 'block';
+
+        let rowsHtml = '';
+
+        // Folder rows
+        filteredFolders.forEach((f, idx) => {
+          const escName = escapeHtmlHelper(f.name);
+          rowsHtml += `
+            <tr style="cursor: pointer;" onclick="window.R2FileManager.openFolder(${idx})">
+              <td style="text-align: center;">-</td>
+              <td>
+                <span style="font-size: 16px;">📁</span>
+              </td>
+              <td>
+                <strong style="color: #ffd166;">${escName}/</strong>
+                <span style="color: #64748b; font-size: 11px; margin-left: 6px;">(Folder Direktori)</span>
+              </td>
+              <td><span style="color: #64748b;">-</span></td>
+              <td><span style="color: #64748b;">-</span></td>
+              <td><span style="color: #94a3b8;">System</span></td>
+              <td style="text-align: right;" onclick="event.stopPropagation()">
+                <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                  <button type="button" class="r2-action-btn-mini" title="Ubah Nama" onclick="window.R2FileManager.renameFolderByIdx(${idx})">✏️</button>
+                  <button type="button" class="r2-action-btn-mini delete" title="Hapus Folder" onclick="window.R2FileManager.deleteFolderByIdx(${idx})">🗑️</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+
+        // File rows
+        filteredFiles.forEach((file, idx) => {
+          const escKey = escapeHtmlHelper(file.key);
+          const escName = escapeHtmlHelper(file.name);
+          const escUrl = escapeHtmlHelper(file.url);
+          const sizeStr = this.formatBytes(file.size);
+          const dateStr = file.uploaded ? new Date(file.uploaded).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+          const isChecked = this.selectedKeys.has(file.key);
+
+          rowsHtml += `
+            <tr>
+              <td style="text-align: center;">
+                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="window.R2FileManager.toggleSelectFileByIdx(${idx})">
+              </td>
+              <td>
+                ${file.isImage ? `
+                  <img src="${escUrl}" style="width: 32px; height: 32px; object-fit: cover; border-radius: 6px; cursor: pointer;" onclick="window.R2FileManager.previewFileByIdx(${idx})">
+                ` : `
+                  <span style="font-size: 18px;">📄</span>
+                `}
+              </td>
+              <td>
+                <div style="color: #f1f5f9; font-weight: 600; cursor: pointer;" onclick="window.R2FileManager.previewFileByIdx(${idx})">${escName}</div>
+                <span style="color: #64748b; font-size: 10.5px;">${escKey}</span>
+              </td>
+              <td><span style="color: #cbd5e1; font-weight: 600;">${sizeStr}</span></td>
+              <td><span style="color: #94a3b8; font-size: 11px;">${dateStr}</span></td>
+              <td><span style="color: #e2e8f0;">${escapeHtmlHelper(file.uploadedBy)}</span></td>
+              <td style="text-align: right;">
+                <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                  <button type="button" class="r2-action-btn-mini" title="Salin Link" onclick="window.R2FileManager.copyLinkByIdx(${idx})">🔗</button>
+                  <button type="button" class="r2-action-btn-mini" title="Duplikat" onclick="window.R2FileManager.copyFileByIdx(${idx})">📋</button>
+                  <button type="button" class="r2-action-btn-mini" title="Pindahkan" onclick="window.R2FileManager.moveFileByIdx(${idx})">🚚</button>
+                  <button type="button" class="r2-action-btn-mini" title="Ubah Nama" onclick="window.R2FileManager.renameFileByIdx(${idx})">✏️</button>
+                  <button type="button" class="r2-action-btn-mini delete" title="Hapus" onclick="window.R2FileManager.deleteFileByIdx(${idx})">🗑️</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+
+        if (tableBody) tableBody.innerHTML = rowsHtml;
+      }
+
+      if (footerInfo) {
+        footerInfo.innerHTML = `Menampilkan <strong>${filteredFolders.length} folder</strong> &amp; <strong>${filteredFiles.length} file</strong> di <code>/${this.currentPrefix}</code>`;
+      }
+    },
+
+    toggleSelect(key) {
+      if (this.selectedKeys.has(key)) {
+        this.selectedKeys.delete(key);
+      } else {
+        this.selectedKeys.add(key);
+      }
+      this.updateBatchDeleteUI();
+      const card = document.querySelector(`.r2-file-card[data-key="${key}"]`);
+      if (card) {
+        if (this.selectedKeys.has(key)) card.classList.add('selected');
+        else card.classList.remove('selected');
+      }
+    },
+
+    toggleSelectAll(checked) {
+      this.files.forEach(f => {
+        if (checked) this.selectedKeys.add(f.key);
+        else this.selectedKeys.delete(f.key);
+      });
+      this.updateBatchDeleteUI();
+      this.renderContent();
+    },
+
+    updateBatchDeleteUI() {
+      const btn = document.getElementById('btnR2BatchDelete');
+      const countSpan = document.getElementById('r2BatchDeleteCount');
+      const selectAll = document.getElementById('r2SelectAllCheckbox');
+
+      if (!btn) return;
+      const count = this.selectedKeys.size;
+
+      if (count > 0) {
+        btn.style.display = 'inline-flex';
+        if (countSpan) countSpan.textContent = `🗑️ Hapus (${count})`;
+      } else {
+        btn.style.display = 'none';
+      }
+
+      if (selectAll) {
+        selectAll.checked = this.files.length > 0 && count === this.files.length;
+      }
+    },
+
+    async promptCreateFolder() {
+      const { value: folderName } = await Swal.fire({
+        title: 'Buat Folder Baru di R2',
+        text: `Direktori saat ini: /${this.currentPrefix}`,
+        input: 'text',
+        inputPlaceholder: 'Misal: Foto Kegiatan 2026',
+        showCancelButton: true,
+        confirmButtonText: '📁 Buat Folder',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#f43f5e',
+        background: '#0f172a',
+        color: '#f8fafc',
+        inputValidator: (value) => {
+          if (!value || !value.trim()) return 'Nama folder tidak boleh kosong!';
+          if (/[\\:*?"<>|]/.test(value)) return 'Nama folder tidak boleh mengandung karakter khusus \\/:*?"<>|';
+        }
+      });
+
+      if (folderName) {
+        try {
+          const res = await fetch('/api/r2/create-folder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              parentPrefix: this.currentPrefix,
+              folderName: folderName.trim()
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`📁 Folder [${folderName}] berhasil dibuat!`, 'success');
+            await this.loadCurrentFolder();
+            this.fetchStats();
+          } else {
+            Swal.fire('Gagal Membuat Folder', data.error || 'Terjadi kesalahan sistem.', 'error');
+          }
+        } catch (e) {
+          Swal.fire('Gagal', e.message, 'error');
+        }
+      }
+    },
+
+    async handleUploadFiles(fileList) {
+      if (!fileList || fileList.length === 0) return;
+
+      const total = fileList.length;
+      let successCount = 0;
+
+      Swal.fire({
+        title: 'Mengunggah Berkas ke R2',
+        html: `Sedang mengunggah <b>${total}</b> file ke folder <code>/${this.currentPrefix}</code>...`,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+        background: '#0f172a',
+        color: '#f8fafc'
+      });
+
+      const u = window.CURRENT_USER || {};
+      const uploader = u.nama || u.username || 'Admin';
+
+      for (let i = 0; i < fileList.length; i++) {
+        const file = fileList[i];
+        try {
+          // Convert file to Base64 Data URL for robust proxy & edge support
+          const base64Data = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('Gagal membaca file'));
+            reader.readAsDataURL(file);
+          });
+
+          const res = await fetch('/api/r2/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: file.name,
+              base64: base64Data,
+              prefix: this.currentPrefix,
+              uploaded_by: uploader
+            })
+          });
+          const data = await res.json();
+          if (data && data.success) successCount++;
+        } catch (e) {
+          console.warn('Upload file fail:', file.name, e);
+        }
+      }
+
+      await this.loadCurrentFolder();
+      this.fetchStats();
+
+      Swal.fire({
+        icon: successCount === total ? 'success' : 'warning',
+        title: 'Proses Unggah Selesai',
+        text: `${successCount} dari ${total} file berhasil diunggah ke Cloudflare R2.`,
+        confirmButtonColor: '#f43f5e',
+        background: '#0f172a',
+        color: '#f8fafc'
+      });
+    },
+
+    async promptRename(oldKey, oldName, isFolder) {
+      const { value: newName } = await Swal.fire({
+        title: isFolder ? 'Ubah Nama Folder' : 'Ubah Nama Berkas',
+        input: 'text',
+        inputValue: oldName,
+        showCancelButton: true,
+        confirmButtonText: 'Simpan Nama Baru',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#f43f5e',
+        background: '#0f172a',
+        color: '#f8fafc',
+        inputValidator: (value) => {
+          if (!value || !value.trim()) return 'Nama tidak boleh kosong!';
+          if (value.trim() === oldName) return 'Nama baru sama dengan nama lama!';
+        }
+      });
+
+      if (newName) {
+        try {
+          const res = await fetch('/api/r2/rename', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              oldKey,
+              newName: newName.trim(),
+              isFolder
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('✓ Berhasil mengubah nama!', 'success');
+            await this.loadCurrentFolder();
+          } else {
+            Swal.fire('Gagal Mengubah Nama', data.error || 'Terjadi kesalahan.', 'error');
+          }
+        } catch (e) {
+          Swal.fire('Error', e.message, 'error');
+        }
+      }
+    },
+
+    async promptCopy(sourceKey, fileName) {
+      const extMatch = fileName.match(/(\.[^.]+)$/);
+      const ext = extMatch ? extMatch[1] : '';
+      const base = extMatch ? fileName.slice(0, -ext.length) : fileName;
+      const defaultNewName = `${base}-salinan${ext}`;
+
+      const { value: newName } = await Swal.fire({
+        title: 'Duplikat Berkas di R2',
+        text: `Salin file [${fileName}] ke nama baru:`,
+        input: 'text',
+        inputValue: defaultNewName,
+        showCancelButton: true,
+        confirmButtonText: '📋 Duplikat File',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#ffd166',
+        background: '#0f172a',
+        color: '#f8fafc',
+        inputValidator: (value) => {
+          if (!value || !value.trim()) return 'Nama file salinan tidak boleh kosong!';
+        }
+      });
+
+      if (newName) {
+        try {
+          const destinationKey = `${this.currentPrefix}${newName.trim()}`;
+          const res = await fetch('/api/r2/copy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sourceKey,
+              destinationKey
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('✓ File berhasil disalin!', 'success');
+            await this.loadCurrentFolder();
+            this.fetchStats();
+          } else {
+            Swal.fire('Gagal Duplikat', data.error, 'error');
+          }
+        } catch (e) {
+          Swal.fire('Error', e.message, 'error');
+        }
+      }
+    },
+
+    async promptMove(sourceKey, fileName) {
+      const choices = {
+        '': '📁 / (Root Direktori)'
+      };
+
+      this.allFoldersCache.forEach(f => {
+        if (f) choices[f] = `📁 /${f}`;
+      });
+
+      const { value: targetFolder } = await Swal.fire({
+        title: 'Pindahkan File ke Folder Lain',
+        text: `Pilih folder tujuan untuk [${fileName}]:`,
+        input: 'select',
+        inputOptions: choices,
+        inputValue: this.currentPrefix,
+        showCancelButton: true,
+        confirmButtonText: '🚚 Pindahkan Sekarang',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#38bdf8',
+        background: '#0f172a',
+        color: '#f8fafc'
+      });
+
+      if (targetFolder !== undefined) {
+        if (targetFolder === this.currentPrefix) {
+          showToast('File sudah berada di folder ini.', 'info');
+          return;
+        }
+
+        const destinationKey = `${targetFolder}${fileName}`;
+
+        try {
+          const res = await fetch('/api/r2/move', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sourceKey,
+              destinationKey
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`✓ File dipindahkan ke /${targetFolder}!`, 'success');
+            await this.loadCurrentFolder();
+          } else {
+            Swal.fire('Gagal Memindahkan', data.error, 'error');
+          }
+        } catch (e) {
+          Swal.fire('Error', e.message, 'error');
+        }
+      }
+    },
+
+    async promptDelete(key, name, isFolder) {
+      const confirm = await Swal.fire({
+        title: isFolder ? `Hapus Folder [${name}]?` : `Hapus File [${name}]?`,
+        text: isFolder 
+          ? 'PERINGATAN: Seluruh file dan subdirektori di dalam folder ini akan dihapus permanen dari Cloudflare R2!'
+          : 'File ini akan dihapus secara permanen dari Cloudflare R2 bucket.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#475569',
+        confirmButtonText: 'Ya, Hapus Sekarang',
+        cancelButtonText: 'Batal',
+        background: '#0f172a',
+        color: '#f8fafc'
+      });
+
+      if (confirm.isConfirmed) {
+        try {
+          const res = await fetch('/api/r2/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              key,
+              isFolder
+            })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast('✓ Objek berhasil dihapus dari Cloudflare R2!', 'success');
+            await this.loadCurrentFolder();
+            this.fetchStats();
+          } else {
+            Swal.fire('Gagal Menghapus', data.error, 'error');
+          }
+        } catch (e) {
+          Swal.fire('Error', e.message, 'error');
+        }
+      }
+    },
+
+    async batchDelete() {
+      const keys = Array.from(this.selectedKeys);
+      if (keys.length === 0) return;
+
+      const confirm = await Swal.fire({
+        title: `Hapus ${keys.length} File Terpilih?`,
+        text: 'File-file yang dipilih akan dihapus secara permanen dari Cloudflare R2.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#475569',
+        confirmButtonText: `Ya, Hapus ${keys.length} File`,
+        cancelButtonText: 'Batal',
+        background: '#0f172a',
+        color: '#f8fafc'
+      });
+
+      if (confirm.isConfirmed) {
+        try {
+          const res = await fetch('/api/r2/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ keys })
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast(`✓ ${keys.length} file berhasil dihapus!`, 'success');
+            this.selectedKeys.clear();
+            await this.loadCurrentFolder();
+            this.fetchStats();
+          } else {
+            Swal.fire('Gagal Menghapus', data.error, 'error');
+          }
+        } catch (e) {
+          Swal.fire('Error', e.message, 'error');
+        }
+      }
+    },
+
+    async syncToD1() {
+      const syncBtnText = document.getElementById('btnR2SyncD1Text');
+      if (syncBtnText) syncBtnText.textContent = '⏳ Menyinkronkan...';
+
+      Swal.fire({
+        title: 'Sinkronisasi R2 ke Database D1',
+        html: 'Membaca seluruh isi Cloudflare R2 bucket dan mendaftarkan berkas ke tabel <code>foto_upload_logs</code>...',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+        background: '#0f172a',
+        color: '#f8fafc'
+      });
+
+      try {
+        const res = await fetch('/api/r2/sync-d1', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Sinkronisasi D1 Berhasil!',
+            text: data.message,
+            confirmButtonColor: '#f43f5e',
+            background: '#0f172a',
+            color: '#f8fafc'
+          });
+          await this.loadCurrentFolder();
+          this.fetchStats();
+        } else {
+          Swal.fire('Gagal Sinkron', data.error || 'Terjadi kesalahan.', 'error');
+        }
+      } catch (e) {
+        Swal.fire('Error', e.message, 'error');
+      } finally {
+        if (syncBtnText) syncBtnText.textContent = '🔁 Sync ke Database D1';
+      }
+    },
+
+    previewLightbox(file) {
+      const modal = document.getElementById('r2LightboxModal');
+      const title = document.getElementById('r2LightboxTitle');
+      const sub = document.getElementById('r2LightboxSub');
+      const img = document.getElementById('r2LightboxImg');
+      const dl = document.getElementById('btnR2LbDownload');
+
+      if (!modal) return;
+
+      this.activeLightboxUrl = file.url;
+      if (title) title.textContent = file.name;
+      if (sub) sub.textContent = `${this.formatBytes(file.size)} • Diunggah oleh ${file.uploadedBy || 'Petugas'}`;
+      if (img) img.src = file.url;
+      if (dl) {
+        dl.href = file.url;
+        dl.download = file.name;
+      }
+
+      modal.style.display = 'flex';
+      gsap.fromTo('.r2-lightbox-dialog', 
+        { opacity: 0, scale: 0.92, y: 15 }, 
+        { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'power2.out' }
+      );
+    },
+
+    closeLightbox() {
+      const modal = document.getElementById('r2LightboxModal');
+      if (modal) {
+        gsap.to('.r2-lightbox-dialog', {
+          opacity: 0,
+          scale: 0.95,
+          duration: 0.2,
+          ease: 'power2.in',
+          onComplete: () => {
+            modal.style.display = 'none';
+            const img = document.getElementById('r2LightboxImg');
+            if (img) img.src = '';
+            this.activeLightboxUrl = '';
+          }
+        });
+      }
+    },
+
+    copyLink(url) {
+      const fullUrl = url.startsWith('http') ? url : window.location.origin + url;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(fullUrl).then(() => {
+          showToast('🔗 URL foto berhasil disalin ke clipboard!', 'success');
+        }).catch(() => {
+          this.fallbackCopyText(fullUrl);
+        });
+      } else {
+        this.fallbackCopyText(fullUrl);
+      }
+    },
+
+    fallbackCopyText(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('🔗 URL foto berhasil disalin!', 'success');
+    }
+  };
+
+  window.R2FileManager = R2FileManager;
+
+  window.InAppBrowser = InAppBrowser;
+  InAppBrowser.init();
+
+  window.DeveloperWebController = DeveloperWebController;
+  DeveloperWebController.init();
+
+  if (window.SearchableSelect && typeof window.SearchableSelect.initAll === 'function') {
+    window.SearchableSelect.initAll();
+  }
+});

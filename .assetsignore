@@ -1,0 +1,20 @@
+# Cloudflare Workers Static Assets Ignore File
+# Excludes server-side scripts, configuration, and internal files from being uploaded as public assets
+
+_worker.js
+_routes.json
+functions/
+functions/**
+wrangler.toml
+schema.sql
+server.ps1
+.agents/
+.agents/**
+.git/
+.git/**
+.gitignore
+.assetsignore
+README.md
+*.log
+Thumbs.db
+.DS_Store
