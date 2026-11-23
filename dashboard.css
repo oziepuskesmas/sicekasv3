@@ -15138,3 +15138,189 @@ body.theme-light .swal2-toast {
   background: rgba(255, 255, 255, 0.12) !important;
   color: #ffffff !important;
 }
+
+
+/* ==========================================================================
+   TP POL & EVIDENCE ENTERPRISE STYLING (DARK & LIGHT THEMES)
+   ========================================================================== */
+
+/* 1. Status Auto Save Badge */
+#tppolAutoSaveBadge {
+  display: none;
+  font-size: 11px;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  align-items: center;
+  gap: 5px;
+  transition: opacity 0.3s ease;
+}
+
+body.theme-light #tppolAutoSaveBadge {
+  color: #059669 !important;
+  background: #ecfdf5 !important;
+  border-color: #a7f3d0 !important;
+}
+
+/* 2. Top Bar Quick Save Hero Button */
+.btn-save-tppol-hero {
+  background: linear-gradient(135deg, #0d9488, #0f766e) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25) !important;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-save-tppol-hero:hover {
+  background: linear-gradient(135deg, #0f766e, #115e59) !important;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+/* 3. Evidence Floating Popover Light Theme Support */
+body.theme-light .evidence-floating-popover {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.16), 0 0 25px rgba(13, 148, 136, 0.12) !important;
+  color: #0f172a !important;
+}
+
+body.theme-light .evidence-popover-card-header {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+body.theme-light .evidence-title {
+  color: #0f172a !important;
+}
+
+body.theme-light .evidence-subtitle {
+  color: #64748b !important;
+}
+
+body.theme-light .evidence-popover-close-btn {
+  color: #64748b !important;
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+body.theme-light .evidence-popover-close-btn:hover {
+  color: #ef4444 !important;
+  background: #fee2e2 !important;
+  border-color: #fca5a5 !important;
+}
+
+body.theme-light .evidence-empty-box {
+  background: #f8fafc !important;
+  border: 1.5px dashed #cbd5e1 !important;
+}
+
+body.theme-light .evidence-empty-box svg {
+  color: #94a3b8 !important;
+}
+
+body.theme-light .evidence-empty-box div {
+  color: #64748b !important;
+}
+
+body.theme-light .evidence-item-card {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+body.theme-light .evidence-item-card:hover {
+  background: #ffffff !important;
+  border-color: #0d9488 !important;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.12) !important;
+}
+
+body.theme-light .evidence-file-icon {
+  background: #f0fdfa !important;
+  border: 1px solid #99f6e4 !important;
+  color: #0f766e !important;
+}
+
+body.theme-light .evidence-file-name {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+body.theme-light .evidence-file-desc {
+  color: #64748b !important;
+}
+
+body.theme-light .btn-preview-evidence {
+  background: #f0fdfa !important;
+  border: 1px solid #99f6e4 !important;
+  color: #0f766e !important;
+}
+
+body.theme-light .btn-preview-evidence:hover {
+  background: #0d9488 !important;
+  color: #ffffff !important;
+  border-color: #0d9488 !important;
+}
+
+body.theme-light .btn-gdrive-link {
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+body.theme-light .btn-gdrive-link:hover {
+  background: #f1f5f9 !important;
+  color: #0284c7 !important;
+  border-color: #7dd3fc !important;
+}
+
+body.theme-light .btn-delete-evidence {
+  background: #fef2f2 !important;
+  border: 1px solid #fecaca !important;
+  color: #dc2626 !important;
+}
+
+body.theme-light .btn-delete-evidence:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-color: #dc2626 !important;
+}
+
+/* 4. Document Viewer Light Theme Enhancements */
+body.theme-light .docviewer-frame-wrapper {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+body.theme-light .btn-viewer-action {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+body.theme-light .btn-viewer-action:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
+body.theme-light .btn-viewer-orient {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+body.theme-light .btn-viewer-orient:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+body.theme-light .viewer-keterangan-info {
+  color: #475569 !important;
+}
+
+body.theme-light .viewer-keterangan-val {
+  color: #0f172a !important;
+}

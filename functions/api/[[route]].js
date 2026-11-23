@@ -1301,13 +1301,14 @@ async function handleApiRequest(request, env, ctx) {
 
     // ------------------------------------------------------------------------
     // ------------------------------------------------------------------------
-    // 6. TP POL JASPEL (/api/tppol, /api/tppol/save)
+    // 6. TP POL JASPEL (/api/tppol, /api/tppol/save, /api/tppol/evidence)
     // ------------------------------------------------------------------------
     if (pathname === '/api/tppol' && method === 'GET') {
       try {
         const bulan = url.searchParams.get('bulan');
         const tahun = url.searchParams.get('tahun');
         const nip = url.searchParams.get('nip');
+        const nama = url.searchParams.get('nama');
 
         let query = 'SELECT * FROM tppol_jaspel WHERE 1=1';
         const params = [];
@@ -1317,11 +1318,16 @@ async function handleApiRequest(request, env, ctx) {
           params.push(parseInt(bulan), parseInt(tahun));
         }
         if (nip) {
-          query += ' AND (petugas_nip = ? OR petugas_nip LIKE ?)';
-          params.push(nip, `%${nip}%`);
+          const cleanNip = nip.replace(/[\s.]+/g, '');
+          query += " AND (REPLACE(REPLACE(petugas_nip, ' ', ''), '.', '') = ? OR petugas_nip = ? OR petugas_nip LIKE ?)";
+          params.push(cleanNip, nip, `%${cleanNip}%`);
+        }
+        if (nama) {
+          query += ' AND (petugas_nama = ? OR petugas_nama LIKE ?)';
+          params.push(nama, `%${nama}%`);
         }
 
-        query += ' ORDER BY created_at DESC';
+        query += ' ORDER BY updated_at DESC, created_at DESC';
         const { results } = await db.prepare(query).bind(...params).all();
         
         const cleanResults = (results || []).map(r => {
@@ -1340,7 +1346,8 @@ async function handleApiRequest(request, env, ctx) {
     if (pathname === '/api/tppol/save' && method === 'POST') {
       try {
         const item = await request.json();
-        const id = item.id || `tppol-${item.petugas_nip || 'user'}-${item.bulan || '0'}-${item.tahun || '2026'}`;
+        const nipClean = String(item.petugas_nip || item.nip || '').replace(/[\s.]+/g, '');
+        const id = item.id || `tppol-${nipClean || 'user'}-${item.bulan || '0'}-${item.tahun || '2026'}`;
         const bulan = parseInt(item.bulan) || (new Date().getMonth() + 1);
         const tahun = parseInt(item.tahun) || new Date().getFullYear();
         const formDataStr = typeof item.form_data === 'object' ? JSON.stringify(item.form_data) : (item.form_data || '');
@@ -1411,7 +1418,7 @@ async function handleApiRequest(request, env, ctx) {
             item.status_verifikasi || 'Terverifikasi'
           ).run();
         } catch (insertErr) {
-          // Fallback if form_data is still blocked: store in catatan column
+          // Fallback if form_data is blocked: store in catatan column
           await db.prepare(`
             INSERT INTO tppol_jaspel (id, bulan, tahun, petugas_nip, petugas_nama, petugas_jabatan, skor_kehadiran, skor_pelayanan, skor_administrasi, skor_perilaku, total_skor, catatan, status_verifikasi, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
@@ -1446,6 +1453,93 @@ async function handleApiRequest(request, env, ctx) {
         }
 
         return jsonResponse({ success: true, message: 'Scoring TP POL berhasil disimpan ke Cloudflare D1!', id });
+      } catch (err) {
+        return jsonResponse({ success: false, error: err.message }, 500);
+      }
+    }
+
+    // TP POL EVIDENCE CLOUD SYNC (/api/tppol/evidence)
+    if (pathname === '/api/tppol/evidence' && method === 'GET') {
+      try {
+        const bulan = parseInt(url.searchParams.get('bulan')) || (new Date().getMonth() + 1);
+        const tahun = parseInt(url.searchParams.get('tahun')) || new Date().getFullYear();
+        const nip = url.searchParams.get('nip') || '';
+        const nama = url.searchParams.get('nama') || '';
+        const cleanNip = nip.replace(/[\s.]+/g, '');
+
+        let query = 'SELECT form_data FROM tppol_jaspel WHERE bulan = ? AND tahun = ?';
+        const params = [bulan, tahun];
+        if (cleanNip) {
+          query += " AND (REPLACE(REPLACE(petugas_nip, ' ', ''), '.', '') = ? OR petugas_nip LIKE ?)";
+          params.push(cleanNip, `%${cleanNip}%`);
+        } else if (nama) {
+          query += " AND (petugas_nama = ? OR petugas_nama LIKE ?)";
+          params.push(nama, `%${nama}%`);
+        }
+        query += ' ORDER BY updated_at DESC LIMIT 1';
+
+        const record = await db.prepare(query).bind(...params).first();
+        let evidenceList = [];
+        if (record && record.form_data) {
+          try {
+            const parsed = typeof record.form_data === 'string' ? JSON.parse(record.form_data) : record.form_data;
+            if (Array.isArray(parsed.evidenceList)) {
+              evidenceList = parsed.evidenceList;
+            }
+          } catch (e) {}
+        }
+        return jsonResponse({ success: true, total: evidenceList.length, data: evidenceList });
+      } catch (err) {
+        return jsonResponse({ success: false, error: err.message }, 500);
+      }
+    }
+
+    if (pathname === '/api/tppol/evidence' && method === 'POST') {
+      try {
+        const body = await request.json();
+        const bulan = parseInt(body.bulan) || (new Date().getMonth() + 1);
+        const tahun = parseInt(body.tahun) || new Date().getFullYear();
+        const nip = body.petugas_nip || body.nip || '';
+        const cleanNip = nip.replace(/[\s.]+/g, '');
+        const nama = body.petugas_nama || body.nama || '';
+        const jabatan = body.petugas_jabatan || body.jabatan || 'Petugas Puskesmas';
+        const evidenceList = Array.isArray(body.evidenceList) ? body.evidenceList : [];
+
+        // Check if existing record exists
+        let query = 'SELECT id, form_data FROM tppol_jaspel WHERE bulan = ? AND tahun = ?';
+        const params = [bulan, tahun];
+        if (cleanNip) {
+          query += " AND (REPLACE(REPLACE(petugas_nip, ' ', ''), '.', '') = ? OR petugas_nip LIKE ?)";
+          params.push(cleanNip, `%${cleanNip}%`);
+        } else if (nama) {
+          query += " AND (petugas_nama = ? OR petugas_nama LIKE ?)";
+          params.push(nama, `%${nama}%`);
+        }
+        query += ' ORDER BY updated_at DESC LIMIT 1';
+
+        const existing = await db.prepare(query).bind(...params).first();
+        let updatedFormData = {};
+        let recordId = existing ? existing.id : `tppol-${cleanNip || encodeURIComponent(nama)}-${bulan}-${tahun}`;
+
+        if (existing && existing.form_data) {
+          try {
+            updatedFormData = typeof existing.form_data === 'string' ? JSON.parse(existing.form_data) : existing.form_data;
+          } catch (e) {}
+        }
+        updatedFormData.evidenceList = evidenceList;
+        updatedFormData.lastEvidenceUpdate = new Date().toISOString();
+
+        if (existing) {
+          await db.prepare('UPDATE tppol_jaspel SET form_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+            .bind(JSON.stringify(updatedFormData), existing.id).run();
+        } else {
+          await db.prepare(`
+            INSERT INTO tppol_jaspel (id, bulan, tahun, petugas_nip, petugas_nama, petugas_jabatan, form_data, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+          `).bind(recordId, bulan, tahun, nip, nama, jabatan, JSON.stringify(updatedFormData)).run();
+        }
+
+        return jsonResponse({ success: true, message: 'Evidence list berhasil disinkronisasi ke Cloudflare D1!', total: evidenceList.length });
       } catch (err) {
         return jsonResponse({ success: false, error: err.message }, 500);
       }

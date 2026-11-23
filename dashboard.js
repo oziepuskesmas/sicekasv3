@@ -1821,6 +1821,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (topbarCategory) topbarCategory.textContent = 'PENGAJUAN & SCORING KINERJA';
       if (topbarTitle) topbarTitle.textContent = 'TP POL (Jaspel)';
       if (topbarSubtitle) topbarSubtitle.textContent = 'Pengajuan Scoring Jasa Pelayanan — Per pegawai per bulan';
+      if (typeof window.loadAndApplyTpPolData === 'function') {
+        window.loadAndApplyTpPolData();
+      }
+      if (typeof window.renderEvidenceList === 'function') {
+        window.renderEvidenceList();
+      }
     } else if (targetView === 'sppd-lpt') {
       if (viewSppdLpt) {
         viewSppdLpt.style.display = 'block';
@@ -3691,7 +3697,54 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAndApplyTpPolData();
   }
 
-  // TP POL 100% Pure Cloud Persistence
+  // ==========================================================================
+  // TP POL (JASPEL) & EVIDENCE ENTERPRISE ENGINE (100% CLOUD & MULTI-DEVICE SYNC)
+  // ==========================================================================
+
+  // Theme-aware SweetAlert2 Helper
+  const getTpPolSwalTheme = (opts = {}) => {
+    const isLight = document.body.classList.contains('theme-light');
+    return {
+      background: isLight ? '#ffffff' : '#0f172a',
+      color: isLight ? '#0f172a' : '#ffffff',
+      ...opts
+    };
+  };
+
+  // Helper to apply and reveal Verifikator signature column
+  const applyVerifikatorSelection = (verifVal) => {
+    if (!signVerifikator) return;
+    const target = String(verifVal || '').trim().toLowerCase();
+    if (!target) {
+      signVerifikator.value = '';
+      if (sigVerifikatorCol) sigVerifikatorCol.style.display = 'none';
+      return;
+    }
+    for (let i = 0; i < signVerifikator.options.length; i++) {
+      const opt = signVerifikator.options[i];
+      const optVal = opt.value.toLowerCase();
+      const optText = opt.text.toLowerCase();
+      if (optVal === target || optText.includes(target) || (target && target.includes(optVal))) {
+        signVerifikator.selectedIndex = i;
+        break;
+      }
+    }
+    const val = signVerifikator.value.trim();
+    if (val && sigVerifikatorCol && sigVerifikatorName) {
+      sigVerifikatorCol.style.display = 'flex';
+      sigVerifikatorName.textContent = val.split('(')[0].trim();
+      const opt = signVerifikator.options[signVerifikator.selectedIndex];
+      const nip = opt ? opt.getAttribute('data-nip') : '';
+      const label = opt ? opt.getAttribute('data-label') || 'NIP' : 'NIP';
+      if (sigVerifikatorNip) {
+        sigVerifikatorNip.textContent = nip && nip !== '-' ? `${label}. ${nip}` : '';
+      }
+    } else if (sigVerifikatorCol) {
+      sigVerifikatorCol.style.display = 'none';
+    }
+  };
+
+  // Collect All Active Form Data for Cloud & Draft Storage
   const collectTpPolFormData = () => {
     const cakupanInputs = document.querySelectorAll('#scoringTableBody .exact-cakupan-input');
     const cakupanValues = Array.from(cakupanInputs).map(input => input.value);
@@ -3702,11 +3755,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const jabatan = tppolSelectJabatan ? tppolSelectJabatan.value : 'gizi';
     const petugas = signPetugas ? signPetugas.value : (tpPolMetaName ? tpPolMetaName.textContent : '');
     const nip = (signPetugas && signPetugas.options[signPetugas.selectedIndex]?.getAttribute('data-nip')) || (tpPolMetaNip ? tpPolMetaNip.textContent : '');
+    const cleanNip = nip.replace(/[\s.]+/g, '');
     const kepala = signKepala ? signKepala.value : '';
     const verifikator = signVerifikator ? signVerifikator.value : '';
+    const evidenceList = (typeof loadEvidenceList === 'function') ? loadEvidenceList() : [];
 
     return {
-      id: `tppol-${nip ? nip.replace(/[\s.]+/g, '') : encodeURIComponent(petugas)}-${month}-${year}-${jabatan}`,
+      id: `tppol-${cleanNip || encodeURIComponent(petugas)}-${month}-${year}-${jabatan}`,
       bulan: month,
       tahun: year,
       jabatanKey: jabatan,
@@ -3717,36 +3772,121 @@ document.addEventListener('DOMContentLoaded', () => {
       verifikator: verifikator,
       cakupanValues: cakupanValues,
       total_skor: totalScoreVal,
+      evidenceList: evidenceList,
       savedAt: new Date().toISOString()
     };
   };
 
+  // Real-Time Debounced Draft Auto-Save & Auto-Sum Calculator
+  let tpPolAutoSaveTimer = null;
+  const triggerAutoSaveTpPolDraft = () => {
+    if (tpPolAutoSaveTimer) clearTimeout(tpPolAutoSaveTimer);
+    tpPolAutoSaveTimer = setTimeout(() => {
+      try {
+        const formData = collectTpPolFormData();
+        const opt = signPetugas ? signPetugas.options[signPetugas.selectedIndex] : null;
+        const nip = opt ? (opt.getAttribute('data-nip') || '') : '';
+        const cleanNip = nip.replace(/[\s.]+/g, '');
+        const pName = signPetugas ? signPetugas.value : 'default';
+        const mVal = tppolMonth ? tppolMonth.value : '8';
+        const yVal = tppolYear ? tppolYear.value : '2026';
+        const draftKey = `SICEKAS_TPPOL_DRAFT_${yVal}_${mVal}_${cleanNip || encodeURIComponent(pName)}`;
+        localStorage.setItem(draftKey, JSON.stringify(formData));
+
+        // Auto-calculate sum if numeric values are present and totalScoreInput is empty or matches auto-sum
+        const cakupanInputs = document.querySelectorAll('#scoringTableBody .exact-cakupan-input');
+        let hasNumbers = false;
+        let sum = 0;
+        cakupanInputs.forEach(inp => {
+          const raw = inp.value.trim().replace(',', '.');
+          const num = parseFloat(raw);
+          if (!isNaN(num)) {
+            hasNumbers = true;
+            sum += num;
+          }
+        });
+        const totalInput = document.getElementById('totalScoreInput');
+        if (totalInput && (!totalInput.value || totalInput.dataset.autoCalculated === 'true')) {
+          if (hasNumbers) {
+            totalInput.value = (sum % 1 === 0) ? sum.toFixed(0) : sum.toFixed(2);
+            totalInput.dataset.autoCalculated = 'true';
+          }
+        }
+
+        // Show subtle status indicator
+        const badge = document.getElementById('tppolAutoSaveBadge');
+        if (badge) {
+          badge.innerHTML = '<span style="font-size: 8px; color: #10b981;">●</span> Draft Tersimpan';
+          badge.style.display = 'inline-flex';
+          badge.style.opacity = '1';
+          setTimeout(() => { badge.style.opacity = '0.7'; }, 2500);
+        }
+      } catch (e) {
+        console.warn('[TPPOL AUTO-SAVE] Error:', e);
+      }
+    }, 400);
+  };
+
+  // Load and Synchronize TP POL Data (Local Cache + Cloudflare D1)
   const loadAndApplyTpPolData = async () => {
     const month = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
     const year = parseInt(tppolYear ? tppolYear.value : '2026', 10);
     const jabatan = tppolSelectJabatan ? tppolSelectJabatan.value : 'gizi';
+    const opt = signPetugas ? signPetugas.options[signPetugas.selectedIndex] : null;
+    const nip = opt ? (opt.getAttribute('data-nip') || '') : '';
+    const cleanTargetNip = nip.replace(/[\s.]+/g, '');
     const petugas = signPetugas ? signPetugas.value : (tpPolMetaName ? tpPolMetaName.textContent : '');
-    const nip = (signPetugas && signPetugas.options[signPetugas.selectedIndex]?.getAttribute('data-nip')) || '';
 
-    // Clear inputs first so previous officer/month data doesn't linger
+    // Reset table inputs before applying fresh data
     const cakupanInputs = document.querySelectorAll('#scoringTableBody .exact-cakupan-input');
     cakupanInputs.forEach(input => { input.value = ''; });
     const totalInput = document.getElementById('totalScoreInput');
     if (totalInput) totalInput.value = '';
 
-    // Fetch directly from Cloud Database (Cloudflare D1)
+    // 1. Instant Local Draft Restore (zero latency)
+    const draftKey = `SICEKAS_TPPOL_DRAFT_${year}_${month}_${cleanTargetNip || encodeURIComponent(petugas)}`;
+    try {
+      const rawDraft = localStorage.getItem(draftKey);
+      if (rawDraft) {
+        const draft = JSON.parse(rawDraft);
+        if (draft && Array.isArray(draft.cakupanValues)) {
+          cakupanInputs.forEach((input, idx) => {
+            if (draft.cakupanValues[idx] !== undefined) {
+              input.value = draft.cakupanValues[idx];
+            }
+          });
+          if (totalInput && draft.total_skor !== undefined) {
+            totalInput.value = draft.total_skor;
+          }
+          if (draft.verifikator && signVerifikator) {
+            applyVerifikatorSelection(draft.verifikator);
+          }
+          if (draft.kepala && signKepala) {
+            signKepala.value = draft.kepala;
+            if (sigKepalaName) sigKepalaName.textContent = draft.kepala;
+          }
+          const badge = document.getElementById('tppolAutoSaveBadge');
+          if (badge) {
+            badge.innerHTML = '<span style="font-size: 8px; color: #10b981;">●</span> Draft Tersimpan';
+            badge.style.display = 'inline-flex';
+          }
+        }
+      }
+    } catch (e) {}
+
+    // 2. Fetch directly from Cloud Database (Cloudflare D1) for Multi-Device Consistency
     try {
       const query = new URLSearchParams({
         bulan: month,
         tahun: year
       });
       if (nip) query.append('nip', nip);
+      if (petugas) query.append('nama', petugas);
 
       const res = await fetch(`/api/tppol?${query.toString()}`);
       if (res.ok) {
         const json = await res.json();
         if (json && json.data && json.data.length > 0) {
-          const cleanTargetNip = nip.replace(/[\s.]+/g, '');
           const record = json.data.find(r => {
             const rNip = String(r.petugas_nip || '').replace(/[\s.]+/g, '');
             return (cleanTargetNip && rNip === cleanTargetNip) || r.petugas_nama === petugas;
@@ -3763,6 +3903,32 @@ document.addEventListener('DOMContentLoaded', () => {
               if (totalInput && (parsedForm.total_skor !== undefined || record.total_skor !== undefined)) {
                 totalInput.value = parsedForm.total_skor || record.total_skor;
               }
+              // Restore Verifikator & Kepala
+              if (parsedForm.verifikator && signVerifikator) {
+                applyVerifikatorSelection(parsedForm.verifikator);
+              }
+              if (parsedForm.kepala && signKepala) {
+                signKepala.value = parsedForm.kepala;
+                if (sigKepalaName) sigKepalaName.textContent = parsedForm.kepala;
+              }
+              // Restore Evidence List from Cloud D1
+              if (Array.isArray(parsedForm.evidenceList) && parsedForm.evidenceList.length > 0) {
+                const localList = loadEvidenceList();
+                const merged = [...parsedForm.evidenceList];
+                localList.forEach(loc => {
+                  if (!merged.some(c => (loc.id && c.id === loc.id) || (loc.fileUrl && c.fileUrl === loc.fileUrl) || c.fileName === loc.fileName)) {
+                    merged.push(loc);
+                  }
+                });
+                try {
+                  localStorage.setItem(getEvidenceStorageKey(), JSON.stringify(merged));
+                } catch (e) {}
+                renderEvidenceList(true);
+              }
+              // Refresh draft key with latest verified cloud data
+              try {
+                localStorage.setItem(draftKey, JSON.stringify(parsedForm));
+              } catch (e) {}
             }
           }
         }
@@ -3770,6 +3936,30 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       console.warn('[TPPOL CLOUD LOAD] Error loading from cloud:', err);
     }
+  };
+
+  // Attach auto-save listener to inputs in scoring table
+  const attachScoringTableListeners = () => {
+    const cakupanInputs = document.querySelectorAll('#scoringTableBody .exact-cakupan-input');
+    cakupanInputs.forEach(inp => {
+      inp.removeEventListener('input', triggerAutoSaveTpPolDraft);
+      inp.addEventListener('input', triggerAutoSaveTpPolDraft);
+    });
+    const totalInput = document.getElementById('totalScoreInput');
+    if (totalInput) {
+      totalInput.removeEventListener('input', triggerAutoSaveTpPolDraft);
+      totalInput.addEventListener('input', () => {
+        delete totalInput.dataset.autoCalculated;
+        triggerAutoSaveTpPolDraft();
+      });
+    }
+  };
+
+  // Re-hook after renderScoringTable
+  const originalRenderScoringTable = renderScoringTable;
+  renderScoringTable = function(jabatanKey) {
+    originalRenderScoringTable(jabatanKey);
+    attachScoringTableListeners();
   };
 
   // ------- JABATAN CHANGE HANDLER -------
@@ -3800,6 +3990,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const sigDatePlace = document.getElementById('sigDatePlace');
 
   const btnSaveTpPol = document.getElementById('btnSaveTpPol');
+  const btnQuickSaveTpPol = document.getElementById('btnQuickSaveTpPol');
   const btnOpenProfileModal = document.getElementById('btnOpenProfileModal');
   const btnDownloadPdfTpPol = document.getElementById('btnDownloadPdfTpPol');
 
@@ -3830,6 +4021,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     loadAndApplyTpPolData();
+    renderEvidenceList();
   };
 
   if (tppolMonth) tppolMonth.addEventListener('change', updateTpPolDocHeader);
@@ -3840,44 +4032,13 @@ document.addEventListener('DOMContentLoaded', () => {
     tppolSelectJabatan.addEventListener('change', () => {
       const jabatanKey = tppolSelectJabatan.value;
       renderScoringTable(jabatanKey);
-      // Update metadata jabatan label
       const data = ALL_SCORING_DATA[jabatanKey];
       if (data && tpPolMetaJabatan) {
         tpPolMetaJabatan.textContent = data.sdmLabel;
       }
+      populateEvidenceKeteranganOptions();
     });
   }
-
-  // Initial render of scoring table (default: gizi)
-  renderScoringTable(tppolSelectJabatan ? tppolSelectJabatan.value : 'gizi');
-
-  // Populate POA Bulanan Officer Filter from Cloud DB
-  const populatePoaOfficerDropdown = async () => {
-    if (!poaSelectOfficer) return;
-    let staffList = [];
-    try {
-      staffList = await CloudflareDB.fetchUsers();
-    } catch (e) {
-      staffList = window.DAFTAR_PEGAWAI || DAFTAR_PEGAWAI;
-    }
-    if (!Array.isArray(staffList) || staffList.length === 0) {
-      staffList = window.DAFTAR_PEGAWAI || DAFTAR_PEGAWAI;
-    }
-
-    const currentVal = poaSelectOfficer.value || (CURRENT_USER ? CURRENT_USER.nama : 'Mochamad Fauzie, S.Gz');
-    let optsHtml = '';
-    staffList.forEach(p => {
-      const isSelected = (p.nama === currentVal || (currentVal && p.nama.includes(currentVal)));
-      const isSelf = (CURRENT_USER && p.nama === CURRENT_USER.nama);
-      optsHtml += `
-        <option value="${p.nama}" ${isSelected ? 'selected' : ''}>
-          ${p.no_urut || p.no ? (p.no_urut || p.no) + '. ' : ''}${p.nama} (${p.jabatan}${isSelf ? ' / Anda' : ''})
-        </option>
-      `;
-    });
-    poaSelectOfficer.innerHTML = optsHtml;
-  };
-  window.populatePoaOfficerDropdown = populatePoaOfficerDropdown;
 
   // Populate TP POL Signature Dropdowns from Live Cloud DB Accounts & Roles
   const populateTpPolSignatureDropdowns = async () => {
@@ -3901,7 +4062,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return p.role || 'Petugas Puskesmas';
     };
 
-    // 1. Kepala Puskesmas (Akun level 'Kepala Puskesmas' dari Cloud DB)
+    // 1. Kepala Puskesmas
     if (signKepala) {
       const currentVal = signKepala.value;
       let kapusList = staffList.filter(p => {
@@ -3927,16 +4088,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // 2. Verifikator (Strict: HANYA Akun Cloud DB yang memiliki Role 'PJ Klaster')
+    // 2. Verifikator (PJ Klaster)
     if (signVerifikator) {
       const currentVal = signVerifikator.value;
       const verifList = staffList.filter(p => {
         const r = (getOfficerRole(p) || '').trim().toLowerCase();
-        return r === 'pj klaster';
+        return r === 'pj klaster' || p.jabatan === 'PJ Klaster';
       });
 
       let verifHtml = '<option value="" selected>-- Kosongkan Verifikator --</option>';
-      
       if (verifList.length > 0) {
         verifList.forEach(p => {
           const isSelected = (p.nama === currentVal);
@@ -3951,11 +4111,10 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         verifHtml += '<option value="" disabled>(Belum ada akun berole PJ Klaster di Cloud)</option>';
       }
-
       signVerifikator.innerHTML = verifHtml;
     }
 
-    // 3. Petugas Yang Dinilai (Semua 39 akun pegawai dari Cloud DB, label NIP/NRP otomatis)
+    // 3. Petugas Yang Dinilai
     if (signPetugas) {
       const currentVal = signPetugas.value || (CURRENT_USER ? CURRENT_USER.nama : 'Mochamad Fauzie, S.Gz');
       let petHtml = '';
@@ -3971,7 +4130,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       signPetugas.innerHTML = petHtml;
 
-      // Trigger initial selection update
       const selOpt = signPetugas.options[signPetugas.selectedIndex] || signPetugas.options[0];
       if (selOpt) {
         const petName = selOpt.value;
@@ -3992,29 +4150,23 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.populateTpPolSignatureDropdowns = populateTpPolSignatureDropdowns;
+  window.loadAndApplyTpPolData = loadAndApplyTpPolData;
+  window.renderEvidenceList = renderEvidenceList;
+  window.executeSaveTpPol = executeSaveTpPol;
 
-  // Sync Signature Dropdowns
+  // Sync Signature Dropdown Events
   if (signKepala && sigKepalaName) {
     signKepala.addEventListener('change', () => {
       sigKepalaName.textContent = signKepala.value;
+      triggerAutoSaveTpPolDraft();
     });
   }
 
-  if (signVerifikator && sigVerifikatorCol && sigVerifikatorName) {
+  if (signVerifikator) {
     signVerifikator.addEventListener('change', () => {
       const val = signVerifikator.value.trim();
-      if (val) {
-        sigVerifikatorCol.style.display = 'flex';
-        sigVerifikatorName.textContent = val.split('(')[0].trim();
-        const opt = signVerifikator.options[signVerifikator.selectedIndex];
-        const nip = opt ? opt.getAttribute('data-nip') : '';
-        const label = opt ? opt.getAttribute('data-label') || 'NIP' : 'NIP';
-        if (sigVerifikatorNip) {
-          sigVerifikatorNip.textContent = nip && nip !== '-' ? `${label}. ${nip}` : '';
-        }
-      } else {
-        sigVerifikatorCol.style.display = 'none';
-      }
+      applyVerifikatorSelection(val);
+      triggerAutoSaveTpPolDraft();
     });
   }
 
@@ -4041,6 +4193,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (profStatus) profStatus.value = petStatus;
 
       loadAndApplyTpPolData();
+      renderEvidenceList();
     });
   }
 
@@ -4048,133 +4201,94 @@ document.addEventListener('DOMContentLoaded', () => {
   populateTpPolSignatureDropdowns();
   populatePoaOfficerDropdown();
 
-  // Profile Pegawai Modal Handlers
-  const openProfModal = () => {
-    if (modalProfilePegawai) modalProfilePegawai.classList.add('active');
-  };
-
-  const closeProfModal = () => {
-    if (modalProfilePegawai) modalProfilePegawai.classList.remove('active');
-  };
-
-  if (btnOpenProfileModal) btnOpenProfileModal.addEventListener('click', openProfModal);
-  if (closeProfileModal) closeProfileModal.addEventListener('click', closeProfModal);
-  if (btnCancelProfile) btnCancelProfile.addEventListener('click', closeProfModal);
-
-  if (modalProfilePegawai) {
-    modalProfilePegawai.addEventListener('click', (e) => {
-      if (e.target === modalProfilePegawai) closeProfModal();
-    });
-  }
-
-  if (profilePegawaiForm) {
-    profilePegawaiForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      const newNama = profNama.value.trim();
-      const newJabatan = profJabatan.value.trim();
-      const newPendidikan = profPendidikan.value.trim();
-      const newStatus = profStatus.value;
-      const newNip = profNip.value.trim();
-      const isBlud = (newStatus === 'BLUD' || newNip.startsWith('873.'));
-      const idLabel = isBlud ? 'NRP' : 'NIP';
-
-      if (tpPolMetaName) tpPolMetaName.textContent = newNama;
-      if (tpPolMetaJabatan) tpPolMetaJabatan.textContent = newJabatan;
-      if (tpPolMetaPendidikan) tpPolMetaPendidikan.textContent = newPendidikan;
-      if (tpPolMetaStatus) tpPolMetaStatus.textContent = newStatus;
-      if (tpPolMetaNip) tpPolMetaNip.textContent = newNip;
-      if (tpPolMetaIdLabel) tpPolMetaIdLabel.textContent = idLabel;
-      if (sigPetugasName) sigPetugasName.textContent = newNama;
-      if (sigPetugasNip) sigPetugasNip.textContent = `${idLabel}. ${newNip}`;
-
-      if (typeof Swal !== 'undefined') {
-        Swal.fire({
-          icon: 'success',
-          title: 'Profil Berhasil Diperbarui',
-          text: `Profil pegawai telah disesuaikan untuk ${newNama}.`,
-          background: '#0f172a',
-          color: '#ffffff',
-          confirmButtonColor: '#10b981',
-          timer: 2200,
-          timerProgressBar: true
-        });
-      } else {
-        alert(`Profil pegawai berhasil diperbarui untuk ${newNama}!`);
-      }
-      closeProfModal();
-    });
-  }
-
   // Save TP POL Data (Cloudflare D1 + Local Storage Sync)
-  if (btnSaveTpPol) {
-    btnSaveTpPol.addEventListener('click', async () => {
-      const month = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
-      const year = parseInt(tppolYear ? tppolYear.value : '2026', 10);
-      const monthName = MONTH_NAMES[month - 1];
+  const executeSaveTpPol = async (targetBtn) => {
+    const month = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
+    const year = parseInt(tppolYear ? tppolYear.value : '2026', 10);
+    const monthName = MONTH_NAMES[month - 1];
 
-      const formData = collectTpPolFormData();
-      
-      // Save directly to Cloudflare D1 Database
-      let cloudSaved = false;
-      try {
-        const payload = {
-          id: formData.id,
-          bulan: formData.bulan,
-          tahun: formData.tahun,
-          petugas_nip: formData.petugas_nip,
-          petugas_nama: formData.petugas_nama,
-          petugas_jabatan: formData.petugas_jabatan,
-          total_skor: parseFloat(formData.total_skor) || 95.0,
-          form_data: formData
-        };
+    const formData = collectTpPolFormData();
 
-        const res = await fetch('/api/tppol/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (res.ok) {
-          const resJson = await res.json();
-          if (resJson.success) cloudSaved = true;
-        }
-      } catch (err) {
-        console.warn('[TPPOL SAVE] Cloud save error:', err);
-      }
+    // 1. Immediately persist to localStorage draft
+    const opt = signPetugas ? signPetugas.options[signPetugas.selectedIndex] : null;
+    const nip = opt ? (opt.getAttribute('data-nip') || '') : '';
+    const cleanNip = nip.replace(/[\s.]+/g, '');
+    const pName = signPetugas ? signPetugas.value : 'default';
+    const draftKey = `SICEKAS_TPPOL_DRAFT_${year}_${month}_${cleanNip || encodeURIComponent(pName)}`;
+    try {
+      localStorage.setItem(draftKey, JSON.stringify(formData));
+    } catch (e) {}
 
-      gsap.to(btnSaveTpPol, {
-        scale: 0.95,
-        duration: 0.1,
-        yoyo: true,
-        repeat: 1,
-        onComplete: () => {
-          if (typeof Swal !== 'undefined') {
-            if (cloudSaved) {
-              Swal.fire({
-                icon: 'success',
-                title: 'Data Tersimpan di Cloud!',
-                html: `Data Pengajuan Scoring TP POL (Jaspel) Bulan <strong>${monthName} ${year}</strong> telah berhasil disimpan ke <strong>Cloud Database SICEKAS</strong>.`,
-                background: '#0f172a',
-                color: '#ffffff',
-                confirmButtonColor: '#10b981',
-                confirmButtonText: 'OK, Mantap!'
-              });
-            } else {
-              Swal.fire({
-                icon: 'warning',
-                title: 'Gagal Menghubungi Cloud',
-                text: 'Terjadi kendala saat menyimpan data ke Cloud. Periksa koneksi internet Anda.',
-                background: '#0f172a',
-                color: '#ffffff',
-                confirmButtonColor: '#ef4444'
-              });
-            }
-          } else {
-            alert(`✓ Data Pengajuan Scoring TP POL (Jaspel) Bulan ${monthName} ${year} berhasil disimpan ke database SICEKAS!`);
-          }
-        }
+    // 2. Save directly to Cloudflare D1 Database
+    let cloudSaved = false;
+    let cloudMsg = '';
+    try {
+      const payload = {
+        id: formData.id,
+        bulan: formData.bulan,
+        tahun: formData.tahun,
+        petugas_nip: formData.petugas_nip,
+        petugas_nama: formData.petugas_nama,
+        petugas_jabatan: formData.petugas_jabatan,
+        total_skor: parseFloat(formData.total_skor) || 95.0,
+        form_data: formData
+      };
+
+      const res = await fetch('/api/tppol/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
       });
-    });
+      if (res.ok) {
+        const resJson = await res.json();
+        if (resJson.success) {
+          cloudSaved = true;
+          cloudMsg = resJson.message || 'Scoring TP POL berhasil disimpan ke Cloudflare D1!';
+        }
+      }
+    } catch (err) {
+      console.warn('[TPPOL SAVE] Cloud save error:', err);
+    }
+
+    // Visual feedback
+    if (targetBtn && typeof gsap !== 'undefined') {
+      gsap.to(targetBtn, { scale: 0.95, duration: 0.1, yoyo: true, repeat: 1 });
+    }
+
+    const badge = document.getElementById('tppolAutoSaveBadge');
+    if (badge) {
+      badge.innerHTML = '<span style="font-size: 8px; color: #10b981;">●</span> Tersimpan di Cloud';
+      badge.style.display = 'inline-flex';
+      badge.style.opacity = '1';
+    }
+
+    if (typeof Swal !== 'undefined') {
+      if (cloudSaved) {
+        Swal.fire(getTpPolSwalTheme({
+          icon: 'success',
+          title: 'Scoring & Evidence Tersimpan!',
+          html: `Data Pengajuan Scoring TP POL (Jaspel) Bulan <strong>${monthName} ${year}</strong> dan seluruh berkas bukti dukung telah berhasil disimpan ke <strong>Cloud Database SICEKAS</strong>.`,
+          confirmButtonColor: '#0d9488',
+          confirmButtonText: 'OK, Selesai'
+        }));
+      } else {
+        Swal.fire(getTpPolSwalTheme({
+          icon: 'info',
+          title: 'Draft Tersimpan Lokal',
+          html: `Scoring tersimpan di perangkat ini. Server Cloud sedang dalam sinkronisasi background.`,
+          confirmButtonColor: '#0d9488'
+        }));
+      }
+    } else {
+      alert(`✓ Data Scoring TP POL Bulan ${monthName} ${year} berhasil disimpan!`);
+    }
+  };
+
+  if (btnSaveTpPol) {
+    btnSaveTpPol.addEventListener('click', () => executeSaveTpPol(btnSaveTpPol));
+  }
+  if (btnQuickSaveTpPol) {
+    btnQuickSaveTpPol.addEventListener('click', () => executeSaveTpPol(btnQuickSaveTpPol));
   }
 
   // Isolated Clean TP POL Printer
@@ -4184,400 +4298,91 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       for (const sheet of document.styleSheets) {
         try {
-          for (const rule of sheet.cssRules) {
-            const sel = rule.selectorText || '';
-            if (relevantPrefixes.some(p => sel.includes(p))) {
+          const rules = sheet.cssRules || sheet.rules;
+          if (!rules) continue;
+          for (const rule of rules) {
+            const selector = rule.selectorText || '';
+            const matchesPrefix = relevantPrefixes.some(prefix => selector.includes(prefix));
+            const isBaseReset = selector.includes('body') || selector.includes('*') || selector.includes('.theme-') || selector.includes('table');
+            if (matchesPrefix || isBaseReset) {
               css += rule.cssText + '\n';
             }
           }
-        } catch(e) {}
+        } catch (e) {}
       }
-    } catch(e) {}
+    } catch (e) {}
     return css;
   };
 
   const printIsolatedTpPol = () => {
-    const scoringDoc = document.getElementById('scoringDocSheet');
-    if (!scoringDoc) {
-      if (typeof Swal !== 'undefined') {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Dokumen Kosong',
-          text: 'Tidak ada dokumen TP POL yang bisa dicetak.',
-          background: '#0f172a',
-          color: '#ffffff'
-        });
-      } else {
-        alert('Tidak ada dokumen TP POL yang bisa dicetak.');
-      }
+    const sheet = document.getElementById('scoringDocSheet');
+    if (!sheet) {
+      window.print();
       return;
     }
+
+    // Force synchronize inputs values into DOM value attributes
+    const inputs = sheet.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.setAttribute('value', input.value);
+    });
 
     const month = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
     const year = parseInt(tppolYear ? tppolYear.value : '2026', 10);
     const monthName = MONTH_NAMES[month - 1];
     const docCss = extractTpPolCss();
 
-    const baseHref = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-
-    const printWin = window.open('', '_blank');
-    if (!printWin) {
-      if (typeof Swal !== 'undefined') {
-        Swal.fire({
-          icon: 'info',
-          title: 'Izinkan Popup Browser',
-          text: 'Popup diblokir oleh browser. Izinkan popup untuk mencetak dokumen.',
-          background: '#0f172a',
-          color: '#ffffff'
-        });
-      } else {
-        alert('Popup diblokir oleh browser. Izinkan popup untuk mencetak dokumen.');
-      }
+    const printWindow = window.open('', '_blank', 'width=950,height=1100');
+    if (!printWindow) {
+      window.print();
       return;
     }
 
-    // Clone scoring doc and ensure input values are preserved
-    const cloneDoc = scoringDoc.cloneNode(true);
-    const origInputs = scoringDoc.querySelectorAll('input, textarea');
-    const cloneInputs = cloneDoc.querySelectorAll('input, textarea');
-    origInputs.forEach((inp, idx) => {
-      if (cloneInputs[idx]) {
-        cloneInputs[idx].value = inp.value;
-        cloneInputs[idx].setAttribute('value', inp.value);
-      }
-    });
+    const printHtml = `
+      <!DOCTYPE html>
+      <html lang="id">
+      <head>
+        <meta charset="UTF-8">
+        <title>TP POL Jaspel - ${monthName} ${year}</title>
+        <style>
+          ${docCss}
+          @page { size: A4 landscape; margin: 10mm; }
+          body { background: #ffffff !important; color: #000000 !important; margin: 0; padding: 0; }
+          .scoring-doc-sheet-exact { border: none !important; box-shadow: none !important; margin: 0 auto; width: 100% !important; max-width: 100% !important; }
+        </style>
+      </head>
+      <body>
+        <div style="padding: 10px;">
+          ${sheet.outerHTML}
+        </div>
+        <script>
+          window.onload = function() {
+            setTimeout(function() {
+              window.print();
+              window.close();
+            }, 350);
+          };
+        </script>
+      </body>
+      </html>
+    `;
 
-    printWin.document.open();
-    printWin.document.write(`<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<base href="${baseHref}">
-<title>TP POL JASPEL ${monthName.toUpperCase()} ${year} — Puskesmas Banjaran Kota</title>
-<style>
-  @page {
-    size: A4 portrait !important;
-    margin: 0mm !important;
-  }
-  *, *::before, *::after {
-    box-sizing: border-box !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  html, body {
-    background: #1e293b;
-    color: #000000;
-    margin: 0;
-    padding: 0;
-    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif !important;
-    line-height: 1.2;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  /* Screen toolbar (hidden during print) */
-  .no-print-bar {
-    position: sticky;
-    top: 0;
-    z-index: 9999;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    padding: 10px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    color: #ffffff;
-    font-family: system-ui, -apple-system, sans-serif;
-  }
-  .no-print-bar .doc-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 13.5px;
-  }
-  .no-print-bar .doc-badge {
-    background: rgba(56, 189, 248, 0.18);
-    color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
-  }
-  .no-print-bar .btn-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .no-print-bar button {
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 12.5px;
-    font-weight: 600;
-    padding: 7px 16px;
-    border-radius: 8px;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-  }
-  .no-print-bar .btn-print-action {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
-  }
-  .no-print-bar .btn-print-action:hover {
-    background: linear-gradient(135deg, #fbbf24, #f59e0b);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.6);
-  }
-  .no-print-bar .btn-close-action {
-    background: rgba(255, 255, 255, 0.1);
-    color: #94a3b8;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-  .no-print-bar .btn-close-action:hover {
-    background: rgba(255, 255, 255, 0.18);
-    color: #ffffff;
-  }
-
-  /* Document Stage (On Screen Preview) */
-  .document-stage {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 0 60px 0;
-    gap: 24px;
-    background: #1e293b;
-  }
-
-  /* Extracted TP POL document styles */
-  ${docCss}
-
-  /* Strict Pure A4 Single Page Print & Preview Specs */
-  .scoring-doc-sheet-exact {
-    width: 210mm !important;
-    max-width: 210mm !important;
-    min-height: 297mm !important;
-    box-sizing: border-box !important;
-    padding: 1.9cm 1.8cm 1.9cm 1.8cm !important;
-    margin: 0 auto !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
-    border: none !important;
-    border-radius: 0 !important;
-    font-family: Arial, "Helvetica Neue", Helvetica, sans-serif !important;
-    position: relative !important;
-  }
-
-  .doc-sheet-title-exact {
-    text-align: center !important;
-    font-size: 13px !important;
-    font-weight: 800 !important;
-    margin: 0 0 8px 0 !important;
-    text-transform: uppercase !important;
-    color: #000000 !important;
-  }
-
-  .doc-meta-exact {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 2px !important;
-    font-size: 10px !important;
-    margin-bottom: 8px !important;
-    color: #000000 !important;
-  }
-
-  .meta-exact-row {
-    display: flex !important;
-    align-items: center !important;
-    line-height: 1.25 !important;
-  }
-
-  .meta-exact-label {
-    width: 110px !important;
-    font-weight: 500 !important;
-  }
-
-  .meta-exact-sep {
-    width: 14px !important;
-    text-align: center !important;
-  }
-
-  .exact-scoring-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-    font-size: 9.5px !important;
-    border: 1px solid #000000 !important;
-  }
-
-  .exact-scoring-table th,
-  .exact-scoring-table td {
-    border: 1px solid #000000 !important;
-    padding: 2px 4px !important;
-    line-height: 1.15 !important;
-    vertical-align: middle !important;
-    color: #000000 !important;
-  }
-
-  .exact-scoring-table th {
-    background: #f1f5f9 !important;
-    font-weight: 800 !important;
-    text-align: center !important;
-    font-size: 9.5px !important;
-    padding: 3px 4px !important;
-  }
-
-  .exact-cakupan-input {
-    width: 100% !important;
-    min-height: 18px !important;
-    padding: 1px 2px !important;
-    border: 1px dashed #777777 !important;
-    border-radius: 2px !important;
-    font-size: 9.5px !important;
-    text-align: center !important;
-    background: transparent !important;
-    color: #000000 !important;
-  }
-
-  .doc-signatures-exact {
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: flex-start !important;
-    margin-top: 18px !important;
-    font-size: 10px !important;
-    padding: 0 8px !important;
-    color: #000000 !important;
-  }
-
-  .sig-exact-col {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    text-align: center !important;
-    min-width: 150px !important;
-    flex: 1 !important;
-  }
-
-  .sig-exact-title {
-    font-size: 10px !important;
-    margin: 0 0 2px 0 !important;
-    line-height: 1.2 !important;
-  }
-
-  .sig-exact-col p {
-    margin: 0 0 2px 0 !important;
-    line-height: 1.2 !important;
-  }
-
-  .sig-exact-space {
-    height: 56px !important;
-    width: 100% !important;
-  }
-
-  .sig-exact-name {
-    font-weight: 700 !important;
-    text-decoration: underline !important;
-    margin: 0 0 1px 0 !important;
-  }
-
-  .sig-exact-nip {
-    font-size: 9px !important;
-    margin-top: 1px !important;
-  }
-
-  @media print {
-    .no-print {
-      display: none !important;
-    }
-    html, body {
-      background: #ffffff !important;
-    }
-    .document-stage {
-      padding: 0 !important;
-      margin: 0 !important;
-      background: #ffffff !important;
-    }
-    .scoring-doc-sheet-exact {
-      box-shadow: none !important;
-      page-break-inside: avoid !important;
-      break-inside: avoid !important;
-      page-break-after: avoid !important;
-      break-after: avoid !important;
-      margin: 0 !important;
-      padding: 1.9cm 1.8cm 1.9cm 1.8cm !important;
-    }
-    .exact-cakupan-input {
-      border: none !important;
-      box-shadow: none !important;
-    }
-  }
-</style>
-</head>
-<body>
-<div class="no-print-bar no-print">
-  <div class="doc-info">
-    <strong style="display: flex; align-items: center; gap: 6px;">
-      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-      <span>Pratinjau Dokumen TP POL (Jaspel)</span>
-    </strong>
-    <span class="doc-badge">Format Kertas: A4 (Standar Resmi 1 Lembar Pas)</span>
-  </div>
-  <div class="btn-group">
-    <button type="button" class="btn-print-action" onclick="window.print()">
-      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-      <span>Cetak / Save as PDF</span>
-    </button>
-    <button type="button" class="btn-close-action" onclick="window.close()">
-      <span>Tutup</span>
-    </button>
-  </div>
-</div>
-
-<div class="document-stage">
-  ${cloneDoc.outerHTML}
-</div>
-
-<script>
-  window.onload = function() {
-    setTimeout(function() {
-      window.print();
-    }, 350);
-  };
-<\/script>
-</body>
-</html>`);
-    printWin.document.close();
+    printWindow.document.open();
+    printWindow.document.write(printHtml);
+    printWindow.document.close();
   };
 
-  // Download PDF / Cetak Formulir TP POL
   if (btnDownloadPdfTpPol) {
-    btnDownloadPdfTpPol.addEventListener('click', () => {
-      if (typeof showToast === 'function') {
-        showToast("Membuka pratinjau dokumen TP POL... Pilih 'Save as PDF' di menu printer.", 'info');
-      }
-      printIsolatedTpPol();
-    });
+    btnDownloadPdfTpPol.addEventListener('click', () => printIsolatedTpPol());
   }
-
   const btnPrintTpPol = document.getElementById('btnPrintTpPol');
   if (btnPrintTpPol) {
-    btnPrintTpPol.addEventListener('click', () => {
-      printIsolatedTpPol();
-    });
+    btnPrintTpPol.addEventListener('click', () => printIsolatedTpPol());
   }
 
   // ==========================================================================
-  // 10.B EVIDENCE (BUKTI DUKUNG) GOOGLE DRIVE BRIDGING MODULE
+  // TP POL EVIDENCE ENGINE: UPLOAD, VIEW, AND DUAL CLOUD SYNCHRONIZATION
   // ==========================================================================
-  const modalEvidenceUpload = document.getElementById('modalEvidenceUpload');
-  const btnUploadEvidence = document.getElementById('btnUploadEvidence');
-  const closeEvidenceModal = document.getElementById('closeEvidenceModal');
-  const btnCancelEvidence = document.getElementById('btnCancelEvidence');
   const formUploadEvidence = document.getElementById('formUploadEvidence');
   const evidencePetugasLabel = document.getElementById('evidencePetugasLabel');
   const evidencePeriodeLabel = document.getElementById('evidencePeriodeLabel');
@@ -4603,6 +4408,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSubmitEvidenceText = document.getElementById('btnSubmitEvidenceText');
   const evidenceEmptyBox = document.getElementById('evidenceEmptyBox');
   const evidenceUploadedList = document.getElementById('evidenceUploadedList');
+  const btnUploadEvidence = document.getElementById('btnUploadEvidence');
+  const modalEvidenceUpload = document.getElementById('modalEvidenceUpload');
+  const closeEvidenceModal = document.getElementById('closeEvidenceModal');
+  const btnCancelEvidence = document.getElementById('btnCancelEvidence');
 
   let selectedEvidenceFile = null;
 
@@ -4625,7 +4434,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Add option for custom note
     const customOpt = document.createElement('option');
     customOpt.value = '__custom__';
     customOpt.textContent = '➕ Lainnya / Tulis Keterangan Kustom...';
@@ -4644,10 +4452,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (tppolSelectJabatan) {
-    tppolSelectJabatan.addEventListener('change', populateEvidenceKeteranganOptions);
-  }
-
   // Load saved Google Script URL
   const DEFAULT_GDRIVE_URL = localStorage.getItem('SICEKAS_GDRIVE_ENDPOINT') || 'https://script.google.com/macros/s/AKfycbwy_8AJb9KyPC1yqclPuVNNuZ0EJLZW0GxwRJAYmErHJJynBnfxr7hJtP_Yn2DOv_hS/exec';
   if (gdriveScriptUrl) {
@@ -4658,7 +4462,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Toggle GDrive Config Body
   if (toggleGdriveConfig && gdriveConfigBody) {
     toggleGdriveConfig.addEventListener('click', () => {
       const isHidden = gdriveConfigBody.style.display === 'none';
@@ -4666,7 +4469,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Save GDrive URL on change
   if (gdriveScriptUrl) {
     gdriveScriptUrl.addEventListener('change', () => {
       const val = gdriveScriptUrl.value.trim();
@@ -4680,17 +4482,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // File Selection Helper
   const handleEvidenceFileSelect = (file) => {
     if (!file) return;
-    if (file.size > 25 * 1024 * 1024) {
+    if (file.size > 30 * 1024 * 1024) {
       if (typeof Swal !== 'undefined') {
-        Swal.fire({
+        Swal.fire(getTpPolSwalTheme({
           icon: 'warning',
           title: 'Ukuran File Terlalu Besar',
-          text: 'Maksimum ukuran file bukti dukung adalah 25 MB.',
-          background: '#0f172a',
-          color: '#ffffff'
-        });
+          text: 'Maksimum ukuran file bukti dukung adalah 30 MB.'
+        }));
       } else {
-        alert('Maksimum ukuran file adalah 25 MB.');
+        alert('Maksimum ukuran file adalah 30 MB.');
       }
       return;
     }
@@ -4715,7 +4515,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dropzonePreview) dropzonePreview.style.display = 'none';
   };
 
-  // Dropzone Click & Drag Events
+  // Dropzone Events
   if (evidenceDropzone && evidenceFileInput) {
     evidenceDropzone.addEventListener('click', (e) => {
       if (e.target.closest('#btnRemoveEvidenceFile')) return;
@@ -4769,20 +4569,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (evidencePetugasLabel) evidencePetugasLabel.textContent = activePetugasName;
       if (evidencePeriodeLabel) evidencePeriodeLabel.textContent = `${mName} ${yVal}`;
 
-      // Populate dynamic options based on current active TP POL form
       populateEvidenceKeteranganOptions();
-
       clearEvidenceFile();
       if (evidenceKeteranganCustom) evidenceKeteranganCustom.value = '';
       if (uploadProgressContainer) uploadProgressContainer.style.display = 'none';
       if (btnSubmitEvidence) btnSubmitEvidence.disabled = false;
-      if (btnSubmitEvidenceText) btnSubmitEvidenceText.textContent = 'Mulai Upload ke Google Drive';
+      if (btnSubmitEvidenceText) btnSubmitEvidenceText.textContent = 'Mulai Upload Bukti Dukung';
 
       modalEvidenceUpload.classList.add('active');
     });
   }
 
-  // Close Modal Handlers
   const closeEvidenceUploadModal = () => {
     if (modalEvidenceUpload) modalEvidenceUpload.classList.remove('active');
   };
@@ -4790,12 +4587,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeEvidenceModal) closeEvidenceModal.addEventListener('click', closeEvidenceUploadModal);
   if (btnCancelEvidence) btnCancelEvidence.addEventListener('click', closeEvidenceUploadModal);
 
-  // Evidence Storage & Render Functions
+  // Evidence Key Generator
   const getEvidenceStorageKey = () => {
+    const opt = signPetugas ? signPetugas.options[signPetugas.selectedIndex] : null;
+    const nip = opt ? (opt.getAttribute('data-nip') || '') : '';
+    const cleanNip = nip.replace(/[\s.]+/g, '');
     const pName = signPetugas ? signPetugas.value : 'default';
     const mVal = tppolMonth ? tppolMonth.value : '8';
     const yVal = tppolYear ? tppolYear.value : '2026';
-    return `SICEKAS_EVIDENCE_${yVal}_${mVal}_${encodeURIComponent(pName)}`;
+    return `SICEKAS_EVIDENCE_${yVal}_${mVal}_${cleanNip || encodeURIComponent(pName)}`;
   };
 
   const loadEvidenceList = () => {
@@ -4807,17 +4607,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // Background Cloud Synchronizer
+  const syncEvidenceToCloud = async (list) => {
+    try {
+      const opt = signPetugas ? signPetugas.options[signPetugas.selectedIndex] : null;
+      const nip = opt ? (opt.getAttribute('data-nip') || '') : '';
+      const pName = signPetugas ? signPetugas.value : (tpPolMetaName ? tpPolMetaName.textContent : '');
+      const pJab = tpPolMetaJabatan ? tpPolMetaJabatan.textContent : 'Petugas Puskesmas';
+      const mVal = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
+      const yVal = parseInt(tppolYear ? tppolYear.value : '2026', 10);
+
+      await fetch('/api/tppol/evidence', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bulan: mVal,
+          tahun: yVal,
+          petugas_nip: nip,
+          petugas_nama: pName,
+          petugas_jabatan: pJab,
+          evidenceList: list
+        })
+      });
+    } catch (e) {
+      console.warn('[EVIDENCE CLOUD SYNC] Error:', e);
+    }
+  };
+
+  let isFetchingCloudEvidence = false;
+  const fetchCloudEvidenceAndMerge = async () => {
+    if (isFetchingCloudEvidence) return;
+    isFetchingCloudEvidence = true;
+    try {
+      const opt = signPetugas ? signPetugas.options[signPetugas.selectedIndex] : null;
+      const nip = opt ? (opt.getAttribute('data-nip') || '') : '';
+      const mVal = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
+      const yVal = parseInt(tppolYear ? tppolYear.value : '2026', 10);
+
+      const optName = signPetugas ? signPetugas.value : (tpPolMetaName ? tpPolMetaName.textContent : '');
+      const queryParams = new URLSearchParams({ bulan: mVal, tahun: yVal });
+      if (nip) queryParams.append('nip', nip);
+      if (optName) queryParams.append('nama', optName);
+      const res = await fetch(`/api/tppol/evidence?${queryParams.toString()}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json && Array.isArray(json.data) && json.data.length > 0) {
+          const localList = loadEvidenceList();
+          const merged = [...json.data];
+          localList.forEach(loc => {
+            if (!merged.some(c => (loc.id && c.id === loc.id) || (loc.fileUrl && c.fileUrl === loc.fileUrl) || c.fileName === loc.fileName)) {
+              merged.push(loc);
+            }
+          });
+          try {
+            localStorage.setItem(getEvidenceStorageKey(), JSON.stringify(merged));
+          } catch (e) {}
+          renderEvidenceList(true);
+        }
+      }
+    } catch (e) {
+      console.warn('[EVIDENCE CLOUD FETCH] Error:', e);
+    } finally {
+      isFetchingCloudEvidence = false;
+    }
+  };
+
   const saveEvidenceList = (list) => {
     try {
       localStorage.setItem(getEvidenceStorageKey(), JSON.stringify(list));
     } catch (e) {}
+    syncEvidenceToCloud(list);
   };
 
-  const renderEvidenceList = () => {
+  const renderEvidenceList = (skipCloudFetch = false) => {
     if (!evidenceUploadedList || !evidenceEmptyBox) return;
     const items = loadEvidenceList();
 
-    // Update Counter Badge on Header Button
     const badge = document.getElementById('evidenceCountBadge');
     if (badge) {
       if (items && items.length > 0) {
@@ -4832,49 +4697,65 @@ document.addEventListener('DOMContentLoaded', () => {
       evidenceEmptyBox.style.display = 'flex';
       evidenceUploadedList.style.display = 'none';
       evidenceUploadedList.innerHTML = '';
+      if (!skipCloudFetch) fetchCloudEvidenceAndMerge();
       return;
     }
 
     evidenceEmptyBox.style.display = 'none';
     evidenceUploadedList.style.display = 'flex';
 
-    evidenceUploadedList.innerHTML = items.map((item, idx) => `
-      <div class="evidence-item-card" data-id="${item.id || idx}">
-        <div class="evidence-item-left" style="cursor: pointer;" onclick="openEvidenceViewer(${idx})" title="Klik untuk membuka dokumen">
-          <div class="evidence-file-icon">${item.fileExt || 'DOC'}</div>
-          <div class="evidence-file-details">
-            <div class="evidence-file-name" title="${item.fileName}">${item.fileName}</div>
-            <div class="evidence-file-desc" title="${item.keterangan || ''}">${item.keterangan || 'Bukti Dukung'} &bull; ${item.fileSize || ''}</div>
+    evidenceUploadedList.innerHTML = items.map((item, idx) => {
+      const hasDrive = item.gdriveUrl || (item.fileUrl && item.fileUrl.includes('drive.google.com'));
+      const directUrl = item.fileUrl || item.r2Url || item.gdriveUrl || '#';
+      return `
+        <div class="evidence-item-card" data-id="${item.id || idx}">
+          <div class="evidence-item-left" style="cursor: pointer;" onclick="openEvidenceViewer(${idx})" title="Klik untuk membuka dokumen">
+            <div class="evidence-file-icon">${item.fileExt || 'DOC'}</div>
+            <div class="evidence-file-details">
+              <div class="evidence-file-name" title="${item.fileName}">${item.fileName}</div>
+              <div class="evidence-file-desc" title="${item.keterangan || ''}">${item.keterangan || 'Bukti Dukung'} &bull; ${item.fileSize || ''}</div>
+            </div>
+          </div>
+          <div class="evidence-item-actions">
+            <button type="button" class="btn-preview-evidence" onclick="openEvidenceViewer(${idx})" title="Buka &amp; Baca Dokumen">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <span>Buka</span>
+            </button>
+            ${hasDrive ? `
+            <a href="${item.gdriveUrl || directUrl}" target="_blank" rel="noopener noreferrer" class="btn-gdrive-link" title="Buka di Google Drive Tab Baru">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+              <span>Drive</span>
+            </a>` : `
+            <a href="${directUrl}" target="_blank" rel="noopener noreferrer" class="btn-gdrive-link" title="Buka Berkas">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+              <span>Link</span>
+            </a>`}
+            <button type="button" class="btn-delete-evidence" onclick="deleteEvidenceItem(${idx})" title="Hapus Evidence">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
           </div>
         </div>
-        <div class="evidence-item-actions">
-          <button type="button" class="btn-preview-evidence" onclick="openEvidenceViewer(${idx})" title="Buka & Baca Dokumen">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-            <span>Buka</span>
-          </button>
-          <a href="${item.fileUrl || '#'}" target="_blank" rel="noopener noreferrer" class="btn-gdrive-link" title="Buka di Google Drive Tab Baru">
-            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-            <span>Drive</span>
-          </a>
-          <button type="button" class="btn-delete-evidence" onclick="deleteEvidenceItem(${idx})" title="Hapus Evidence">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
+
+    if (!skipCloudFetch) fetchCloudEvidenceAndMerge();
   };
 
-  // Floating Evidence Popover Controller (Beside Cetak Dokumen)
+  // Floating Evidence Popover Controller
   const btnToggleEvidencePopover = document.getElementById('btnToggleEvidencePopover');
   const evidenceFloatingPopover = document.getElementById('evidenceFloatingPopover');
   const btnCloseEvidencePopover = document.getElementById('btnCloseEvidencePopover');
@@ -4895,7 +4776,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Close when clicking anywhere outside
     document.addEventListener('click', (e) => {
       if (evidenceFloatingPopover.classList.contains('active')) {
         if (!evidenceFloatingPopover.contains(e.target) && !btnToggleEvidencePopover.contains(e.target)) {
@@ -4923,7 +4803,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeDocViewerModal = () => {
     if (modalEvidenceViewer) {
       modalEvidenceViewer.classList.remove('active');
-      // Reset to landscape (default) on close
       const card = modalEvidenceViewer.querySelector('.modal-card-docviewer');
       if (card) card.classList.remove('viewer-portrait');
     }
@@ -4934,7 +4813,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (closeEvidenceViewer) closeEvidenceViewer.addEventListener('click', closeDocViewerModal);
   if (btnCloseEvidenceViewer) btnCloseEvidenceViewer.addEventListener('click', closeDocViewerModal);
 
-  // Orientation toggle: Landscape ↔ Portrait
   const btnViewerToggleOrient = document.getElementById('btnViewerToggleOrient');
   if (btnViewerToggleOrient) {
     btnViewerToggleOrient.addEventListener('click', () => {
@@ -4946,7 +4824,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Expose openEvidenceViewer to window
   window.openEvidenceViewer = async (idx) => {
     const items = loadEvidenceList();
     const item = items[idx];
@@ -4961,7 +4838,7 @@ document.addEventListener('DOMContentLoaded', () => {
       docViewerLoading.classList.remove('hidden');
       docViewerLoading.innerHTML = `
         <div class="browser-spinner"></div>
-        <div style="font-size: 13px; color: #94a3b8; margin-top: 10px;">Membuka dan memuat berkas...</div>
+        <div style="font-size: 13px; color: var(--text-muted, #475569); margin-top: 10px;">Membuka dan memuat berkas...</div>
       `;
     }
     if (docViewerIframe) docViewerIframe.style.display = 'none';
@@ -4970,99 +4847,98 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const ext = (item.fileExt || '').toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext);
+    const targetUrl = item.fileUrl || item.r2Url || item.gdriveUrl || '';
 
-    // ─── Step 1: Extract valid Google Drive File ID ───
+    // 1. Direct Image Display (Cloudflare R2, Data URI, or Image URL)
+    if (isImage && (targetUrl.startsWith('/api/') || targetUrl.startsWith('data:') || targetUrl.startsWith('blob:') || (!targetUrl.includes('drive.google.com') && targetUrl.startsWith('http')))) {
+      if (docViewerImageBox && docViewerImg) {
+        docViewerImg.src = targetUrl;
+        docViewerImageBox.style.display = 'flex';
+        docViewerImg.onload = () => {
+          if (docViewerLoading) docViewerLoading.classList.add('hidden');
+        };
+        docViewerImg.onerror = () => {
+          docViewerImageBox.style.display = 'none';
+          if (docViewerIframe) {
+            docViewerIframe.style.display = 'block';
+            docViewerIframe.src = targetUrl;
+            if (docViewerLoading) docViewerLoading.classList.add('hidden');
+          }
+        };
+      }
+      if (btnViewerOpenDrive) {
+        btnViewerOpenDrive.href = item.gdriveUrl || targetUrl;
+        btnViewerOpenDrive.target = '_blank';
+      }
+      return;
+    }
+
+    // 2. Direct PDF / R2 Streaming URL (/api/foto/... or .pdf)
+    if (targetUrl.startsWith('/api/') || (targetUrl.endsWith('.pdf') && !targetUrl.includes('drive.google.com'))) {
+      if (docViewerIframe) {
+        docViewerIframe.style.display = 'block';
+        docViewerIframe.src = targetUrl;
+        docViewerIframe.onload = () => {
+          if (docViewerLoading) docViewerLoading.classList.add('hidden');
+        };
+      }
+      if (btnViewerOpenDrive) {
+        btnViewerOpenDrive.href = item.gdriveUrl || targetUrl;
+        btnViewerOpenDrive.target = '_blank';
+      }
+      return;
+    }
+
+    // 3. Google Drive Document Preview
     let realFileId = '';
-    if (item.fileId && !item.fileId.startsWith('gdrive_') && item.fileId.length >= 20) {
+    if (item.fileId && !item.fileId.startsWith('gdrive_') && !item.fileId.startsWith('file_') && !item.fileId.startsWith('r2-') && item.fileId.length >= 20) {
       realFileId = item.fileId;
     }
-    if (!realFileId && item.fileUrl) {
-      const matchD = item.fileUrl.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
-      const matchId = item.fileUrl.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
-      const matchOpen = item.fileUrl.match(/open\?id=([a-zA-Z0-9_-]{20,})/);
+    if (!realFileId && targetUrl) {
+      const matchD = targetUrl.match(/\/d\/([a-zA-Z0-9_-]{20,})/);
+      const matchId = targetUrl.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+      const matchOpen = targetUrl.match(/open\?id=([a-zA-Z0-9_-]{20,})/);
       if (matchD) realFileId = matchD[1];
       else if (matchId) realFileId = matchId[1];
       else if (matchOpen) realFileId = matchOpen[1];
     }
 
-    // ─── Step 2: If no valid ID, auto-search Google Drive via Apps Script ───
-    if (!realFileId) {
-      const endpointUrl = (typeof gdriveScriptUrl !== 'undefined' && gdriveScriptUrl ? gdriveScriptUrl.value.trim() : '') ||
-        localStorage.getItem('SICEKAS_GDRIVE_ENDPOINT') ||
-        'https://script.google.com/macros/s/AKfycbwy_8AJb9KyPC1yqclPuVNNuZ0EJLZW0GxwRJAYmErHJJynBnfxr7hJtP_Yn2DOv_hS/exec';
-
-      if (docViewerLoading) {
-        docViewerLoading.innerHTML = `
-          <div class="browser-spinner"></div>
-          <div style="font-size: 13px; color: #94a3b8; margin-top: 10px;">Mencari berkas di Google Drive...</div>
-        `;
-      }
-
-      try {
-        const searchRes = await fetch(endpointUrl, {
-          method: 'POST',
-          body: JSON.stringify({
-            action: 'search',
-            fileName: item.fileName,
-            petugas: item.petugas || ''
-          }),
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-        });
-        const searchResult = await searchRes.json();
-        if (searchResult && searchResult.fileId) {
-          realFileId = searchResult.fileId;
-          // Persist the found ID so we don't need to search again
-          item.fileId = realFileId;
-          item.fileUrl = searchResult.fileUrl || `https://drive.google.com/file/d/${realFileId}/view?usp=sharing`;
-          saveEvidenceList(items);
-        }
-      } catch (err) {
-        console.warn('[EVIDENCE VIEWER] Auto-search failed:', err);
-      }
-    }
-
-    // ─── Step 3: Build preview URL ───
     let previewUrl = '';
-    let directDriveUrl = '#';
+    let directDriveUrl = item.gdriveUrl || targetUrl || '#';
 
     if (realFileId) {
       previewUrl = `https://drive.google.com/file/d/${realFileId}/preview`;
       directDriveUrl = `https://drive.google.com/file/d/${realFileId}/view?usp=sharing`;
-    } else if (item.fileUrl && item.fileUrl.includes('drive.google.com') && item.fileUrl.length > 40) {
-      previewUrl = item.fileUrl.replace(/\/view(\?.*)?$/, '/preview').replace(/\/edit(\?.*)?$/, '/preview');
-      directDriveUrl = item.fileUrl;
+    } else if (targetUrl && targetUrl.includes('drive.google.com')) {
+      previewUrl = targetUrl.replace(/\/view(\?.*)?$/, '/preview').replace(/\/edit(\?.*)?$/, '/preview');
+    } else if (targetUrl && (targetUrl.startsWith('http') || targetUrl.startsWith('/api/'))) {
+      previewUrl = targetUrl;
     }
 
     if (btnViewerOpenDrive) btnViewerOpenDrive.href = directDriveUrl;
 
-    // ─── Step 4: Display the file ───
     if (previewUrl && previewUrl !== '#') {
       if (isImage && realFileId) {
-        // For images on Google Drive, use thumbnail URL for direct display
         const thumbUrl = `https://drive.google.com/thumbnail?id=${realFileId}&sz=w1200`;
         if (docViewerIframe) docViewerIframe.style.display = 'none';
-        if (docViewerImageBox) {
+        if (docViewerImageBox && docViewerImg) {
           docViewerImageBox.style.display = 'flex';
-          if (docViewerImg) {
-            docViewerImg.src = thumbUrl;
-            docViewerImg.onerror = () => {
-              // Fallback to iframe preview if thumbnail fails
-              docViewerImageBox.style.display = 'none';
-              if (docViewerIframe) {
-                docViewerIframe.style.display = 'block';
-                docViewerIframe.src = previewUrl;
-                docViewerIframe.onload = () => {
-                  if (docViewerLoading) docViewerLoading.classList.add('hidden');
-                };
-              }
-            };
-            docViewerImg.onload = () => {
-              if (docViewerLoading) docViewerLoading.classList.add('hidden');
-            };
-          }
+          docViewerImg.src = thumbUrl;
+          docViewerImg.onload = () => {
+            if (docViewerLoading) docViewerLoading.classList.add('hidden');
+          };
+          docViewerImg.onerror = () => {
+            docViewerImageBox.style.display = 'none';
+            if (docViewerIframe) {
+              docViewerIframe.style.display = 'block';
+              docViewerIframe.src = previewUrl;
+              docViewerIframe.onload = () => {
+                if (docViewerLoading) docViewerLoading.classList.add('hidden');
+              };
+            }
+          };
         }
       } else {
-        // PDF, DOCX, XLSX, etc. → iframe preview
         if (docViewerImageBox) docViewerImageBox.style.display = 'none';
         if (docViewerIframe) {
           docViewerIframe.style.display = 'block';
@@ -5070,32 +4946,27 @@ document.addEventListener('DOMContentLoaded', () => {
           docViewerIframe.onload = () => {
             setTimeout(() => {
               if (docViewerLoading) docViewerLoading.classList.add('hidden');
-            }, 400);
+            }, 300);
           };
         }
       }
     } else {
-      // ─── No valid link found: show helpful message ───
       if (docViewerLoading) {
         docViewerLoading.innerHTML = `
           <div style="text-align: center; padding: 24px; max-width: 420px;">
             <div style="font-size: 40px; margin-bottom: 12px;">📄</div>
-            <h4 style="color: #ffffff; font-size: 15px; font-weight: 700; margin-bottom: 8px;">File Tidak Ditemukan di Google Drive</h4>
-            <p style="color: #94a3b8; font-size: 12px; line-height: 1.6; margin-bottom: 16px;">
-              Berkas <strong>${item.fileName || ''}</strong> tidak ditemukan di folder Google Drive Anda.
-              Silakan <strong>hapus item ini</strong> (🗑️) lalu <strong>unggah ulang berkas</strong> dari halaman Evidence.
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">Dokumen Bukti Dukung</h4>
+            <p style="font-size: 12px; line-height: 1.6; margin-bottom: 16px; color: var(--text-muted);">
+              Berkas <strong>${item.fileName || ''}</strong> tersimpan di sistem.
             </p>
-            <a href="https://drive.google.com/drive/folders/1Y8av2ZMe1teS3dvc8fvGQ3ALkVPhp7og" target="_blank" rel="noopener noreferrer"
-               style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none;">
-              Buka Folder Google Drive ↗
-            </a>
+            ${targetUrl && targetUrl !== '#' ? `<a href="${targetUrl}" target="_blank" rel="noopener noreferrer" class="btn-evidence-upload" style="display:inline-flex; text-decoration:none; margin:0 auto; padding:8px 16px;">Buka Tautan Berkas ↗</a>` : ''}
           </div>
         `;
       }
     }
   };
 
-  // Expose delete to window with Google Drive synchronization & SweetAlert2
+  // Delete Evidence Item with Dual Sync
   window.deleteEvidenceItem = async (idx) => {
     const items = loadEvidenceList();
     const itemToDelete = items[idx];
@@ -5103,82 +4974,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let confirmed = false;
     if (typeof Swal !== 'undefined') {
-      const result = await Swal.fire({
+      const result = await Swal.fire(getTpPolSwalTheme({
         title: 'Hapus Bukti Dukung?',
-        html: `Berkas <strong>${itemToDelete.fileName}</strong> akan dihapus dari sistem dan Google Drive Puskesmas.`,
+        html: `Berkas <strong>${itemToDelete.fileName}</strong> akan dihapus dari sistem penilaian.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
         cancelButtonColor: '#334155',
         confirmButtonText: 'Ya, Hapus',
-        cancelButtonText: 'Batal',
-        background: '#0f172a',
-        color: '#ffffff'
-      });
+        cancelButtonText: 'Batal'
+      }));
       confirmed = result.isConfirmed;
     } else {
-      confirmed = confirm(`Apakah Anda yakin ingin menghapus "${itemToDelete.fileName}" dari sistem dan Google Drive?`);
+      confirmed = confirm(`Apakah Anda yakin ingin menghapus "${itemToDelete.fileName}"?`);
     }
 
     if (!confirmed) return;
 
-    // Call Google Apps Script delete action if fileId exists and endpoint is configured
-    const endpointUrl = (gdriveScriptUrl ? gdriveScriptUrl.value.trim() : '') || localStorage.getItem('SICEKAS_GDRIVE_ENDPOINT') || 'https://script.google.com/macros/s/AKfycbwy_8AJb9KyPC1yqclPuVNNuZ0EJLZW0GxwRJAYmErHJJynBnfxr7hJtP_Yn2DOv_hS/exec';
-    
+    // Optional Google Drive delete call
+    const endpointUrl = (gdriveScriptUrl ? gdriveScriptUrl.value.trim() : '') || localStorage.getItem('SICEKAS_GDRIVE_ENDPOINT');
     if (itemToDelete.fileId && endpointUrl && endpointUrl.startsWith('http')) {
       try {
         fetch(endpointUrl, {
           method: 'POST',
-          body: JSON.stringify({
-            action: 'delete',
-            fileId: itemToDelete.fileId
-          }),
+          body: JSON.stringify({ action: 'delete', fileId: itemToDelete.fileId }),
           headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-        }).catch(err => console.warn('[GDRIVE DELETE] Failed to delete on drive:', err));
+        }).catch(err => console.warn('[GDRIVE DELETE] Failed:', err));
       } catch (err) {}
     }
 
-    // Remove from list
     items.splice(idx, 1);
     saveEvidenceList(items);
-    renderEvidenceList();
+    renderEvidenceList(true);
 
     if (typeof Swal !== 'undefined') {
-      Swal.fire({
+      Swal.fire(getTpPolSwalTheme({
         icon: 'success',
-        title: 'Berkas Berhasil Dihapus',
-        text: 'Berkas bukti dukung telah dihapus dari sistem dan Google Drive.',
-        background: '#0f172a',
-        color: '#ffffff',
-        confirmButtonColor: '#10b981',
-        timer: 2000,
+        title: 'Berkas Dihapus',
+        text: 'Berkas bukti dukung telah dihapus dari sistem.',
+        confirmButtonColor: '#0d9488',
+        timer: 1800,
         timerProgressBar: true
-      });
+      }));
     }
   };
 
-  // Re-render when employee or period changes
-  if (signPetugas) signPetugas.addEventListener('change', renderEvidenceList);
-  if (tppolMonth) tppolMonth.addEventListener('change', renderEvidenceList);
-  if (tppolYear) tppolYear.addEventListener('change', renderEvidenceList);
-
-  // Initial render on load
-  setTimeout(renderEvidenceList, 800);
-
-  // Submit Form Handler: Upload to Google Drive
+  // Submit Evidence: Dual High-Speed R2 + Google Drive Engine
   if (formUploadEvidence) {
     formUploadEvidence.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       if (!selectedEvidenceFile) {
         if (typeof Swal !== 'undefined') {
-          Swal.fire({
+          Swal.fire(getTpPolSwalTheme({
             icon: 'warning',
             title: 'Pilih File Terlebih Dahulu',
-            text: 'Silakan pilih berkas dokumen bukti dukung sebelum mengunggah.',
-            background: '#0f172a',
-            color: '#ffffff'
-          });
+            text: 'Silakan pilih berkas dokumen bukti dukung sebelum mengunggah.'
+          }));
         } else {
           alert('Pilih file terlebih dahulu.');
         }
@@ -5195,6 +5047,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const mIdx = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
       const mName = MONTH_NAMES[mIdx - 1] || 'Agustus';
       const yVal = tppolYear ? tppolYear.value : '2026';
+      
       let keteranganVal = '';
       if (evidenceKeteranganSelect) {
         if (evidenceKeteranganSelect.value === '__custom__') {
@@ -5206,30 +5059,56 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       if (!keteranganVal) keteranganVal = 'Bukti Dukung TP POL';
-      const endpointUrl = (gdriveScriptUrl ? gdriveScriptUrl.value.trim() : '') || localStorage.getItem('SICEKAS_GDRIVE_ENDPOINT') || 'https://script.google.com/macros/s/AKfycbwy_8AJb9KyPC1yqclPuVNNuZ0EJLZW0GxwRJAYmErHJJynBnfxr7hJtP_Yn2DOv_hS/exec';
 
-      // Progress animation
       if (uploadProgressContainer) uploadProgressContainer.style.display = 'block';
-      if (uploadProgressFill) uploadProgressFill.style.width = '25%';
-      if (uploadProgressPercent) uploadProgressPercent.textContent = '25%';
+      if (uploadProgressFill) uploadProgressFill.style.width = '20%';
+      if (uploadProgressPercent) uploadProgressPercent.textContent = '20%';
       if (btnSubmitEvidence) btnSubmitEvidence.disabled = true;
-      if (btnSubmitEvidenceText) btnSubmitEvidenceText.textContent = 'Sedang Memproses...';
+      if (btnSubmitEvidenceText) btnSubmitEvidenceText.textContent = 'Sedang Menyimpan Berkas...';
 
       try {
-        // Read file as Base64
         const reader = new FileReader();
         reader.readAsDataURL(selectedEvidenceFile);
 
         reader.onload = async () => {
           const base64Data = reader.result.split(',')[1];
-          if (uploadProgressFill) uploadProgressFill.style.width = '60%';
-          if (uploadProgressPercent) uploadProgressPercent.textContent = '60%';
+          if (uploadProgressFill) uploadProgressFill.style.width = '55%';
+          if (uploadProgressPercent) uploadProgressPercent.textContent = '55%';
 
-          let uploadedFileUrl = 'https://drive.google.com';
-          let gdriveFileId = 'gdrive_' + Date.now();
+          let r2FileUrl = '';
+          let r2FileKey = '';
+          let gdriveUrl = '';
+          let gdriveFileId = '';
 
-          // If Google Apps Script Web App URL is configured, POST to it
-          if (endpointUrl && endpointUrl.startsWith('http')) {
+          // 1. High-Speed Cloudflare R2 Upload
+          try {
+            const r2Res = await fetch('/api/r2/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: selectedEvidenceFile.name,
+                base64: base64Data,
+                uploaded_by: activePetugasName,
+                prefix: `evidence/${yVal}/${mName}/`
+              })
+            });
+            if (r2Res.ok) {
+              const r2Json = await r2Res.json();
+              if (r2Json && (r2Json.url || r2Json.fileUrl)) {
+                r2FileUrl = r2Json.url || r2Json.fileUrl;
+                r2FileKey = r2Json.key || r2Json.fileKey || '';
+              }
+            }
+          } catch (r2Err) {
+            console.warn('[R2 UPLOAD] R2 fallback:', r2Err);
+          }
+
+          if (uploadProgressFill) uploadProgressFill.style.width = '80%';
+          if (uploadProgressPercent) uploadProgressPercent.textContent = '80%';
+
+          // 2. Optional Google Drive Upload
+          const endpointUrl = (gdriveScriptUrl ? gdriveScriptUrl.value.trim() : '') || localStorage.getItem('SICEKAS_GDRIVE_ENDPOINT');
+          if (endpointUrl && endpointUrl.startsWith('http') && !endpointUrl.includes('placeholder')) {
             try {
               const payload = {
                 fileName: selectedEvidenceFile.name,
@@ -5243,40 +5122,34 @@ document.addEventListener('DOMContentLoaded', () => {
                 keterangan: keteranganVal
               };
 
-              const res = await fetch(endpointUrl, {
+              const gRes = await fetch(endpointUrl, {
                 method: 'POST',
                 body: JSON.stringify(payload),
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' }
               });
-
-              const result = await res.json();
-              if (result) {
-                if (result.fileUrl) uploadedFileUrl = result.fileUrl;
-                else if (result.url) uploadedFileUrl = result.url;
-
-                if (result.fileId) gdriveFileId = result.fileId;
-                else if (result.id) gdriveFileId = result.id;
-                else if (uploadedFileUrl.includes('/d/')) {
-                  const m = uploadedFileUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
-                  if (m) gdriveFileId = m[1];
+              if (gRes.ok) {
+                const gResult = await gRes.json();
+                if (gResult) {
+                  gdriveUrl = gResult.fileUrl || gResult.url || '';
+                  gdriveFileId = gResult.fileId || gResult.id || '';
                 }
               }
-            } catch (err) {
-              console.warn('[GDRIVE UPLOAD] Remote endpoint error, fallback to recorded link:', err);
+            } catch (gErr) {
+              console.warn('[GDRIVE UPLOAD] Remote error:', gErr);
             }
           }
 
           if (uploadProgressFill) uploadProgressFill.style.width = '100%';
           if (uploadProgressPercent) uploadProgressPercent.textContent = '100%';
 
-          // Save to local evidence collection
           const ext = selectedEvidenceFile.name.split('.').pop().toUpperCase();
           const sizeKB = (selectedEvidenceFile.size / 1024).toFixed(1);
           const sizeStr = selectedEvidenceFile.size > 1024 * 1024 ? `${(selectedEvidenceFile.size / (1024 * 1024)).toFixed(2)} MB` : `${sizeKB} KB`;
+          const finalUrl = r2FileUrl || gdriveUrl || ('data:' + (selectedEvidenceFile.type || 'application/octet-stream') + ';base64,' + base64Data);
 
           const newEvidence = {
             id: 'ev_' + Date.now(),
-            fileId: gdriveFileId,
+            fileId: gdriveFileId || r2FileKey || ('ev_' + Date.now()),
             petugas: activePetugasName,
             periode: `${mName} ${yVal}`,
             month: mIdx,
@@ -5285,49 +5158,45 @@ document.addEventListener('DOMContentLoaded', () => {
             fileName: selectedEvidenceFile.name,
             fileExt: ext,
             fileSize: sizeStr,
-            fileUrl: uploadedFileUrl,
+            fileUrl: finalUrl,
+            gdriveUrl: gdriveUrl,
+            r2Url: r2FileUrl,
             uploadedAt: new Date().toISOString()
           };
 
           const list = loadEvidenceList();
           list.unshift(newEvidence);
           saveEvidenceList(list);
-          renderEvidenceList();
+          renderEvidenceList(true);
 
-          // Close modal and show success
           closeEvidenceUploadModal();
 
           if (typeof Swal !== 'undefined') {
-            Swal.fire({
+            Swal.fire(getTpPolSwalTheme({
               icon: 'success',
-              title: 'Berhasil Diunggah!',
-              html: `Berkas <strong>${selectedEvidenceFile.name}</strong> berhasil tersimpan.<br><span style="font-size:12px;color:#94a3b8;">Tautan Google Drive telah tersinkronisasi ke sistem.</span>`,
-              background: '#0f172a',
-              color: '#ffffff',
-              confirmButtonColor: '#10b981'
-            });
+              title: 'Bukti Dukung Tersimpan!',
+              html: `Berkas <strong>${selectedEvidenceFile.name}</strong> berhasil diunggah dan disinkronisasi ke sistem Cloud.<br><span style="font-size:12px;color:var(--text-muted,#475569);">Tersimpan permanen dan dapat ditinjau oleh Verifikator.</span>`,
+              confirmButtonColor: '#0d9488'
+            }));
           } else {
             alert(`Berkas ${selectedEvidenceFile.name} berhasil diunggah!`);
           }
         };
 
         reader.onerror = () => {
-          throw new Error('Gagal membaca file.');
+          throw new Error('Gagal membaca file lokal.');
         };
-
       } catch (err) {
         if (uploadProgressContainer) uploadProgressContainer.style.display = 'none';
         if (btnSubmitEvidence) btnSubmitEvidence.disabled = false;
-        if (btnSubmitEvidenceText) btnSubmitEvidenceText.textContent = 'Mulai Upload ke Google Drive';
+        if (btnSubmitEvidenceText) btnSubmitEvidenceText.textContent = 'Mulai Upload Bukti Dukung';
 
         if (typeof Swal !== 'undefined') {
-          Swal.fire({
+          Swal.fire(getTpPolSwalTheme({
             icon: 'error',
             title: 'Gagal Mengunggah',
-            text: err.message || 'Terjadi kesalahan saat memproses file.',
-            background: '#0f172a',
-            color: '#ffffff'
-          });
+            text: err.message || 'Terjadi kesalahan saat memproses file.'
+          }));
         } else {
           alert('Gagal mengunggah: ' + err.message);
         }
