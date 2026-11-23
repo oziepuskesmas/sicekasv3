@@ -15324,3 +15324,263 @@ body.theme-light .viewer-keterangan-info {
 body.theme-light .viewer-keterangan-val {
   color: #0f172a !important;
 }
+
+
+/* ==========================================================================
+   ANTI-UI-SLOP: UNIVERSAL HIGH-CONTRAST & LIGHT THEME FINISH GATE
+   Strictly eliminating faint text, dark islands in light mode, and contrast flaws
+   ========================================================================== */
+
+/* 1. Base Badges & Live Tags */
+.badge-system-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #10b981;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+body.theme-light .badge-system-live {
+  background: #d1fae5 !important;
+  border: 1px solid #a7f3d0 !important;
+  color: #065f46 !important;
+}
+
+/* 2. Custom Select & Dropdowns Base & Light Mode */
+.custom-select {
+  background-color: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f1f5f9;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.custom-select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+body.theme-light .custom-select {
+  background-color: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+}
+body.theme-light .custom-select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+/* 3. Kelola Akun & Dev Console: Executive Hero Card in Light Mode */
+body.theme-light #viewKelolaAkun,
+body.theme-light #viewDeveloperWeb {
+  color: #0f172a !important;
+}
+body.theme-light #viewKelolaAkun .dev-header-card,
+body.theme-light #viewDeveloperWeb .dev-header-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05) !important;
+}
+body.theme-light #viewKelolaAkun .dev-title,
+body.theme-light #viewDeveloperWeb .dev-title {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+body.theme-light #viewKelolaAkun .dev-subtitle,
+body.theme-light #viewDeveloperWeb .dev-subtitle {
+  color: #475569 !important;
+  font-weight: 500 !important;
+}
+
+/* 4. KPI Bento Metrics Cards in Light Mode */
+body.theme-light .kpi-card,
+body.theme-light .dev-kpi-grid > div {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+}
+body.theme-light .kpi-val,
+body.theme-light .kpi-value {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+body.theme-light .kpi-label {
+  color: #64748b !important;
+  font-weight: 700 !important;
+}
+body.theme-light .kpi-sub {
+  color: #64748b !important;
+  font-weight: 500 !important;
+}
+body.theme-light #kpiAkunAktif {
+  color: #0284c7 !important;
+}
+body.theme-light #kpiTotalAdmin {
+  color: #b45309 !important;
+}
+
+/* 5. Developer & Admin Action Buttons in Light Mode */
+body.theme-light .btn-dev-action {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+}
+body.theme-light .btn-dev-action:hover {
+  background: #f8fafc !important;
+  border-color: #0d9488 !important;
+  color: #0d9488 !important;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08) !important;
+}
+body.theme-light .btn-dev-action.primary,
+body.theme-light #btnSaveDevUser,
+body.theme-light #btnKelolaAkunAdd,
+body.theme-light #btnAddKelolaAkunTop {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3) !important;
+}
+body.theme-light .btn-dev-action.primary:hover,
+body.theme-light #btnSaveDevUser:hover,
+body.theme-light #btnKelolaAkunAdd:hover,
+body.theme-light #btnAddKelolaAkunTop:hover {
+  box-shadow: 0 5px 15px rgba(16, 185, 129, 0.45) !important;
+}
+
+/* 6. Mini Table Actions & Badges in Light Mode */
+body.theme-light .btn-dev-action-mini.edit {
+  background: #e0f2fe !important;
+  border: 1px solid #bae6fd !important;
+  color: #0369a1 !important;
+  font-weight: 700 !important;
+}
+body.theme-light .btn-dev-action-mini.edit:hover {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+}
+body.theme-light .btn-dev-action-mini.reset {
+  background: #fef3c7 !important;
+  border: 1px solid #fde68a !important;
+  color: #b45309 !important;
+  font-weight: 700 !important;
+}
+body.theme-light .btn-dev-action-mini.reset:hover {
+  background: #d97706 !important;
+  color: #ffffff !important;
+  border-color: #d97706 !important;
+}
+body.theme-light .btn-dev-action-mini.delete {
+  background: #ffe4e6 !important;
+  border: 1px solid #fecdd3 !important;
+  color: #be123c !important;
+  font-weight: 700 !important;
+}
+body.theme-light .btn-dev-action-mini.delete:hover {
+  background: #e11d48 !important;
+  color: #ffffff !important;
+  border-color: #e11d48 !important;
+}
+
+body.theme-light .btn-dev-status-toggle.active {
+  background: #d1fae5 !important;
+  border: 1px solid #a7f3d0 !important;
+  color: #047857 !important;
+  font-weight: 700 !important;
+}
+body.theme-light .btn-dev-status-toggle.inactive {
+  background: #fee2e2 !important;
+  border: 1px solid #fca5a5 !important;
+  color: #b91c1c !important;
+  font-weight: 700 !important;
+}
+
+body.theme-light .role-select-custom {
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+body.theme-light .role-select-custom option {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+body.theme-light .rm-badge {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+/* 7. Employee Table Row Details */
+body.theme-light #kelolaAkunTable thead th {
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+body.theme-light #kelolaAkunTable tbody td {
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #0f172a !important;
+}
+body.theme-light #kelolaAkunTable tbody tr:hover td {
+  background: #f8fafc !important;
+}
+
+/* 8. POA Bulanan Year & Filter Bar High Contrast */
+body.theme-light #poaSelectYear,
+body.theme-light #poaSelectMonth,
+body.theme-light #poaSelectOfficer {
+  background-color: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+body.theme-light .btn-poa-filter {
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25) !important;
+}
+body.theme-light .btn-poa-filter:hover {
+  background: #0f766e !important;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35) !important;
+}
+
+/* 9. SPPD & LPT Selects & Form Inputs High Contrast */
+body.theme-light #sppdInputPegawai,
+body.theme-light #sppdPengikutSelect1,
+body.theme-light #sppdPengikutSelect2,
+body.theme-light #sppdPengikutSelect3,
+body.theme-light #sppdPengikutSelect4,
+body.theme-light #lptSelectPetugas1,
+body.theme-light #lptSelectPetugas2,
+body.theme-light #lptSelectPetugas3,
+body.theme-light #sppdLptSelectForm,
+body.theme-light #sppdDisplayPart,
+body.theme-light #selectSppdFontFamily {
+  background-color: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #0f172a !important;
+  font-weight: 500 !important;
+}
+
+/* 10. Modals Header & Footer Borders in Light Mode */
+body.theme-light #devUserModal .modal-header,
+body.theme-light #devUserModal .modal-footer,
+body.theme-light .activity-modal-overlay .modal-header,
+body.theme-light .activity-modal-overlay .modal-footer {
+  border-color: #e2e8f0 !important;
+}
+body.theme-light .modal-subtitle {
+  color: #64748b !important;
+}
