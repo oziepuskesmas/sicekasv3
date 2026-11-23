@@ -1,0 +1,23 @@
+# ============================================================================
+# SICEKAS v3.0 - CLOUDFLARE PAGES & D1 DATABASE CONFIGURATION
+# ============================================================================
+
+name = "sicekas-v3"
+compatibility_date = "2026-11-01"
+pages_build_output_dir = "dist"
+
+# Cloudflare D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "sicekas-v2"
+database_id = "8186f6c9-f454-4a87-a541-50d09e74b929"
+
+# Cloudflare R2 Object Storage Binding (Foto Kegiatan & Media)
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "sicekas-storage"
+
+[vars]
+ENVIRONMENT = "production"
+APP_NAME = "SICEKAS v3.0"
+PUSKESMAS_NAME = "Puskesmas Banjaran Kota"
