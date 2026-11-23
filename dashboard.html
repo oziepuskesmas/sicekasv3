@@ -74,7 +74,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="dashboard.css?v=100">
+  <link rel="stylesheet" href="dashboard.css?v=101">
 </head>
 <body>
   <!-- Ambient Atmospheric Light Glows -->
@@ -277,11 +277,28 @@
             </li>
           </ul>
 
-          <div class="nav-section-title" id="navSectionGodMode">Administrasi Sistem</div>
-          <ul class="nav-list" id="navListGodMode">
-            <!-- 7. Menu Khusus Developer Web (Super Admin Only) -->
+          <div class="nav-section-title" id="navSectionAdmin">Menu Admin</div>
+          <ul class="nav-list" id="navListAdmin">
+            <!-- 7. Menu Kelola Akun Pegawai (Admin) -->
+            <li class="nav-item nav-item-admin" id="navItemKelolaAkun">
+              <a href="#" class="nav-link nav-link-admin" data-view="kelola-akun" data-subtab="users" data-tooltip="Kelola Akun Pegawai" id="navKelolaAkun">
+                <div class="nav-icon dev-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.3);">
+                  <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+                <span class="nav-label">Kelola Akun</span>
+                <span class="sidebar-badge-counter" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-size: 8.5px; font-weight: 800; padding: 1px 5px; border-radius: 4px;">AKUN</span>
+                <span class="nav-glow-pill"></span>
+              </a>
+            </li>
+
+            <!-- 8. Menu Khusus Developer Web (Super Admin Only) -->
             <li class="nav-item nav-item-admin" id="navItemDevWeb">
-              <a href="#" class="nav-link nav-link-admin" data-view="developer-web" data-tooltip="Developer Web (Super Admin)" id="navDeveloperWeb">
+              <a href="#" class="nav-link nav-link-admin" data-view="developer-web" data-subtab="api" data-tooltip="Developer Web (Sistem &amp; Database)" id="navDeveloperWeb">
                 <div class="nav-icon dev-icon">
                   <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="16 18 22 12 16 6"></polyline>
@@ -290,12 +307,12 @@
                   </svg>
                 </div>
                 <span class="nav-label">Developer Web</span>
-                <span class="badge-super-admin-nav">ADMIN</span>
+                <span class="sidebar-badge-counter" style="background: rgba(14, 165, 233, 0.2); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.4); font-size: 8.5px; font-weight: 800; padding: 1px 5px; border-radius: 4px;">SISTEM</span>
                 <span class="nav-glow-pill"></span>
               </a>
             </li>
 
-            <!-- 8. Menu Khusus R2 Storage & File Manager -->
+            <!-- 9. Menu Khusus R2 Storage & File Manager -->
             <li class="nav-item nav-item-admin" id="navItemR2Storage">
               <a href="#" class="nav-link nav-link-admin" data-view="developer-web" data-subtab="r2storage" data-tooltip="Cloudflare R2 File Manager (Super Admin)" id="navR2Storage">
                 <div class="nav-icon dev-icon" style="background: rgba(244, 63, 94, 0.15); color: #f43f5e; border-color: rgba(244, 63, 94, 0.25);">
@@ -334,6 +351,17 @@
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
                 <span>Profil Pegawai Saya</span>
+              </a>
+            </li>
+            <li id="popoverItemKelolaAkun">
+              <a href="#" class="popover-item" id="btnPopoverKelolaAkun">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                <span>Kelola Akun Pegawai (Admin)</span>
               </a>
             </li>
             <li>
@@ -486,7 +514,21 @@
               </div>
             </div>
 
-            <div class="beranda-hero-right">
+            <div class="beranda-hero-right" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <button class="btn-hero-action" id="btnHeroKelolaAkun" title="Buka Menu Kelola Akun Pegawai (Admin)" style="border-color: rgba(16, 185, 129, 0.35);">
+                <div class="btn-icon-circle" style="background: rgba(16, 185, 129, 0.2); color: #10b981;">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+                <div class="btn-action-text">
+                  <span class="btn-title">Kelola Akun</span>
+                  <span class="btn-sub">Menu Admin</span>
+                </div>
+              </button>
               <button class="btn-hero-action" id="btnChangePassword" title="Ubah Password Akun Anda">
                 <div class="btn-icon-circle">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -5099,6 +5141,6 @@
   </div>
 
   <script src="sppd_assets.js"></script>
-  <script src="dashboard.js?v=100"></script>
+  <script src="dashboard.js?v=101"></script>
 </body>
 </html>

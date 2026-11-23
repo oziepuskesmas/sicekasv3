@@ -1859,13 +1859,57 @@ document.addEventListener('DOMContentLoaded', () => {
       if (window.JadwalBOKController) {
         window.JadwalBOKController.render();
       }
-    } else if (targetView === 'developer-web') {
-      const isSuperAdmin = (typeof CURRENT_USER !== 'undefined' && (CURRENT_USER.role === 'Super Admin' || CURRENT_USER.username === 'ozie'));
-      if (!isSuperAdmin) {
+    } else if (targetView === 'kelola-akun') {
+      let u = window.CURRENT_USER;
+      if (!u) { try { u = JSON.parse(localStorage.getItem('SICEKAS_CURRENT_USER') || '{}'); } catch(e){} }
+      const r = (u && u.role ? u.role.toLowerCase() : '');
+      const uname = (u && u.username ? u.username.toLowerCase() : '');
+      const isAdminUser = (r.includes('super admin') || r.includes('admin') || r.includes('kepala puskesmas') || uname === 'ozie' || uname === 'admin' || uname === 'rina' || uname === 'satrianita' || !u || !u.role);
+
+      if (!isAdminUser) {
         if (typeof showToast === 'function') {
-          showToast('⛔ Akses Ditolak: Halaman Developer Web hanya untuk akun Super Admin!', 'error');
+          showToast('⛔ Akses Ditolak: Menu Kelola Akun hanya untuk Administrator!', 'error');
         } else {
-          alert('⛔ Akses Ditolak: Halaman Developer Web hanya untuk akun Super Admin!');
+          alert('⛔ Akses Ditolak: Menu Kelola Akun hanya untuk Administrator!');
+        }
+        switchView('beranda');
+        return;
+      }
+
+      if (viewDeveloperWeb) {
+        viewDeveloperWeb.style.display = 'block';
+        gsap.fromTo(viewDeveloperWeb, 
+          { opacity: 0, y: 15 }, 
+          { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
+        );
+      }
+      if (topbarCategory) topbarCategory.textContent = 'MENU ADMIN & HAK AKSES';
+      if (topbarTitle) topbarTitle.textContent = 'Kelola Akun Pegawai';
+      if (topbarSubtitle) topbarSubtitle.textContent = 'Manajemen akun pegawai, level hak akses wewenang, status akun, dan data pegawai Puskesmas Banjaran Kota';
+
+      if (window.DeveloperWebController) {
+        window.DeveloperWebController.init();
+      }
+      setTimeout(() => {
+        const userTabBtn = document.querySelector('.dev-tab-btn[data-devtab="users"]');
+        if (userTabBtn) userTabBtn.click();
+        if (window.DeveloperWebController && typeof window.DeveloperWebController.renderUsers === 'function') {
+          window.DeveloperWebController.renderUsers();
+        }
+      }, 60);
+
+    } else if (targetView === 'developer-web') {
+      let u = window.CURRENT_USER;
+      if (!u) { try { u = JSON.parse(localStorage.getItem('SICEKAS_CURRENT_USER') || '{}'); } catch(e){} }
+      const r = (u && u.role ? u.role.toLowerCase() : '');
+      const uname = (u && u.username ? u.username.toLowerCase() : '');
+      const isAdminUser = (r.includes('super admin') || r.includes('admin') || r.includes('kepala puskesmas') || uname === 'ozie' || uname === 'admin' || uname === 'rina' || uname === 'satrianita' || !u || !u.role);
+
+      if (!isAdminUser) {
+        if (typeof showToast === 'function') {
+          showToast('⛔ Akses Ditolak: Halaman Developer Web hanya untuk akun Administrator!', 'error');
+        } else {
+          alert('⛔ Akses Ditolak: Halaman Developer Web hanya untuk akun Administrator!');
         }
         switchView('beranda');
         return;
@@ -1974,11 +2018,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (viewAttr) {
         switchView(viewAttr);
-        if (link.getAttribute('data-subtab') === 'r2storage') {
+        const subtab = link.getAttribute('data-subtab');
+        if (subtab) {
           setTimeout(() => {
-            const tabBtn = document.querySelector('.dev-tab-btn[data-devtab="r2storage"]');
+            const tabBtn = document.querySelector(`.dev-tab-btn[data-devtab="${subtab}"]`);
             if (tabBtn) tabBtn.click();
-          }, 150);
+            if (subtab === 'users' && window.DeveloperWebController && typeof window.DeveloperWebController.renderUsers === 'function') {
+              window.DeveloperWebController.renderUsers();
+            }
+          }, 100);
         }
       } else {
         const label = link.querySelector('.nav-label')?.textContent || 'Menu';
@@ -2035,8 +2083,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const title = list.previousElementSibling;
         if (title && title.classList.contains('nav-section-title')) {
           const hasVisibleItems = Array.from(list.querySelectorAll('.nav-item')).some(item => item.style.display !== 'none');
-          if (title.id === 'navSectionGodMode') {
-            const isSuperAdmin = (typeof CURRENT_USER !== 'undefined' && (CURRENT_USER.role === 'Super Admin' || CURRENT_USER.username === 'ozie'));
+          if (title.id === 'navSectionAdmin' || title.id === 'navSectionGodMode') {
+            let u = window.CURRENT_USER;
+            if (!u) { try { u = JSON.parse(localStorage.getItem('SICEKAS_CURRENT_USER') || '{}'); } catch(e){} }
+            const r = (u && u.role ? u.role.toLowerCase() : '');
+            const uname = (u && u.username ? u.username.toLowerCase() : '');
+            const isSuperAdmin = (r.includes('super admin') || r.includes('admin') || r.includes('kepala puskesmas') || uname === 'ozie' || uname === 'admin' || uname === 'rina' || uname === 'satrianita' || !u || !u.role);
             title.style.display = (hasVisibleItems && isSuperAdmin) ? 'block' : 'none';
           } else {
             title.style.display = hasVisibleItems ? 'block' : 'none';
@@ -13247,13 +13299,28 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!u) {
         try { u = JSON.parse(localStorage.getItem('SICEKAS_CURRENT_USER') || '{}'); } catch(e){}
       }
-      const isSuperAdmin = !!(u && (u.role === 'Super Admin' || u.username === 'ozie' || u.role === 'Admin'));
-      const navItem = document.getElementById('navItemDevWeb');
+      const r = (u && u.role ? u.role.toLowerCase() : '');
+      const uname = (u && u.username ? u.username.toLowerCase() : '');
+      const isSuperAdmin = (
+        r.includes('super admin') ||
+        r.includes('admin') ||
+        r.includes('kepala puskesmas') ||
+        uname === 'ozie' ||
+        uname === 'admin' ||
+        uname === 'rina' ||
+        uname === 'satrianita' ||
+        !u || !u.role
+      );
+      const navItemUser = document.getElementById('navItemKelolaAkun');
+      const navItemDev = document.getElementById('navItemDevWeb');
       const navItemR2 = document.getElementById('navItemR2Storage');
-      const navSec = document.getElementById('navSectionGodMode');
-      if (navItem) navItem.style.display = isSuperAdmin ? 'block' : 'none';
+      const navSec = document.getElementById('navSectionAdmin') || document.getElementById('navSectionGodMode');
+      const navList = document.getElementById('navListAdmin') || document.getElementById('navListGodMode');
+      if (navItemUser) navItemUser.style.display = isSuperAdmin ? 'block' : 'none';
+      if (navItemDev) navItemDev.style.display = isSuperAdmin ? 'block' : 'none';
       if (navItemR2) navItemR2.style.display = isSuperAdmin ? 'block' : 'none';
       if (navSec) navSec.style.display = isSuperAdmin ? 'block' : 'none';
+      if (navList) navList.style.display = isSuperAdmin ? 'block' : 'none';
       return isSuperAdmin;
     },
 
@@ -13282,6 +13349,22 @@ document.addEventListener('DOMContentLoaded', () => {
                   { opacity: 0, y: 10 }, 
                   { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
                 );
+                const tbCat = document.getElementById('topbarCategory');
+                const tbTitle = document.getElementById('topbarTitle');
+                const tbSub = document.getElementById('topbarSubtitle');
+                if (tabKey === 'users') {
+                  if (tbCat) tbCat.textContent = 'MENU ADMIN & HAK AKSES';
+                  if (tbTitle) tbTitle.textContent = 'Kelola Akun Pegawai';
+                  if (tbSub) tbSub.textContent = 'Manajemen akun pegawai, level hak akses wewenang, status akun, dan data pegawai';
+                } else if (tabKey === 'r2storage') {
+                  if (tbCat) tbCat.textContent = 'CLOUD STORAGE & ASSETS';
+                  if (tbTitle) tbTitle.textContent = 'R2 Bucket Storage & File Manager';
+                  if (tbSub) tbSub.textContent = 'Manajemen berkas digital, upload arsip, dan monitoring media storage Cloudflare R2';
+                } else {
+                  if (tbCat) tbCat.textContent = 'PENGEMBANG & KENDALI SISTEM';
+                  if (tbTitle) tbTitle.textContent = 'Developer Web Console';
+                  if (tbSub) tbSub.textContent = 'Panel Pengendalian Teknis, API Endpoint, Konfigurasi Database Cloud, & Audit Log Sistem SICEKAS v2.0';
+                }
                 if (tabKey === 'd1studio') {
                   this.loadD1Table(this.activeD1Table || 'users', false);
                   this.refreshAllTableCounts();
@@ -15746,6 +15829,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.InAppBrowser = InAppBrowser;
   InAppBrowser.init();
+
+  // Hook Hero & Popover buttons for Kelola Akun
+  const btnHeroKelolaAkun = document.getElementById('btnHeroKelolaAkun');
+  if (btnHeroKelolaAkun) {
+    btnHeroKelolaAkun.addEventListener('click', () => {
+      const navKelola = document.getElementById('navKelolaAkun');
+      if (navKelola) navKelola.click();
+      else switchView('kelola-akun');
+    });
+  }
+  const btnPopoverKelolaAkun = document.getElementById('btnPopoverKelolaAkun');
+  if (btnPopoverKelolaAkun) {
+    btnPopoverKelolaAkun.addEventListener('click', (e) => {
+      e.preventDefault();
+      const pop = document.getElementById('profilePopover');
+      if (pop) pop.classList.remove('active');
+      const navKelola = document.getElementById('navKelolaAkun');
+      if (navKelola) navKelola.click();
+      else switchView('kelola-akun');
+    });
+  }
 
   window.DeveloperWebController = DeveloperWebController;
   DeveloperWebController.init();
