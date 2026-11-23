@@ -70,20 +70,250 @@ html.theme-light .text-slate-400 {
 }
 
 /* ==========================================================================
+   AUTHENTIC SPPD & LPT DOCUMENT ENGINE (100% REPLICA FROM PUSKESMAS BANJARAN KOTA)
+   ========================================================================== */
+.sppd-doc-sheet-exact {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border-radius: 4px;
+  width: 210mm !important;
+  max-width: 100% !important;
+  min-height: 297mm;
+  padding: 10mm 14mm 12mm 14mm !important;
+  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.45);
+  font-family: Arial, Helvetica, sans-serif !important;
+  margin: 0 auto 30px auto;
+  border: 1px solid #d1d5db;
+  box-sizing: border-box !important;
+  overflow: visible;
+  position: relative;
+}
+
+.sppd-doc-sheet-exact *,
+.sppd-doc-sheet-exact table,
+.sppd-doc-sheet-exact td,
+.sppd-doc-sheet-exact th,
+.sppd-doc-sheet-exact div,
+.sppd-doc-sheet-exact p,
+.sppd-doc-sheet-exact span {
+  font-family: Arial, Helvetica, sans-serif !important;
+  color: #000000 !important;
+}
+
+/* Kop Surat Resmi Puskesmas */
+.sppd-kop-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 2px;
+  min-height: 86px;
+  width: 100%;
+}
+
+.sppd-kop-logo {
+  position: absolute;
+  left: 0 !important;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 76px !important;
+  height: 86px !important;
+  object-fit: contain;
+  display: block;
+}
+
+.sppd-kop-text {
+  width: 100%;
+  text-align: center;
+  color: #000000 !important;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 70px;
+  box-sizing: border-box;
+}
+
+.sppd-kop-line1 {
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1.15;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.sppd-kop-line2 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  line-height: 1.15;
+  margin: 2px 0 0 0;
+  text-transform: uppercase;
+}
+
+.sppd-kop-line3 {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  line-height: 1.15;
+  margin: 2px 0 0 0;
+  text-transform: uppercase;
+}
+
+.sppd-kop-line4 {
+  font-size: 9.5px;
+  font-weight: 400;
+  line-height: 1.25;
+  margin: 3px 0 0 0;
+}
+
+.sppd-kop-line5 {
+  font-size: 9.5px;
+  font-weight: 400;
+  line-height: 1.25;
+  margin: 1px 0 0 0;
+}
+
+/* Official Solid Crisp Line Divider under Kop */
+.sppd-kop-divider {
+  border-top: 2.5px solid #000000;
+  margin: 4px 0 6px 0;
+  box-sizing: content-box;
+}
+
+/* Title & SPD Underline */
+.sppd-title-center-box {
+  text-align: center;
+  margin: 6px 0;
+  padding: 0;
+}
+
+.sppd-title {
+  font-size: 13pt;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-decoration: underline;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.sppd-subtitle {
+  font-size: 10pt;
+  font-weight: normal;
+  margin: 2px 0 0 0;
+  line-height: 1.2;
+}
+
+/* Exact SPPD Table (Gambar 1 & SICEKAS v2) */
+.exact-sppd-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1.5px solid #000000 !important;
+  font-size: 10pt;
+  margin-top: 4px !important;
+  margin-bottom: 12px;
+}
+
+.exact-sppd-table th,
+.exact-sppd-table td {
+  border: 1px solid #000000 !important;
+  padding: 4px 6px;
+  line-height: 1.28;
+}
+
+.sppd-num-col {
+  width: 28px;
+  text-align: center;
+  vertical-align: top;
+  font-weight: bold;
+}
+
+.sppd-desc-col {
+  width: 250px;
+  vertical-align: top;
+}
+
+.sppd-val-col {
+  vertical-align: top;
+}
+
+/* Visum Belakang Table */
+.sppd-back-outer-table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  table-layout: fixed !important;
+  border: 1.5px solid #000000 !important;
+  margin-bottom: 6px !important;
+}
+
+.sppd-back-outer-table > tbody > tr > td {
+  border: 1px solid #000000 !important;
+  vertical-align: top !important;
+  box-sizing: border-box !important;
+}
+
+.sppd-back-outer-table > tbody > tr.sppd-visum-row {
+  height: 145px !important;
+}
+
+.sppd-back-outer-table > tbody > tr.sppd-visum-row > td {
+  height: 145px !important;
+  padding: 4px 8px !important;
+}
+
+.nested-sppd-tbl {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
+  border: none !important;
+  font-size: 9.5pt !important;
+}
+
+.nested-sppd-tbl td {
+  border: none !important;
+  padding: 1px 2px !important;
+  line-height: 1.2 !important;
+}
+
+/* LPT Specific Styles */
+.exact-lpt-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1.5px solid #000000;
+  font-size: 10pt;
+}
+
+.exact-lpt-table th,
+.exact-lpt-table td {
+  border: 1px solid #000000;
+  padding: 5px 8px;
+}
+
+.exact-lpt-table th {
+  background-color: #f1f5f9;
+  font-weight: bold;
+}
+
+/* ==========================================================================
    A4 PRINT STYLESHEET (PRECISION ZERO-OVERFLOW ENGINE)
    ========================================================================== */
 @page {
   size: A4 portrait;
-  margin: 10mm;
+  margin: 0;
 }
 
 @media print {
   body {
     background: #ffffff !important;
     color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  aside, header, button, .print\:hidden {
+  aside, header, nav, button, .no-print, .print\:hidden {
     display: none !important;
   }
 
@@ -91,16 +321,28 @@ html.theme-light .text-slate-400 {
     margin: 0 !important;
     padding: 0 !important;
     max-width: none !important;
+    width: 100% !important;
   }
 
-  #sppd-printable-area {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: auto !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
+  .sppd-doc-sheet-exact {
     box-shadow: none !important;
+    border: none !important;
     border-radius: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 auto !important;
+    padding: 12mm 15mm 12mm 15mm !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
+    min-height: 297mm !important;
+    height: auto !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    box-sizing: border-box !important;
+  }
+
+  .print-page-break {
+    page-break-after: always !important;
+    break-after: page !important;
   }
 }
