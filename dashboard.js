@@ -13890,87 +13890,13 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       });
 
-      tbody.innerHTML = html;
-
-      if (searchInput && !searchInput.dataset.bound) {
-        searchInput.dataset.bound = 'true';
-        searchInput.addEventListener('input', (e) => {
-          this.filterUsersLocal(e.target.value);
-        });
-      }
-    },
-
-    filterUsersLocal(query = '') {
-      if (!this.loadedUsers) return;
-      const q = (query || '').toLowerCase().trim();
-      const tbody = document.getElementById('devUserListBody');
-      const rolesStore = JSON.parse(localStorage.getItem('SICEKAS_USER_ROLES')) || {};
-      if (!tbody) return;
-
-      const filtered = this.loadedUsers.filter(p => {
-        if (!q) return true;
-        return (p.nama && p.nama.toLowerCase().includes(q)) ||
-               (p.nip && p.nip.toLowerCase().includes(q)) ||
-               (p.username && p.username.toLowerCase().includes(q)) ||
-               (p.jabatan && p.jabatan.toLowerCase().includes(q));
-      });
-
-      let html = '';
-      filtered.forEach((p, idx) => {
-        const isMe = (p.username === CURRENT_USER.username || p.nip === CURRENT_USER.nip || p.nama === CURRENT_USER.nama);
-        const cleanNip = String(p.nip || '').replace(/\s+/g, '');
-        const currentRole = rolesStore[cleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
-        const isActive = (p.is_active === 1 || p.is_active === true || p.is_active === '1' || p.is_active === undefined);
-
-        html += `
-          <tr>
-            <td style="font-weight: 700; color: #94a3b8; text-align: center;">${p.no_urut || p.no || idx + 1}</td>
-            <td>
-              <div class="pegawai-name-cell" style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                ${p.nama}
-                ${isMe ? '<span class="badge-system-live" style="font-size: 10px; padding: 1px 6px;">Anda</span>' : ''}
-              </div>
-              <div style="font-size: 11.5px; color: #94a3b8; font-family: monospace;">${p.nip_full || p.nipFull || p.nip} <span style="color:#64748b;">(@${p.username || '-'})</span></div>
-            </td>
-            <td><span class="pegawai-jabatan-cell" style="font-weight: 600;">${p.jabatan || "-"}</span></td>
-            <td><span class="rm-badge" style="font-size: 11px;">${p.golongan || p.gol || 'BLUD'}</span></td>
-            <td>
-              <select class="role-select-custom" onchange="window.DeveloperWebController.updateUserRole('${p.nip}', this.value, ${p.id || 'null'})" ${isMe ? 'disabled title="Role Anda dilindungi sebagai Super Admin Utama"' : ''}>
-                <option value="Super Admin" ${currentRole === 'Super Admin' ? 'selected' : ''}>👑 1. Super Admin</option>
-                <option value="Admin" ${currentRole === 'Admin' ? 'selected' : ''}>🛡️ 2. Admin</option>
-                <option value="Kepala Puskesmas" ${currentRole === 'Kepala Puskesmas' ? 'selected' : ''}>🏛️ 3. Kepala Puskesmas</option>
-                <option value="PJ Klaster" ${currentRole === 'PJ Klaster' ? 'selected' : ''}>📋 4. PJ Klaster</option>
-                <option value="Petugas Puskesmas" ${currentRole === 'Petugas Puskesmas' ? 'selected' : ''}>👤 5. Petugas Puskesmas</option>
-              </select>
-            </td>
-            <td style="text-align: center;">
-              ${isActive ? 
-                `<button type="button" class="btn-dev-status-toggle active" onclick="window.DeveloperWebController.toggleUserStatus('${p.nip}', 0, ${p.id || 'null'})" ${isMe ? 'disabled title="Akun Anda aktif"' : 'title="Klik untuk Nonaktifkan Akun"'}>🟢 Aktif</button>` :
-                `<button type="button" class="btn-dev-status-toggle inactive" onclick="window.DeveloperWebController.toggleUserStatus('${p.nip}', 1, ${p.id || 'null'})" title="Klik untuk Aktifkan Akun">🔴 Nonaktif</button>`
-              }
-            </td>
-            <td style="text-align: center;">
-              <div style="display: inline-flex; align-items: center; gap: 5px;">
-                <button type="button" class="btn-dev-action-mini edit" onclick="window.DeveloperWebController.openEditUserModal('${p.nip}')" title="Edit Data Pegawai">
-                  ✏️ Edit
-                </button>
-                <button type="button" class="btn-dev-action-mini reset" onclick="window.DeveloperWebController.resetUserPass('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Reset Kata Sandi Akun ke Default (bankot2026)">
-                  🔑 Reset
-                </button>
-                ${!isMe ? `
-                  <button type="button" class="btn-dev-action-mini delete" onclick="window.DeveloperWebController.deleteUser('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Hapus Akun Pegawai">
-                    🗑️
-                  </button>
-                ` : ''}
-              </div>
-            </td>
-          </tr>
-        `;
-      });
-
       tbodies.forEach(tb => {
         tb.innerHTML = html;
       });
+    },
+
+    filterUsersLocal(query = '', roleFilter = '') {
+      this.renderUsers(query, roleFilter);
     },
 
     openAddUserModal() {
