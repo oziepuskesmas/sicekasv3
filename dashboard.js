@@ -1354,8 +1354,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       try {
-        const u = username || '';
-        const url = u ? `/api/sppd/templates?username=${encodeURIComponent(u)}&_t=${Date.now()}` : `/api/sppd/templates?_t=${Date.now()}`;
+        const u = username || 'all';
+        const url = `/api/sppd/templates?username=${encodeURIComponent(u)}&_t=${Date.now()}`;
         const res = await fetch(url, { cache: 'no-store' });
         if (res.ok) {
           const json = await res.json();
@@ -8631,14 +8631,15 @@ document.addEventListener('DOMContentLoaded', () => {
       // 1. Initial Load Templates (instant local cache + background Cloud D1 sync)
       await this.loadTemplates();
 
-      // 2. Restore active form draft or authentic initial template
-      this.restoreActiveDraftOrInitial();
+      // 2. Restore active form draft or authentic initial template (supports multi-device sync)
+      await this.restoreActiveDraftOrInitial();
 
       // 3. Setup real-time debounced auto-save so refreshing never loses user input
       this.setupAutoSaveDraft();
     },
 
-    restoreActiveDraftOrInitial() {
+    async restoreActiveDraftOrInitial() {
+      // 1. Check local device draft
       try {
         const rawDraft = localStorage.getItem('SICEKAS_SPPD_ACTIVE_DRAFT');
         if (rawDraft) {
@@ -8650,7 +8651,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (e) {}
 
-      // If no draft exists yet, auto-apply the default authentic template
+      // 2. Check Cloud D1 draft (for cross-device synchronization)
+      try {
+        if (CloudflareDB && CloudflareDB.fetchSppdDraft) {
+          const cloudDraft = await CloudflareDB.fetchSppdDraft(this.getCurrentUsername());
+          if (cloudDraft && typeof cloudDraft === 'object' && (cloudDraft.no_surat || cloudDraft.maksud_kegiatan || cloudDraft.lpt_data)) {
+            this.applyDraftObject(cloudDraft);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // 3. If no draft exists yet, auto-apply the default authentic template
       if (this.templates && this.templates.length > 0) {
         const sppdTmpl = this.templates.find(t => (t.template_type || 'sppd') === 'sppd') || this.templates[0];
         if (sppdTmpl) this.applyTemplate(sppdTmpl.id, true);
