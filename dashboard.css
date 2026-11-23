@@ -12212,16 +12212,13 @@ body.theme-light .sppd-template-card:hover {
 }
 body.theme-light .sppd-template-title,
 body.theme-light .sppd-template-title span,
-body.theme-light .sppd-template-name,
-body.theme-light .sppd-template-card .sppd-template-title,
-body.theme-light .sppd-template-card .sppd-template-title span {
+body.theme-light .sppd-template-name {
   color: #0f172a !important;
   font-weight: 700 !important;
   opacity: 1 !important;
 }
 body.theme-light .sppd-template-sub,
-body.theme-light .sppd-template-meta,
-body.theme-light .sppd-template-card .sppd-template-sub {
+body.theme-light .sppd-template-meta {
   color: #334155 !important;
   font-weight: 500 !important;
   opacity: 1 !important;
@@ -12254,27 +12251,28 @@ body.theme-light .sppd-template-tip-box {
   background: #fefce8 !important;
   border: 1px solid #fef08a !important;
 }
-body.theme-light .sppd-template-tip-box,
-body.theme-light .sppd-template-tip-box *,
-body.theme-light .sppd-template-tip-box span {
-  color: #78350f !important;
-}
 body.theme-light .sppd-template-tip-box.lpt-tip-box {
   background: #f0f9ff !important;
   border: 1px solid #bae6fd !important;
-}
-body.theme-light .sppd-template-tip-box.lpt-tip-box,
-body.theme-light .sppd-template-tip-box.lpt-tip-box *,
-body.theme-light .sppd-template-tip-box.lpt-tip-box span {
-  color: #0369a1 !important;
 }
 body.theme-light .sppd-template-tip-box.dok-tip-box {
   background: #f0fdfa !important;
   border: 1px solid #99f6e4 !important;
 }
-body.theme-light .sppd-template-tip-box.dok-tip-box,
-body.theme-light .sppd-template-tip-box.dok-tip-box *,
-body.theme-light .sppd-template-tip-box.dok-tip-box span {
+body.theme-light .sppd-template-tip-box .sppd-tip-inner,
+body.theme-light .sppd-template-tip-box .sppd-tip-inner span,
+body.theme-light .sppd-template-tip-box .sppd-tip-inner strong {
+  color: #451a03 !important;
+  font-weight: 500 !important;
+}
+body.theme-light .sppd-template-tip-box.lpt-tip-box .sppd-tip-inner,
+body.theme-light .sppd-template-tip-box.lpt-tip-box .sppd-tip-inner span,
+body.theme-light .sppd-template-tip-box.lpt-tip-box .sppd-tip-inner strong {
+  color: #0369a1 !important;
+}
+body.theme-light .sppd-template-tip-box.dok-tip-box .sppd-tip-inner,
+body.theme-light .sppd-template-tip-box.dok-tip-box .sppd-tip-inner span,
+body.theme-light .sppd-template-tip-box.dok-tip-box .sppd-tip-inner strong {
   color: #0f766e !important;
 }
 
