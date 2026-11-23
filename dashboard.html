@@ -74,7 +74,7 @@
       }
     })();
   </script>
-  <link rel="stylesheet" href="dashboard.css?v=107">
+  <link rel="stylesheet" href="dashboard.css?v=108">
 </head>
 <body>
   <!-- Ambient Atmospheric Light Glows -->
@@ -1502,7 +1502,7 @@
                   <!-- Title Header (Exact Reference Gambar 1) -->
                   <div class="sppd-title-center-box" style="margin: 8px 0 10px 0;">
                     <h2 class="sppd-title" style="font-size: 13pt; text-decoration: underline; font-weight: bold;">SURAT PERINTAH PERJALANAN DINAS (SPPD)</h2>
-                    <h3 class="sppd-subtitle" style="font-size: 10pt; font-weight: normal; margin-top: 2px;">Nomor: <span id="sppdDocNoDisplay">090/042/PKM-BKT/VIII/2026</span></h3>
+                    <h3 class="sppd-subtitle" style="font-size: 10pt; font-weight: normal; margin-top: 2px;">Nomor: <span id="sppdDocNoDisplay">....... / ....... / PKM-BKT / ....... / 2026</span></h3>
                   </div>
                   <div class="sppd-title-divider"></div>
 
@@ -1521,8 +1521,8 @@
                         <td class="sppd-num-col">2.</td>
                         <td class="sppd-desc-col">Nama/NIP Pegawai yang melaksanakan Perjalanan Dinas</td>
                         <td colspan="2" class="sppd-val-col" id="sppdValPegawaiPelaksana">
-                          <div>Mochamad Fauzie, S.Gz</div>
-                          <div style="margin-top: 2px;">NRP. 873.3204.16.02.008</div>
+                          <div>...........................................</div>
+                          <div style="margin-top: 2px;">NIP. ...........................................</div>
                         </td>
                       </tr>
 
@@ -1535,8 +1535,8 @@
                           <div>c. Tingkat Biaya Perjalanan Dinas</div>
                         </td>
                         <td colspan="2" class="sppd-val-col">
-                          <div style="margin-bottom: 4px;" id="sppdValPangkat">BLUD</div>
-                          <div style="margin-bottom: 4px;" id="sppdValJabatan">Nutrisionis</div>
+                          <div style="margin-bottom: 4px;" id="sppdValPangkat">-</div>
+                          <div style="margin-bottom: 4px;" id="sppdValJabatan">-</div>
                           <div id="sppdValTingkatBiaya">Dalam Daerah</div>
                         </td>
                       </tr>
@@ -1648,10 +1648,10 @@
                         (Tanda Tangan)
                       </div>
                       <div style="font-weight: bold; text-decoration: underline; font-size: 10.5pt; line-height: 1.2;" id="sppdSigPegawaiNama">
-                        Mochamad Fauzie, S.Gz
+                        ...........................................
                       </div>
                       <div style="font-size: 9pt; margin-top: 2px; line-height: 1.2;" id="sppdSigPegawaiNip">
-                        873.3204.16.02.008
+                        NIP. ...........................................
                       </div>
                     </div>
 
@@ -1666,7 +1666,7 @@
                         <tr>
                           <td style="padding: 0; line-height: 1.2;">Pada tanggal</td>
                           <td style="padding: 0; line-height: 1.2;">:</td>
-                          <td style="padding: 0; line-height: 1.2;" id="sppdSigTanggal">18 Agustus 2026</td>
+                          <td style="padding: 0; line-height: 1.2;" id="sppdSigTanggal">........................ 2026</td>
                         </tr>
                       </table>
                       
@@ -2261,11 +2261,20 @@
               <div class="sppd-config-card sppd-sidebar-config-card">
                 
                 <!-- Section 1: Konfigurasi Formulir -->
-                <div class="sppd-section-label">
-                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>1. Konfigurasi Formulir</span>
+                <div class="sppd-config-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <div class="sppd-section-label" style="margin-top: 0; margin-bottom: 0;">
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span>1. Konfigurasi Formulir</span>
+                  </div>
+                  <button type="button" id="btnResetEntireSppdForm" class="sppd-btn-reset-dates" style="padding: 4px 10px; font-size: 11px; color: #f87171; border: 1px solid rgba(248, 113, 113, 0.35); background: rgba(248, 113, 113, 0.08); border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;" title="Kosongkan seluruh data form SPPD &amp; LPT untuk memulai formulir baru yang bersih">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                      <path d="M3 3v5h5"/>
+                    </svg>
+                    <span>Kosongkan Form</span>
+                  </button>
                 </div>
 
                 <div class="sppd-grid-2">
@@ -5281,6 +5290,6 @@
   </div>
 
   <script src="sppd_assets.js"></script>
-  <script src="dashboard.js?v=107"></script>
+  <script src="dashboard.js?v=108"></script>
 </body>
 </html>

@@ -5367,7 +5367,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update Lembar Depan
     const sppdDocNoDisplay = document.getElementById('sppdDocNoDisplay');
-    if (sppdDocNoDisplay) sppdDocNoDisplay.textContent = noSurat;
+    if (sppdDocNoDisplay) sppdDocNoDisplay.textContent = noSurat ? noSurat : '....... / ....... / PKM-BKT / ....... / 2026';
 
     const sppdValPegawaiPelaksana = document.getElementById('sppdValPegawaiPelaksana');
     if (sppdValPegawaiPelaksana) {
@@ -5385,31 +5385,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sppdValJabatan) sppdValJabatan.textContent = pegawaiJabatan || '-';
 
     const sppdValMaksud = document.getElementById('sppdValMaksud');
-    if (sppdValMaksud) sppdValMaksud.textContent = maksud;
+    if (sppdValMaksud) sppdValMaksud.textContent = maksud || '';
 
     const sppdValTempatBerangkat = document.getElementById('sppdValTempatBerangkat');
-    if (sppdValTempatBerangkat) sppdValTempatBerangkat.textContent = tempatBerangkat;
+    if (sppdValTempatBerangkat) sppdValTempatBerangkat.textContent = tempatBerangkat || '';
 
     const sppdValTempatTujuan = document.getElementById('sppdValTempatTujuan');
-    if (sppdValTempatTujuan) sppdValTempatTujuan.textContent = tujuan;
+    if (sppdValTempatTujuan) sppdValTempatTujuan.textContent = tujuan || '';
 
     const sppdValLamaPerjalanan = document.getElementById('sppdValLamaPerjalanan');
-    if (sppdValLamaPerjalanan) sppdValLamaPerjalanan.textContent = lamaPerjalanan;
+    if (sppdValLamaPerjalanan) sppdValLamaPerjalanan.textContent = (tglBerangkatRaw && tglKembaliRaw) ? lamaPerjalanan : '';
 
     const sppdValTglBerangkat = document.getElementById('sppdValTglBerangkat');
-    if (sppdValTglBerangkat) sppdValTglBerangkat.textContent = tglBerangkat;
+    if (sppdValTglBerangkat) sppdValTglBerangkat.textContent = tglBerangkat || '';
 
     const sppdValTglKembali = document.getElementById('sppdValTglKembali');
-    if (sppdValTglKembali) sppdValTglKembali.textContent = tglKembali;
+    if (sppdValTglKembali) sppdValTglKembali.textContent = tglKembali || '';
 
     const sppdSigTanggal = document.getElementById('sppdSigTanggal');
-    if (sppdSigTanggal) sppdSigTanggal.textContent = tglBerangkat || '18 Agustus 2026';
+    if (sppdSigTanggal) sppdSigTanggal.textContent = tglBerangkat || '........................ 2026';
 
     const sppdSigPegawaiNama = document.getElementById('sppdSigPegawaiNama');
-    if (sppdSigPegawaiNama) sppdSigPegawaiNama.textContent = pegawaiName || 'Mochamad Fauzie, S.Gz';
+    if (sppdSigPegawaiNama) sppdSigPegawaiNama.textContent = pegawaiName || '...........................................';
 
     const sppdSigPegawaiNip = document.getElementById('sppdSigPegawaiNip');
-    if (sppdSigPegawaiNip) sppdSigPegawaiNip.textContent = pegawaiNip || '873.3204.16.02.008';
+    if (sppdSigPegawaiNip) sppdSigPegawaiNip.textContent = pegawaiNip || 'NIP. ...........................................';
 
     // Update Petugas Pengikut (Nomor 8)
     for (let i = 1; i <= 4; i++) {
@@ -5499,9 +5499,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const dokValJudulKegiatan = document.getElementById('dokValJudulKegiatan');
     const dokInputJudulKegiatan = document.getElementById('dokInputJudulKegiatan');
     if (dokValJudulKegiatan && (!dokInputJudulKegiatan || !dokInputJudulKegiatan.dataset?.userEdited)) {
-      const judulText = maksud.trim() ? maksud : (tujuan.trim() ? tujuan : 'Judul Kegiatan');
+      const judulText = maksud.trim() ? maksud : (tujuan.trim() ? tujuan : '');
       dokValJudulKegiatan.textContent = judulText;
-      if (dokInputJudulKegiatan) dokInputJudulKegiatan.value = maksud.trim() ? maksud : (tujuan.trim() ? tujuan : '');
+      if (dokInputJudulKegiatan) dokInputJudulKegiatan.value = judulText;
     }
 
     // Sync SPPD Officer to LPT Petugas 1 (Utama)
@@ -5516,6 +5516,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (lptSigPetugasName1) lptSigPetugasName1.textContent = pegawaiName;
       if (lptSigPetugasNip1) lptSigPetugasNip1.textContent = pegawaiNip ? pegawaiNip : 'NIP. ...........................................';
     } else {
+      if (lptSelectPetugas1 && !lptSelectPetugas1.dataset?.userEdited) {
+        lptSelectPetugas1.value = '';
+      }
       if (lptSigPetugasName1) lptSigPetugasName1.textContent = '...........................................';
       if (lptSigPetugasNip1) lptSigPetugasNip1.textContent = 'NIP. ...........................................';
     }
@@ -5546,6 +5549,12 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           if (typeof syncLptOfficer === 'function') syncLptOfficer(petNum);
         }
+      } else {
+        if (lptToggle && (!lptSelect || !lptSelect.dataset.userEdited)) {
+          lptToggle.checked = false;
+          if (lptSelect) lptSelect.value = '';
+          if (typeof syncLptOfficer === 'function') syncLptOfficer(petNum);
+        }
       }
     }
 
@@ -5556,8 +5565,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sync Date
     const lptInputTanggalLaporan = document.getElementById('lptInputTanggalLaporan');
     const lptSigDate = document.getElementById('lptSigDate');
-    if (lptInputTanggalLaporan && tglBerangkatRaw && (!lptInputTanggalLaporan.dataset.userEdited || !lptInputTanggalLaporan.value)) {
-      lptInputTanggalLaporan.value = tglBerangkatRaw;
+    if (lptInputTanggalLaporan && (!lptInputTanggalLaporan.dataset.userEdited)) {
+      lptInputTanggalLaporan.value = tglBerangkatRaw || '';
     }
     if (lptSigDate) {
       if (lptInputTanggalLaporan && lptInputTanggalLaporan.value) {
@@ -8581,7 +8590,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const rawDraft = localStorage.getItem('SICEKAS_SPPD_ACTIVE_DRAFT');
         if (rawDraft) {
           const draft = JSON.parse(rawDraft);
-          if (draft && typeof draft === 'object' && (draft.no_surat || draft.maksud_kegiatan || draft.lpt_data)) {
+          // Purge stale default demo draft (Nurul Hidayah / demo template) so fresh load stays empty
+          if (draft && (
+            draft.pegawai_nama === 'Nurul Hidayah, Amd.Kes' || 
+            draft.pegawai_nama === 'Mochamad Fauzie, S.Gz' ||
+            (draft.maksud_kegiatan && draft.maksud_kegiatan.includes('Pelayanan Kesehatan pada anak usia sekolah'))
+          )) {
+            localStorage.removeItem('SICEKAS_SPPD_ACTIVE_DRAFT');
+          } else if (draft && typeof draft === 'object' && (draft.no_surat || draft.maksud_kegiatan || draft.lpt_data)) {
             this.applyDraftObject(draft);
             return;
           }
@@ -8592,19 +8608,89 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         if (CloudflareDB && CloudflareDB.fetchSppdDraft) {
           const cloudDraft = await CloudflareDB.fetchSppdDraft(this.getCurrentUsername());
-          if (cloudDraft && typeof cloudDraft === 'object' && (cloudDraft.no_surat || cloudDraft.maksud_kegiatan || cloudDraft.lpt_data)) {
+          if (cloudDraft && (
+            cloudDraft.pegawai_nama === 'Nurul Hidayah, Amd.Kes' || 
+            cloudDraft.pegawai_nama === 'Mochamad Fauzie, S.Gz' ||
+            (cloudDraft.maksud_kegiatan && cloudDraft.maksud_kegiatan.includes('Pelayanan Kesehatan pada anak usia sekolah'))
+          )) {
+            // Discard demo template from cloud draft as well
+          } else if (cloudDraft && typeof cloudDraft === 'object' && (cloudDraft.no_surat || cloudDraft.maksud_kegiatan || cloudDraft.lpt_data)) {
             this.applyDraftObject(cloudDraft);
             return;
           }
         }
       } catch (e) {}
 
-      // 3. If no draft exists yet, auto-apply the default authentic template
-      if (this.templates && this.templates.length > 0) {
-        const sppdTmpl = this.templates.find(t => (t.template_type || 'sppd') === 'sppd') || this.templates[0];
-        if (sppdTmpl) this.applyTemplate(sppdTmpl.id, true);
-        const lptTmpl = this.templates.find(t => t.template_type === 'lpt');
-        if (lptTmpl) this.applyTemplate(lptTmpl.id, true);
+      // 3. User requested: On clean initial load, form inputs (nama, tanggal, kegiatan, dll.) and preview MUST start completely blank!
+      this.resetFormToBlank(false);
+    },
+
+    resetFormToBlank(showToastNotice = false) {
+      // 1. Reset SPPD Inputs
+      if (typeof sppdInputNoSurat !== 'undefined' && sppdInputNoSurat) sppdInputNoSurat.value = '';
+      if (typeof sppdInputPegawai !== 'undefined' && sppdInputPegawai) sppdInputPegawai.selectedIndex = 0;
+      if (typeof sppdInputTglBerangkat !== 'undefined' && sppdInputTglBerangkat) sppdInputTglBerangkat.value = '';
+      if (typeof sppdInputTglKembali !== 'undefined' && sppdInputTglKembali) sppdInputTglKembali.value = '';
+      if (typeof sppdInputMaksud !== 'undefined' && sppdInputMaksud) sppdInputMaksud.value = '';
+      if (typeof sppdInputTempatBerangkat !== 'undefined' && sppdInputTempatBerangkat) sppdInputTempatBerangkat.value = '';
+      if (typeof sppdInputTujuan !== 'undefined' && sppdInputTujuan) sppdInputTujuan.value = '';
+
+      // Reset Pengikut 1..4
+      for (let i = 1; i <= 4; i++) {
+        const select = document.getElementById(`sppdPengikutSelect${i}`);
+        const customDiv = document.getElementById(`sppdPengikutCustomWrap${i}`);
+        const inNama = document.getElementById(`sppdPengikutInputNama${i}`);
+        const inNip = document.getElementById(`sppdPengikutInputNip${i}`);
+        const inKet = document.getElementById(`sppdPengikutInputKet${i}`);
+        if (select) select.selectedIndex = 0;
+        if (customDiv) customDiv.style.display = 'none';
+        if (inNama) inNama.value = '';
+        if (inNip) inNip.value = '';
+        if (inKet) inKet.value = '';
+      }
+
+      // 2. Reset LPT Inputs
+      const elDasar = document.getElementById('lptInputDasar');
+      if (elDasar) { elDasar.value = ''; delete elDasar.dataset.userEdited; }
+      const elTujuan = document.getElementById('lptInputTujuanPerjalanan');
+      if (elTujuan) { elTujuan.value = ''; delete elTujuan.dataset.userEdited; }
+      const elTgl = document.getElementById('lptInputTanggalLaporan');
+      if (elTgl) { elTgl.value = ''; delete elTgl.dataset.userEdited; }
+      const elProses = document.getElementById('lptInputProses');
+      if (elProses) elProses.value = '';
+      const elMasalah = document.getElementById('lptInputMasalah');
+      if (elMasalah) elMasalah.value = '';
+      const elKesimpulan = document.getElementById('lptInputKesimpulan');
+      if (elKesimpulan) elKesimpulan.value = '';
+
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById(`lptSelectPetugas${i}`);
+        if (el) { el.selectedIndex = 0; delete el.dataset.userEdited; }
+        const cNama = document.getElementById(`lptInputCustomNama${i}`);
+        if (cNama) cNama.value = '';
+        const cNip = document.getElementById(`lptInputCustomNip${i}`);
+        if (cNip) cNip.value = '';
+        const cWrap = document.getElementById(`lptCustomWrap${i}`);
+        if (cWrap) cWrap.style.display = 'none';
+        if (i >= 2) {
+          const tog = document.getElementById(`lptTogglePetugas${i}`);
+          if (tog) tog.checked = false;
+        }
+      }
+      if (typeof updateLptPetugasVisibility === 'function') updateLptPetugasVisibility();
+
+      // Clear stored draft in local storage
+      try {
+        localStorage.removeItem('SICEKAS_SPPD_ACTIVE_DRAFT');
+      } catch (e) {}
+
+      // Realtime re-sync document preview
+      if (typeof syncSppdLptData === 'function') {
+        syncSppdLptData();
+      }
+
+      if (showToastNotice && typeof showToast === 'function') {
+        showToast('✓ Formulir SPPD & LPT berhasil dikosongkan (Formulir Baru)', 'info');
       }
     },
 
@@ -8703,6 +8789,20 @@ document.addEventListener('DOMContentLoaded', () => {
           table_headers: (typeof lptTableState !== 'undefined' && lptTableState) ? [...lptTableState.headers] : [],
           table_rows: (typeof lptTableState !== 'undefined' && lptTableState) ? JSON.parse(JSON.stringify(lptTableState.rows)) : []
         };
+
+        const noSuratVal = document.getElementById('sppdInputNoSurat')?.value?.trim() || '';
+        const pegNamaVal = pegawaiEl ? pegawaiEl.value?.trim() : '';
+        const maksudVal = document.getElementById('sppdInputMaksud')?.value?.trim() || '';
+        const tglBerangkatVal = document.getElementById('sppdInputTglBerangkat')?.value?.trim() || '';
+        const tujuanVal = document.getElementById('sppdInputTujuan')?.value?.trim() || '';
+        const lptDasarVal = lptData.dasar?.trim() || '';
+        const lptProsesVal = lptData.proses?.trim() || '';
+
+        // If form is completely blank, purge draft so page reload stays clean and empty
+        if (!noSuratVal && !pegNamaVal && !maksudVal && !tglBerangkatVal && !tujuanVal && !lptDasarVal && !lptProsesVal) {
+          try { localStorage.removeItem('SICEKAS_SPPD_ACTIVE_DRAFT'); } catch(e) {}
+          return;
+        }
 
         const draft = {
           no_surat: document.getElementById('sppdInputNoSurat')?.value || '',
@@ -10095,6 +10195,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (e.target.closest('#dokBtnOpenUploadLog')) {
       e.preventDefault();
       window.FotoUploadLogManager.openModal();
+    } else if (e.target.closest('#btnResetEntireSppdForm')) {
+      e.preventDefault();
+      if (window.SppdTemplateController && typeof window.SppdTemplateController.resetFormToBlank === 'function') {
+        window.SppdTemplateController.resetFormToBlank(true);
+      }
     }
   });
 
