@@ -47,6 +47,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Client fallback against official roster if offline / demo mode
     const matched = OFFICIAL_PEGAWAI.find(
       p => p.username.toLowerCase() === cleanInput || 
+           p.nama.toLowerCase() === cleanInput ||
+           p.nama.toLowerCase().includes(cleanInput) ||
            p.nip.replace(/\s+/g, '') === cleanInput.replace(/\s+/g, '')
     );
 

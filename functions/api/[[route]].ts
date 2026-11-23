@@ -82,8 +82,8 @@ export async function handleApiRequest(request: Request, env: Env, ctx?: any): P
 
       const cleanInput = String(username).trim();
       const user = await db.prepare(
-        'SELECT * FROM users WHERE (username = ? OR nip = ? OR replace(nip, " ", "") = replace(?, " ", "")) AND is_active = 1'
-      ).bind(cleanInput, cleanInput, cleanInput).first<any>();
+        'SELECT * FROM users WHERE (username = ? OR nip = ? OR nama = ? OR lower(username) = lower(?) OR lower(nama) = lower(?) OR replace(nip, " ", "") = replace(?, " ", "")) AND is_active = 1'
+      ).bind(cleanInput, cleanInput, cleanInput, cleanInput, cleanInput, cleanInput).first<any>();
 
       if (!user) {
         return jsonResponse({ success: false, error: 'Akun pegawai tidak ditemukan.' }, 404);
