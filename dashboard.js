@@ -1262,11 +1262,96 @@ document.addEventListener('DOMContentLoaded', () => {
     },
 
     // 5b. SPPD & LPT Templates (Direct Cloudflare D1 Database + Guaranteed Local Storage Persistence)
+    getDefaultTemplates() {
+      const nowIso = new Date().toISOString();
+      return [
+        {
+          id: 'tmpl-default-sppd-bankot',
+          template_type: 'sppd',
+          nama_template: 'Pelayanan Kesehatan Ibu Nifas & Neonatus (KF & KN)-18-08-2026',
+          username: 'ozie',
+          no_surat: '090/042/PKM-BKT/VIII/2026',
+          tgl_berangkat: '2026-08-18',
+          tgl_kembali: '2026-08-18',
+          pegawai_nama: 'Mochamad Fauzie, S.Gz',
+          pegawai_nip: '873.3204.16.02.008',
+          maksud_kegiatan: 'Pelayanan Kesehatan Ibu Nifas dan Neonatus (KF & KN) di Wilayah Kerja Desa Banjaran',
+          tempat_berangkat: 'Puskesmas Banjaran Kota',
+          tempat_tujuan: 'Desa Banjaran & Desa Tarajusari',
+          pengikut_data: [
+            { index: 1, selectVal: 'Eva Farida, S.Keb', customNama: '', customNip: '', customKet: '' },
+            { index: 2, selectVal: 'N. Yayat Rohayati, AM.Keb', customNama: '', customNip: '', customKet: '' }
+          ],
+          lpt_data: {
+            dasar: 'SPT Nomor 090/042/PKM-BKT/VIII/2026 tanggal 18 Agustus 2026',
+            tujuan: 'Pelayanan Kesehatan Ibu Nifas dan Neonatus (KF & KN) di Wilayah Kerja Desa Banjaran',
+            tanggal_laporan: '2026-08-18',
+            proses: 'Pelayanan kesehatan ibu nifas dan neonatus (KF & KN) dilaksanakan secara langsung ke rumah sasaran di Desa Banjaran dan Desa Tarajusari. Pemeriksaan fisik pada ibu nifas meliputi pemeriksaan tanda-tanda vital, involusi uterus, lokhea, dan edukasi perawatan payudara serta ASI eksklusif. Pemeriksaan pada neonatus meliputi penimbangan berat badan, pemeriksaan refleks, tanda bahaya bayi baru lahir, dan skrining awal kelainan bawaan.',
+            masalah: 'Pelaksanaan kunjungan lapangan berjalan dengan tertib dan lancar. Tidak ada hambatan berarti yang dihadapi dalam proses pelayanan.',
+            kesimpulan: 'Sasaran ibu nifas dan neonatus telah mendapatkan pelayanan sesuai standar operasional Puskesmas Banjaran Kota. Disarankan untuk terus meningkatkan koordinasi dengan kader posyandu setempat untuk pemantauan pasca persalinan lanjutan.',
+            petugas1: 'Mochamad Fauzie, S.Gz',
+            petugas2: 'Eva Farida, S.Keb',
+            petugas3: 'N. Yayat Rohayati, AM.Keb',
+            toggle2: true,
+            toggle3: true,
+            toggle4: false,
+            toggle5: false
+          },
+          dok_data: {},
+          is_favorite: 1,
+          created_at: nowIso
+        },
+        {
+          id: 'tmpl-default-lpt-bankot',
+          template_type: 'lpt',
+          nama_template: 'LPT Pelayanan Kesehatan Ibu Nifas & Neonatus (KF & KN)-18-08-2026',
+          username: 'ozie',
+          no_surat: '090/042/PKM-BKT/VIII/2026',
+          tgl_berangkat: '2026-08-18',
+          tgl_kembali: '2026-08-18',
+          pegawai_nama: 'Mochamad Fauzie, S.Gz',
+          pegawai_nip: '873.3204.16.02.008',
+          maksud_kegiatan: 'Pelayanan Kesehatan Ibu Nifas dan Neonatus (KF & KN) di Wilayah Kerja Desa Banjaran',
+          tempat_berangkat: 'Puskesmas Banjaran Kota',
+          tempat_tujuan: 'Desa Banjaran & Desa Tarajusari',
+          pengikut_data: [
+            { index: 1, selectVal: 'Eva Farida, S.Keb', customNama: '', customNip: '', customKet: '' },
+            { index: 2, selectVal: 'N. Yayat Rohayati, AM.Keb', customNama: '', customNip: '', customKet: '' }
+          ],
+          lpt_data: {
+            dasar: 'SPT Nomor 090/042/PKM-BKT/VIII/2026 tanggal 18 Agustus 2026',
+            tujuan: 'Pelayanan Kesehatan Ibu Nifas dan Neonatus (KF & KN) di Wilayah Kerja Desa Banjaran',
+            tanggal_laporan: '2026-08-18',
+            proses: 'Pelayanan kesehatan ibu nifas dan neonatus (KF & KN) dilaksanakan secara langsung ke rumah sasaran di Desa Banjaran dan Desa Tarajusari. Pemeriksaan fisik pada ibu nifas meliputi pemeriksaan tanda-tanda vital, involusi uterus, lokhea, dan edukasi perawatan payudara serta ASI eksklusif. Pemeriksaan pada neonatus meliputi penimbangan berat badan, pemeriksaan refleks, tanda bahaya bayi baru lahir, dan skrining awal kelainan bawaan.',
+            masalah: 'Pelaksanaan kunjungan lapangan berjalan dengan tertib dan lancar. Tidak ada hambatan berarti yang dihadapi dalam proses pelayanan.',
+            kesimpulan: 'Sasaran ibu nifas dan neonatus telah mendapatkan pelayanan sesuai standar operasional Puskesmas Banjaran Kota. Disarankan untuk terus meningkatkan koordinasi dengan kader posyandu setempat untuk pemantauan pasca persalinan lanjutan.',
+            petugas1: 'Mochamad Fauzie, S.Gz',
+            petugas2: 'Eva Farida, S.Keb',
+            petugas3: 'N. Yayat Rohayati, AM.Keb',
+            toggle2: true,
+            toggle3: true,
+            toggle4: false,
+            toggle5: false
+          },
+          dok_data: {},
+          is_favorite: 1,
+          created_at: nowIso
+        }
+      ];
+    },
+
     async fetchSppdTemplates(username) {
       let localBackup = [];
       try {
         localBackup = JSON.parse(localStorage.getItem('SICEKAS_SPPD_TEMPLATES_CACHE')) || [];
       } catch (e) {}
+
+      if (!Array.isArray(localBackup) || localBackup.length === 0) {
+        localBackup = this.getDefaultTemplates();
+        try {
+          localStorage.setItem('SICEKAS_SPPD_TEMPLATES_CACHE', JSON.stringify(localBackup));
+        } catch (e) {}
+      }
 
       try {
         const u = username || '';
@@ -1274,11 +1359,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch(url, { cache: 'no-store' });
         if (res.ok) {
           const json = await res.json();
-          if (json.success && Array.isArray(json.data)) {
-            // If D1 returned data, merge with any recent local items and update storage
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            // Merge D1 items with localBackup
             const d1Map = new Map();
             json.data.forEach(item => { if (item && item.id) d1Map.set(item.id, item); });
-            // Preserve any local items not yet in D1
+            // Preserve local items not yet in D1
             localBackup.forEach(item => {
               if (item && item.id && !d1Map.has(item.id)) d1Map.set(item.id, item);
             });
@@ -1293,11 +1378,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn('Fallback fetch SPPD templates from Cloudflare D1:', e);
       }
 
-      // Offline fallback: load from localStorage if D1 request fails or returns non-200
-      if (Array.isArray(localBackup) && localBackup.length > 0) {
-        return localBackup;
-      }
-      return [];
+      // Return local backup (or default templates)
+      return Array.isArray(localBackup) && localBackup.length > 0 ? localBackup : this.getDefaultTemplates();
     },
 
     async saveSppdTemplate(item) {
@@ -1350,14 +1432,39 @@ document.addEventListener('DOMContentLoaded', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id })
         });
+        if (res.ok) return await res.json();
+      } catch (e) {
+        console.warn('Error deleting template from D1:', e);
+      }
+      return { success: true, id };
+    },
+
+    // 5c. SPPD & LPT Active Form Draft Auto-Save & Recovery
+    async fetchSppdDraft(username) {
+      try {
+        const u = username || 'ozie';
+        const res = await fetch(`/api/sppd/draft?username=${encodeURIComponent(u)}&_t=${Date.now()}`);
         if (res.ok) {
           const json = await res.json();
-          if (json.success) return json;
+          if (json.success && json.draft) return json.draft;
         }
-      } catch (e) {
-        console.warn('Fallback delete SPPD template', e);
-      }
-      return { success: true };
+      } catch (e) {}
+      try {
+        return JSON.parse(localStorage.getItem('SICEKAS_SPPD_ACTIVE_DRAFT')) || null;
+      } catch (e) { return null; }
+    },
+
+    async saveSppdDraft(username, draft) {
+      try {
+        localStorage.setItem('SICEKAS_SPPD_ACTIVE_DRAFT', JSON.stringify(draft));
+      } catch (e) {}
+      try {
+        await fetch('/api/sppd/draft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: username || 'ozie', draft })
+        });
+      } catch (e) {}
     },
 
     // 5c. Cloudflare R2 Media Upload Engine
@@ -1725,6 +1832,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (topbarCategory) topbarCategory.textContent = 'ADMINISTRASI & PERJALANAN DINAS';
       if (topbarTitle) topbarTitle.textContent = 'SPPD dan LPT';
       if (topbarSubtitle) topbarSubtitle.textContent = 'Penerbitan Surat Perjalanan Dinas dan Laporan Pertanggungjawaban Pelaksanaan Tugas';
+      if (window.SppdTemplateController && typeof window.SppdTemplateController.loadTemplates === 'function') {
+        window.SppdTemplateController.loadTemplates();
+      }
     } else if (targetView === 'jadwal-kegiatan') {
       if (viewJadwalKegiatan) {
         viewJadwalKegiatan.style.display = 'block';
@@ -8444,87 +8554,323 @@ document.addEventListener('DOMContentLoaded', () => {
     activeTab: 'sppd', // 'sppd' | 'lpt' | 'dok'
     searchFilter: '',
 
-    // Containers
-    sppdContainer: document.getElementById('sppdTemplateListContainer'),
-    lptContainer: document.getElementById('lptTemplateListContainer'),
-    dokContainer: document.getElementById('dokTemplateListContainer'),
-    evidenceGrid: document.getElementById('sppdEvidenceGridContainer'),
+    // Containers (Dynamic Getters for 100% Reliable DOM Binding)
+    get sppdContainer() { return document.getElementById('sppdTemplateListContainer'); },
+    get lptContainer() { return document.getElementById('lptTemplateListContainer'); },
+    get dokContainer() { return document.getElementById('dokTemplateListContainer'); },
+    get evidenceGrid() { return document.getElementById('sppdEvidenceGridContainer'); },
 
-    // Buttons
-    btnSaveSppd: document.getElementById('btnSaveSppdTemplate') || document.getElementById('btnSaveCurrentAsTemplate'),
-    btnSaveLpt: document.getElementById('btnSaveLptTemplate'),
-    btnSaveDok: document.getElementById('btnSaveDokTemplate'),
-    btnModalSave: document.getElementById('btnModalSaveCurrentTemplate'),
-    btnModalSaveText: document.getElementById('btnModalSaveText'),
-    btnOpenModal: document.getElementById('btnOpenSppdTemplateModal'),
-
-    // Modal
-    modal: document.getElementById('modalListTemplateSppd'),
-    btnCloseModal: document.getElementById('closeListTemplateModal'),
-    btnCancelModal: document.getElementById('btnCancelListTemplateModal'),
-    searchInput: document.getElementById('sppdTemplateSearchInput'),
+    // Modal & Action Controls
+    get modal() { return document.getElementById('modalListTemplateSppd'); },
+    get btnCloseModal() { return document.getElementById('closeListTemplateModal'); },
+    get btnCancelModal() { return document.getElementById('btnCancelListTemplateModal'); },
+    get searchInput() { return document.getElementById('sppdTemplateSearchInput'); },
+    get btnModalSave() { return document.getElementById('btnModalSaveCurrentTemplate'); },
+    get btnModalSaveText() { return document.getElementById('btnModalSaveText'); },
+    get btnOpenModal() { return document.getElementById('btnOpenSppdTemplateModal'); },
 
     // Badges & Tabs
-    heroBadge: document.getElementById('sppdHeroTemplateBadge'),
-    usageBadge: document.getElementById('modalTemplateUsageBadge'),
-    tabBtnSppd: document.getElementById('tabBtnSppd'),
-    tabBtnLpt: document.getElementById('tabBtnLpt'),
-    tabBtnDok: document.getElementById('tabBtnDok'),
-    tabBadgeSppd: document.getElementById('tabBadgeSppd'),
-    tabBadgeLpt: document.getElementById('tabBadgeLpt'),
-    tabBadgeDok: document.getElementById('tabBadgeDok'),
+    get heroBadge() { return document.getElementById('sppdHeroTemplateBadge'); },
+    get usageBadge() { return document.getElementById('modalTemplateUsageBadge'); },
+    get tabBtnSppd() { return document.getElementById('tabBtnSppd'); },
+    get tabBtnLpt() { return document.getElementById('tabBtnLpt'); },
+    get tabBtnDok() { return document.getElementById('tabBtnDok'); },
+    get tabBadgeSppd() { return document.getElementById('tabBadgeSppd'); },
+    get tabBadgeLpt() { return document.getElementById('tabBadgeLpt'); },
+    get tabBadgeDok() { return document.getElementById('tabBadgeDok'); },
 
     async init() {
       // Sidebar Save triggers for each menu
-      if (this.btnSaveSppd) {
-        this.btnSaveSppd.addEventListener('click', () => this.saveCurrentAsTemplate('sppd'));
-      }
-      if (this.btnSaveLpt) {
-        this.btnSaveLpt.addEventListener('click', () => this.saveCurrentAsTemplate('lpt'));
-      }
-      if (this.btnSaveDok) {
-        this.btnSaveDok.addEventListener('click', () => this.saveCurrentAsTemplate('dok'));
-      }
-      if (this.btnModalSave) {
-        this.btnModalSave.addEventListener('click', () => this.saveCurrentAsTemplate(this.activeTab));
-      }
+      const btnSaveSppd = document.getElementById('btnSaveSppdTemplate') || document.getElementById('btnSaveCurrentAsTemplate');
+      if (btnSaveSppd) btnSaveSppd.onclick = () => this.saveCurrentAsTemplate('sppd');
+
+      const btnSaveLpt = document.getElementById('btnSaveLptTemplate');
+      if (btnSaveLpt) btnSaveLpt.onclick = () => this.saveCurrentAsTemplate('lpt');
+
+      const btnSaveDok = document.getElementById('btnSaveDokTemplate');
+      if (btnSaveDok) btnSaveDok.onclick = () => this.saveCurrentAsTemplate('dok');
+
+      const btnModalSave = document.getElementById('btnModalSaveCurrentTemplate');
+      if (btnModalSave) btnModalSave.onclick = () => this.saveCurrentAsTemplate(this.activeTab);
 
       // Modal Open & Close triggers
-      if (this.btnOpenModal) {
-        this.btnOpenModal.addEventListener('click', () => this.openModal());
-      }
-      if (this.btnCloseModal) {
-        this.btnCloseModal.addEventListener('click', () => this.closeModal());
-      }
-      if (this.btnCancelModal) {
-        this.btnCancelModal.addEventListener('click', () => this.closeModal());
-      }
-      if (this.modal) {
-        this.modal.addEventListener('click', (e) => {
-          if (e.target === this.modal) this.closeModal();
-        });
+      const btnOpen = document.getElementById('btnOpenSppdTemplateModal');
+      if (btnOpen) btnOpen.onclick = () => this.openModal();
+
+      const btnClose = document.getElementById('closeListTemplateModal');
+      if (btnClose) btnClose.onclick = () => this.closeModal();
+
+      const btnCancel = document.getElementById('btnCancelListTemplateModal');
+      if (btnCancel) btnCancel.onclick = () => this.closeModal();
+
+      const modalEl = document.getElementById('modalListTemplateSppd');
+      if (modalEl) {
+        modalEl.onclick = (e) => {
+          if (e.target === modalEl) this.closeModal();
+        };
       }
 
       // Category Tabs inside Modal
       const setupTab = (btn, type) => {
         if (!btn) return;
-        btn.addEventListener('click', () => {
-          this.switchTab(type);
-        });
+        btn.onclick = () => this.switchTab(type);
       };
       setupTab(this.tabBtnSppd, 'sppd');
       setupTab(this.tabBtnLpt, 'lpt');
       setupTab(this.tabBtnDok, 'dok');
 
       // Search Filter
-      if (this.searchInput) {
-        this.searchInput.addEventListener('input', (e) => {
+      const searchEl = document.getElementById('sppdTemplateSearchInput');
+      if (searchEl) {
+        searchEl.oninput = (e) => {
           this.searchFilter = (e.target.value || '').toLowerCase().trim();
           this.renderEvidenceGrid();
+        };
+      }
+
+      // 1. Initial Load Templates (instant local cache + background Cloud D1 sync)
+      await this.loadTemplates();
+
+      // 2. Restore active form draft or authentic initial template
+      this.restoreActiveDraftOrInitial();
+
+      // 3. Setup real-time debounced auto-save so refreshing never loses user input
+      this.setupAutoSaveDraft();
+    },
+
+    restoreActiveDraftOrInitial() {
+      try {
+        const rawDraft = localStorage.getItem('SICEKAS_SPPD_ACTIVE_DRAFT');
+        if (rawDraft) {
+          const draft = JSON.parse(rawDraft);
+          if (draft && typeof draft === 'object' && (draft.no_surat || draft.maksud_kegiatan || draft.lpt_data)) {
+            this.applyDraftObject(draft);
+            return;
+          }
+        }
+      } catch (e) {}
+
+      // If no draft exists yet, auto-apply the default authentic template
+      if (this.templates && this.templates.length > 0) {
+        const sppdTmpl = this.templates.find(t => (t.template_type || 'sppd') === 'sppd') || this.templates[0];
+        if (sppdTmpl) this.applyTemplate(sppdTmpl.id, true);
+        const lptTmpl = this.templates.find(t => t.template_type === 'lpt');
+        if (lptTmpl) this.applyTemplate(lptTmpl.id, true);
+      }
+    },
+
+    setupAutoSaveDraft() {
+      let timer = null;
+      const triggerSave = () => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          this.saveCurrentDraftToStorage();
+        }, 500);
+      };
+
+      const monitoredIds = [
+        'sppdInputNoSurat', 'sppdInputTglBerangkat', 'sppdInputTglKembali',
+        'sppdInputPegawai', 'sppdInputMaksud', 'sppdInputTempatBerangkat', 'sppdInputTujuan',
+        'lptInputDasar', 'lptInputTujuanPerjalanan', 'lptInputTanggalLaporan',
+        'lptInputProses', 'lptInputMasalah', 'lptInputKesimpulan',
+        'dokInputJudulKegiatan', 'dokSelectLayout'
+      ];
+      monitoredIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', triggerSave);
+          el.addEventListener('change', triggerSave);
+        }
+      });
+      for (let i = 1; i <= 5; i++) {
+        const sel = document.getElementById(`lptSelectPetugas${i}`);
+        const tog = document.getElementById(`lptTogglePetugas${i}`);
+        const nm = document.getElementById(`lptInputCustomNama${i}`);
+        const np = document.getElementById(`lptInputCustomNip${i}`);
+        if (sel) sel.addEventListener('change', triggerSave);
+        if (tog) tog.addEventListener('change', triggerSave);
+        if (nm) nm.addEventListener('input', triggerSave);
+        if (np) np.addEventListener('input', triggerSave);
+      }
+      for (let i = 1; i <= 4; i++) {
+        const pSel = document.getElementById(`sppdPengikutSelect${i}`);
+        const pNm = document.getElementById(`sppdPengikutInputNama${i}`);
+        const pNp = document.getElementById(`sppdPengikutInputNip${i}`);
+        if (pSel) pSel.addEventListener('change', triggerSave);
+        if (pNm) pNm.addEventListener('input', triggerSave);
+        if (pNp) pNp.addEventListener('input', triggerSave);
+      }
+    },
+
+    saveCurrentDraftToStorage() {
+      try {
+        const pegawaiEl = document.getElementById('sppdInputPegawai');
+        const optUser = (pegawaiEl && pegawaiEl.selectedIndex >= 0) ? pegawaiEl.options[pegawaiEl.selectedIndex] : null;
+
+        const pengikutList = [];
+        for (let i = 1; i <= 4; i++) {
+          const select = document.getElementById(`sppdPengikutSelect${i}`);
+          const inNama = document.getElementById(`sppdPengikutInputNama${i}`);
+          const inNip = document.getElementById(`sppdPengikutInputNip${i}`);
+          const inKet = document.getElementById(`sppdPengikutInputKet${i}`);
+          if (select && select.value) {
+            pengikutList.push({
+              index: i,
+              selectVal: select.value,
+              customNama: inNama ? inNama.value : '',
+              customNip: inNip ? inNip.value : '',
+              customKet: inKet ? inKet.value : ''
+            });
+          }
+        }
+
+        const lptData = {
+          dasar: document.getElementById('lptInputDasar')?.value || '',
+          tujuan: document.getElementById('lptInputTujuanPerjalanan')?.value || '',
+          tanggal_laporan: document.getElementById('lptInputTanggalLaporan')?.value || '',
+          proses: document.getElementById('lptInputProses')?.value || '',
+          masalah: document.getElementById('lptInputMasalah')?.value || '',
+          kesimpulan: document.getElementById('lptInputKesimpulan')?.value || '',
+          petugas1: document.getElementById('lptSelectPetugas1')?.value || '',
+          petugas2: document.getElementById('lptSelectPetugas2')?.value || '',
+          petugas3: document.getElementById('lptSelectPetugas3')?.value || '',
+          petugas4: document.getElementById('lptSelectPetugas4')?.value || '',
+          petugas5: document.getElementById('lptSelectPetugas5')?.value || '',
+          toggle2: document.getElementById('lptTogglePetugas2')?.checked || false,
+          toggle3: document.getElementById('lptTogglePetugas3')?.checked || false,
+          toggle4: document.getElementById('lptTogglePetugas4')?.checked || false,
+          toggle5: document.getElementById('lptTogglePetugas5')?.checked || false,
+          customNama1: document.getElementById('lptInputCustomNama1')?.value || '',
+          customNip1: document.getElementById('lptInputCustomNip1')?.value || '',
+          customNama2: document.getElementById('lptInputCustomNama2')?.value || '',
+          customNip2: document.getElementById('lptInputCustomNip2')?.value || '',
+          customNama3: document.getElementById('lptInputCustomNama3')?.value || '',
+          customNip3: document.getElementById('lptInputCustomNip3')?.value || '',
+          customNama4: document.getElementById('lptInputCustomNama4')?.value || '',
+          customNip4: document.getElementById('lptInputCustomNip4')?.value || '',
+          customNama5: document.getElementById('lptInputCustomNama5')?.value || '',
+          customNip5: document.getElementById('lptInputCustomNip5')?.value || '',
+          table_enabled: !!(typeof lptTableState !== 'undefined' && lptTableState && lptTableState.enabled),
+          table_headers: (typeof lptTableState !== 'undefined' && lptTableState) ? [...lptTableState.headers] : [],
+          table_rows: (typeof lptTableState !== 'undefined' && lptTableState) ? JSON.parse(JSON.stringify(lptTableState.rows)) : []
+        };
+
+        const draft = {
+          no_surat: document.getElementById('sppdInputNoSurat')?.value || '',
+          tgl_berangkat: document.getElementById('sppdInputTglBerangkat')?.value || '',
+          tgl_kembali: document.getElementById('sppdInputTglKembali')?.value || '',
+          pegawai_nama: pegawaiEl ? pegawaiEl.value : '',
+          pegawai_nip: optUser ? (optUser.getAttribute('data-nip') || '') : '',
+          maksud_kegiatan: document.getElementById('sppdInputMaksud')?.value || '',
+          tempat_berangkat: document.getElementById('sppdInputTempatBerangkat')?.value || '',
+          tempat_tujuan: document.getElementById('sppdInputTujuan')?.value || '',
+          pengikut_data: pengikutList,
+          lpt_data: lptData,
+          dok_data: {
+            judul: document.getElementById('dokInputJudulKegiatan')?.value || '',
+            layout: document.getElementById('dokSelectLayout')?.value || 'grid-2'
+          },
+          saved_at: new Date().toISOString()
+        };
+
+        localStorage.setItem('SICEKAS_SPPD_ACTIVE_DRAFT', JSON.stringify(draft));
+        if (CloudflareDB && CloudflareDB.saveSppdDraft) {
+          CloudflareDB.saveSppdDraft(this.getCurrentUsername(), draft);
+        }
+      } catch (e) {}
+    },
+
+    applyDraftObject(draft) {
+      if (!draft) return;
+      if (typeof sppdInputNoSurat !== 'undefined' && sppdInputNoSurat && draft.no_surat) sppdInputNoSurat.value = draft.no_surat;
+      if (typeof sppdInputTglBerangkat !== 'undefined' && sppdInputTglBerangkat && draft.tgl_berangkat) sppdInputTglBerangkat.value = draft.tgl_berangkat;
+      if (typeof sppdInputTglKembali !== 'undefined' && sppdInputTglKembali && draft.tgl_kembali) sppdInputTglKembali.value = draft.tgl_kembali;
+      if (typeof sppdInputPegawai !== 'undefined' && sppdInputPegawai && draft.pegawai_nama) sppdInputPegawai.value = draft.pegawai_nama;
+      if (typeof sppdInputMaksud !== 'undefined' && sppdInputMaksud && draft.maksud_kegiatan) sppdInputMaksud.value = draft.maksud_kegiatan;
+      if (typeof sppdInputTempatBerangkat !== 'undefined' && sppdInputTempatBerangkat && draft.tempat_berangkat) sppdInputTempatBerangkat.value = draft.tempat_berangkat;
+      if (typeof sppdInputTujuan !== 'undefined' && sppdInputTujuan && draft.tempat_tujuan) sppdInputTujuan.value = draft.tempat_tujuan;
+
+      // Restore Pengikut
+      if (Array.isArray(draft.pengikut_data)) {
+        for (let i = 1; i <= 4; i++) {
+          const select = document.getElementById(`sppdPengikutSelect${i}`);
+          const customDiv = document.getElementById(`sppdPengikutCustomWrap${i}`);
+          const inNama = document.getElementById(`sppdPengikutInputNama${i}`);
+          const inNip = document.getElementById(`sppdPengikutInputNip${i}`);
+          if (select) select.value = '';
+          if (customDiv) customDiv.style.display = 'none';
+          if (inNama) inNama.value = '';
+          if (inNip) inNip.value = '';
+        }
+        draft.pengikut_data.forEach(p => {
+          const idx = p.index;
+          const select = document.getElementById(`sppdPengikutSelect${idx}`);
+          const customDiv = document.getElementById(`sppdPengikutCustomWrap${idx}`);
+          const inNama = document.getElementById(`sppdPengikutInputNama${idx}`);
+          const inNip = document.getElementById(`sppdPengikutInputNip${idx}`);
+          const inKet = document.getElementById(`sppdPengikutInputKet${idx}`);
+          if (select && p.selectVal) {
+            select.value = p.selectVal;
+            if (p.selectVal === 'CUSTOM' && customDiv) customDiv.style.display = 'grid';
+          }
+          if (inNama && p.customNama) inNama.value = p.customNama;
+          if (inNip && p.customNip) inNip.value = p.customNip;
+          if (inKet && p.customKet) inKet.value = p.customKet;
         });
       }
 
-      await this.loadTemplates();
+      // Restore LPT
+      if (draft.lpt_data) {
+        const lpt = draft.lpt_data;
+        const elDasar = document.getElementById('lptInputDasar');
+        if (elDasar && lpt.dasar) { elDasar.value = lpt.dasar; elDasar.dataset.userEdited = 'true'; }
+        const elTujuan = document.getElementById('lptInputTujuanPerjalanan');
+        if (elTujuan && lpt.tujuan) { elTujuan.value = lpt.tujuan; elTujuan.dataset.userEdited = 'true'; }
+        const elTgl = document.getElementById('lptInputTanggalLaporan');
+        if (elTgl && lpt.tanggal_laporan) { elTgl.value = lpt.tanggal_laporan; elTgl.dataset.userEdited = 'true'; }
+        const elProses = document.getElementById('lptInputProses');
+        if (elProses && lpt.proses) elProses.value = lpt.proses;
+        const elMasalah = document.getElementById('lptInputMasalah');
+        if (elMasalah && lpt.masalah) elMasalah.value = lpt.masalah;
+        const elKesimpulan = document.getElementById('lptInputKesimpulan');
+        if (elKesimpulan && lpt.kesimpulan) elKesimpulan.value = lpt.kesimpulan;
+
+        for (let i = 1; i <= 5; i++) {
+          const petVal = lpt[`petugas${i}`];
+          if (petVal) {
+            const el = document.getElementById(`lptSelectPetugas${i}`);
+            if (el) { el.value = petVal; el.dataset.userEdited = 'true'; }
+          }
+          const cNama = lpt[`customNama${i}`];
+          if (cNama) {
+            const el = document.getElementById(`lptInputCustomNama${i}`);
+            if (el) el.value = cNama;
+          }
+          const cNip = lpt[`customNip${i}`];
+          if (cNip) {
+            const el = document.getElementById(`lptInputCustomNip${i}`);
+            if (el) el.value = cNip;
+          }
+          if (i >= 2 && typeof lpt[`toggle${i}`] !== 'undefined') {
+            const el = document.getElementById(`lptTogglePetugas${i}`);
+            if (el) el.checked = !!lpt[`toggle${i}`];
+          }
+          if (typeof syncLptOfficer === 'function') syncLptOfficer(i);
+        }
+        if (typeof updateLptPetugasVisibility === 'function') updateLptPetugasVisibility();
+
+        if (typeof lpt.table_enabled !== 'undefined' && typeof lptTableState !== 'undefined' && lptTableState) {
+          lptTableState.enabled = !!lpt.table_enabled;
+          if (Array.isArray(lpt.table_headers)) lptTableState.headers = [...lpt.table_headers];
+          if (Array.isArray(lpt.table_rows)) lptTableState.rows = JSON.parse(JSON.stringify(lpt.table_rows));
+          const toggleEl = document.getElementById('lptToggleTable');
+          if (toggleEl) toggleEl.checked = lptTableState.enabled;
+          if (typeof renderLptTable === 'function') renderLptTable();
+        }
+      }
+
+      // Sync views
+      if (typeof syncSppdLptData === 'function') syncSppdLptData();
     },
 
     switchTab(type) {
@@ -8563,12 +8909,10 @@ document.addEventListener('DOMContentLoaded', () => {
     },
 
     openModal(preferredTab) {
-      if (!this.modal) this.modal = document.getElementById('modalListTemplateSppd');
       if (!this.modal) return;
       if (preferredTab) {
         this.switchTab(preferredTab);
       } else {
-        // Auto-detect current active form in studio
         const formMode = (typeof sppdLptSelectForm !== 'undefined' && sppdLptSelectForm) ? sppdLptSelectForm.value : 'sppd';
         if (formMode === 'lpt') {
           this.switchTab('lpt');
@@ -8582,7 +8926,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (this.searchInput) this.searchInput.value = '';
       this.render();
       this.modal.classList.add('active');
-      // Always fetch latest data from Cloud D1 on open
       this.loadTemplates();
     },
 
@@ -8591,18 +8934,23 @@ document.addEventListener('DOMContentLoaded', () => {
     },
 
     async loadTemplates() {
-      const u = this.getCurrentUsername();
-      let list = await CloudflareDB.fetchSppdTemplates(u);
-      if (!list || list.length === 0) {
-        try {
-          const cached = JSON.parse(localStorage.getItem('SICEKAS_SPPD_TEMPLATES_CACHE')) || [];
-          if (cached && cached.length > 0) list = cached;
-        } catch (e) {}
-      }
-      this.templates = Array.isArray(list) ? list : [];
-      this.render();
-    },
+      // 1. Instant hydration from local cache
+      try {
+        const cached = JSON.parse(localStorage.getItem('SICEKAS_SPPD_TEMPLATES_CACHE')) || [];
+        if (Array.isArray(cached) && cached.length > 0) {
+          this.templates = cached;
+          this.render();
+        }
+      } catch (e) {}
 
+      // 2. Fetch fresh from Cloudflare D1
+      const u = this.getCurrentUsername();
+      const list = await CloudflareDB.fetchSppdTemplates(u);
+      if (Array.isArray(list) && list.length > 0) {
+        this.templates = list;
+        this.render();
+      }
+    },
 
     updateBadges() {
       const sppdList = this.templates.filter(t => (t.template_type || 'sppd') === 'sppd');
@@ -9292,7 +9640,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     },
 
-    applyTemplate(templateId) {
+    applyTemplate(templateId, isSilent = false) {
       const tmpl = this.templates.find(t => t.id === templateId);
       if (!tmpl) return;
 
@@ -9496,7 +9844,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
-      if (typeof showToast === 'function') {
+      this.saveCurrentDraftToStorage();
+
+      if (!isSilent && typeof showToast === 'function') {
         showToast(`✓ Template "${tmpl.nama_template}" berhasil diterapkan!`, 'success');
       }
     },
