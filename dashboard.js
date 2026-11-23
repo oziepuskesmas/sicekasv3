@@ -684,6 +684,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const navSectionGodMode = document.getElementById('navSectionGodMode');
 
   // ==========================================================================
+  // RESOLVE CURRENT LOGGED-IN USER (Scoped for Entire Dashboard Lifecycle)
+  // ==========================================================================
+  let sessionRaw = null;
+  try { sessionRaw = localStorage.getItem('SICEKAS_CURRENT_USER'); } catch(e){}
+  let sessionUser = null;
+  try { sessionUser = sessionRaw ? JSON.parse(sessionRaw) : null; } catch(e){}
+  const CURRENT_USER = {
+    username: sessionUser?.username || 'ozie',
+    nama: sessionUser?.nama || 'Mochamad Fauzie, S.Gz',
+    jabatan: sessionUser?.jabatan || 'Nutrisionis',
+    nip: sessionUser?.nip || '873.3204.16.02.008',
+    role: sessionUser?.role || 'Super Admin',
+    avatar: sessionUser?.avatar || 'MF'
+  };
+  window.CURRENT_USER = CURRENT_USER;
+
+  // ==========================================================================
   // DAFTAR RESMI PEGAWAI PUSKESMAS BANJARAN KOTA (39 PEGAWAI)
   // ==========================================================================
   const DAFTAR_PEGAWAI = [
@@ -4059,7 +4076,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const updateTpPolDocHeader = () => {
     const month = parseInt(tppolMonth ? tppolMonth.value : '8', 10);
     const year = parseInt(tppolYear ? tppolYear.value : '2026', 10);
-    const monthName = MONTH_NAMES[month - 1];
+    const monthName = (MONTH_NAMES && MONTH_NAMES[month - 1]) ? MONTH_NAMES[month - 1] : 'Agustus';
 
     if (tpPolDocTitle) {
       tpPolDocTitle.textContent = `PENGAJUAN SCORING JASPEL BULAN ${monthName.toUpperCase()} ${year}`;
@@ -4201,8 +4218,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.populateTpPolSignatureDropdowns = populateTpPolSignatureDropdowns;
   window.loadAndApplyTpPolData = loadAndApplyTpPolData;
-  window.renderEvidenceList = renderEvidenceList;
-  window.executeSaveTpPol = executeSaveTpPol;
 
   // Sync Signature Dropdown Events
   if (signKepala && sigKepalaName) {
@@ -4243,13 +4258,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (profStatus) profStatus.value = petStatus;
 
       loadAndApplyTpPolData();
-      renderEvidenceList();
+      if (typeof window.renderEvidenceList === 'function') {
+        window.renderEvidenceList();
+      }
     });
   }
 
-  // Initial populate of TP POL Signatures & POA Officers from Cloud DB
+  // Initial populate of TP POL Signatures from Cloud DB
   populateTpPolSignatureDropdowns();
-  populatePoaOfficerDropdown();
 
   // Save TP POL Data (Cloudflare D1 + Local Storage Sync)
   const executeSaveTpPol = async (targetBtn) => {
@@ -4333,6 +4349,7 @@ document.addEventListener('DOMContentLoaded', () => {
       alert(`✓ Data Scoring TP POL Bulan ${monthName} ${year} berhasil disimpan!`);
     }
   };
+  window.executeSaveTpPol = executeSaveTpPol;
 
   if (btnSaveTpPol) {
     btnSaveTpPol.addEventListener('click', () => executeSaveTpPol(btnSaveTpPol));
@@ -4804,6 +4821,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!skipCloudFetch) fetchCloudEvidenceAndMerge();
   };
+  window.renderEvidenceList = renderEvidenceList;
 
   // Floating Evidence Popover Controller
   const btnToggleEvidencePopover = document.getElementById('btnToggleEvidencePopover');
@@ -5463,7 +5481,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update LPT Sheet & Form Synchronization
     const lptValDasar = document.getElementById('lptValDasar');
     const lptInputDasar = document.getElementById('lptInputDasar');
-    if (lptValDasar && (!lptInputDasar || !lptInputDasar.dataset.userEdited)) {
+    if (lptValDasar && (!lptInputDasar || !lptInputDasar.dataset?.userEdited)) {
       const sptText = noSurat.trim() ? `Surat Perintah Tugas (SPT) Nomor: ${noSurat}` : '';
       lptValDasar.textContent = sptText;
       if (lptInputDasar) lptInputDasar.value = sptText;
@@ -5471,7 +5489,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const lptValTujuanPerjalanan = document.getElementById('lptValTujuanPerjalanan');
     const lptInputTujuanPerjalanan = document.getElementById('lptInputTujuanPerjalanan');
-    if (lptValTujuanPerjalanan && (!lptInputTujuanPerjalanan || !lptInputTujuanPerjalanan.dataset.userEdited)) {
+    if (lptValTujuanPerjalanan && (!lptInputTujuanPerjalanan || !lptInputTujuanPerjalanan.dataset?.userEdited)) {
       const formattedTujuan = `${maksud ? maksud : ''}${maksud && tujuan ? ' - ' : ''}${tujuan ? tujuan : ''}`;
       lptValTujuanPerjalanan.textContent = formattedTujuan;
       if (lptInputTujuanPerjalanan) lptInputTujuanPerjalanan.value = formattedTujuan;
@@ -5480,7 +5498,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Sync to Dokumentasi Kegiatan (Judul Kegiatan)
     const dokValJudulKegiatan = document.getElementById('dokValJudulKegiatan');
     const dokInputJudulKegiatan = document.getElementById('dokInputJudulKegiatan');
-    if (dokValJudulKegiatan && (!dokInputJudulKegiatan || !dokInputJudulKegiatan.dataset.userEdited)) {
+    if (dokValJudulKegiatan && (!dokInputJudulKegiatan || !dokInputJudulKegiatan.dataset?.userEdited)) {
       const judulText = maksud.trim() ? maksud : (tujuan.trim() ? tujuan : 'Judul Kegiatan');
       dokValJudulKegiatan.textContent = judulText;
       if (dokInputJudulKegiatan) dokInputJudulKegiatan.value = maksud.trim() ? maksud : (tujuan.trim() ? tujuan : '');
@@ -5492,7 +5510,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const lptSigPetugasNip1 = document.getElementById('lptSigPetugasNip1');
 
     if (pegawaiName && pegawaiName.trim()) {
-      if (lptSelectPetugas1 && (!lptSelectPetugas1.dataset.userEdited || !lptSelectPetugas1.value)) {
+      if (lptSelectPetugas1 && (!lptSelectPetugas1.dataset?.userEdited || !lptSelectPetugas1.value)) {
         lptSelectPetugas1.value = pegawaiName;
       }
       if (lptSigPetugasName1) lptSigPetugasName1.textContent = pegawaiName;
@@ -10160,18 +10178,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const STORAGE_BOK_DATA = 'SICEKAS_BOK_DATA_V2';
   const STORAGE_BOK_COLLAB = 'SICEKAS_BOK_COLLAB_V2';
 
-  // Current logged in user - DYNAMIC from login session (no more hardcoded)
-  const sessionRaw = localStorage.getItem('SICEKAS_CURRENT_USER');
-  const sessionUser = sessionRaw ? JSON.parse(sessionRaw) : null;
-  const CURRENT_USER = {
-    username: sessionUser?.username || 'ozie',
-    nama: sessionUser?.nama || 'Mochamad Fauzie, S.Gz',
-    jabatan: sessionUser?.jabatan || 'Nutrisionis',
-    nip: sessionUser?.nip || '873.3204.16.02.008',
-    role: sessionUser?.role || 'Super Admin',
-    avatar: sessionUser?.avatar || 'MF'
-  };
-  window.CURRENT_USER = CURRENT_USER;
+  // Sync logged in user session if updated
+  try {
+    const rawUserSess = localStorage.getItem('SICEKAS_CURRENT_USER');
+    if (rawUserSess) {
+      const parsedSess = JSON.parse(rawUserSess);
+      if (parsedSess && typeof CURRENT_USER !== 'undefined') {
+        Object.assign(CURRENT_USER, parsedSess);
+      }
+    }
+  } catch(e){}
 
   // No dummy seed data - all kegiatan data comes from Cloudflare D1 cloud database
   // Clean up any old dummy/seed data from localStorage (legacy cleanup)
@@ -13785,114 +13801,133 @@ document.addEventListener('DOMContentLoaded', () => {
         tb.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:24px;">⏳ Memuat data akun pegawai dari Cloudflare D1...</td></tr>';
       });
 
-      // Always fetch freshest live users from Cloudflare D1
-      const users = await CloudflareDB.fetchUsers();
-      this.loadedUsers = Array.isArray(users) ? users : [];
-      const rolesStore = JSON.parse(localStorage.getItem('SICEKAS_USER_ROLES')) || {};
+      try {
+        // Always fetch freshest live users from Cloudflare D1 with instant fallback to DAFTAR_PEGAWAI
+        let users = await CloudflareDB.fetchUsers(true);
+        if (!Array.isArray(users) || users.length === 0) {
+          users = (window.DAFTAR_PEGAWAI && window.DAFTAR_PEGAWAI.length) ? window.DAFTAR_PEGAWAI : DAFTAR_PEGAWAI;
+        }
+        this.loadedUsers = Array.isArray(users) ? users : [];
+        const rolesStore = JSON.parse(localStorage.getItem('SICEKAS_USER_ROLES')) || {};
 
-      // Compute statistics for KPI cards
-      let activeCount = 0;
-      let adminCount = 0;
-      this.loadedUsers.forEach(p => {
-        const cleanNip = String(p.nip || '').replace(/\s+/g, '');
-        const r = rolesStore[cleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
-        const isActive = (p.is_active === 1 || p.is_active === true || p.is_active === '1' || p.is_active === undefined);
-        if (isActive) activeCount++;
-        if (r.includes('Admin') || r.includes('Super Admin')) adminCount++;
-      });
+        // Compute statistics for KPI cards
+        let activeCount = 0;
+        let adminCount = 0;
+        this.loadedUsers.forEach(p => {
+          const cleanNip = String(p.nip || '').replace(/[\s.]+/g, '');
+          const r = rolesStore[cleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
+          const isActive = (p.is_active === 1 || p.is_active === true || p.is_active === '1' || p.is_active === undefined);
+          if (isActive) activeCount++;
+          if (r.includes('Admin') || r.includes('Super Admin')) adminCount++;
+        });
 
-      const kpiTotal = document.getElementById('kpiTotalPegawai');
-      const kpiActive = document.getElementById('kpiAkunAktif');
-      const kpiAdmin = document.getElementById('kpiTotalAdmin');
-      if (kpiTotal) kpiTotal.textContent = `${this.loadedUsers.length} Orang`;
-      if (kpiActive) kpiActive.textContent = `${activeCount} Aktif`;
-      if (kpiAdmin) kpiAdmin.textContent = `${adminCount} Akun`;
+        const kpiTotal = document.getElementById('kpiTotalPegawai');
+        const kpiActive = document.getElementById('kpiAkunAktif');
+        const kpiAdmin = document.getElementById('kpiTotalAdmin');
+        if (kpiTotal) kpiTotal.textContent = `${this.loadedUsers.length} Orang`;
+        if (kpiActive) kpiActive.textContent = `${activeCount} Aktif`;
+        if (kpiAdmin) kpiAdmin.textContent = `${adminCount} Akun`;
 
-      if (countTitle1) countTitle1.textContent = `Daftar Pegawai & Tingkat Hak Akses (${this.loadedUsers.length} Pegawai)`;
-      if (countTitle2) countTitle2.textContent = `Manajemen Hak Akses & Akun Pegawai (${this.loadedUsers.length} Pegawai)`;
+        if (countTitle1) countTitle1.textContent = `Daftar Pegawai & Tingkat Hak Akses (${this.loadedUsers.length} Pegawai)`;
+        if (countTitle2) countTitle2.textContent = `Manajemen Hak Akses & Akun Pegawai (${this.loadedUsers.length} Pegawai)`;
 
-      const q = (query || '').toLowerCase().trim();
-      const rFilter = (roleFilter || '').trim();
+        const q = (query || '').toLowerCase().trim();
+        const rFilter = (roleFilter || '').trim();
 
-      const filtered = this.loadedUsers.filter(p => {
-        const cleanNip = String(p.nip || '').replace(/\s+/g, '');
-        const currentRole = rolesStore[cleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
+        const filtered = this.loadedUsers.filter(p => {
+          const cleanNip = String(p.nip || '').replace(/[\s.]+/g, '');
+          const currentRole = rolesStore[cleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
 
-        if (rFilter && currentRole !== rFilter) {
-          return false;
+          if (rFilter && currentRole !== rFilter) {
+            return false;
+          }
+
+          if (!q) return true;
+          return (p.nama && p.nama.toLowerCase().includes(q)) ||
+                 (p.nip && p.nip.toLowerCase().includes(q)) ||
+                 (p.username && p.username.toLowerCase().includes(q)) ||
+                 (p.jabatan && p.jabatan.toLowerCase().includes(q)) ||
+                 (currentRole.toLowerCase().includes(q));
+        });
+
+        if (filtered.length === 0) {
+          tbodies.forEach(tb => {
+            tb.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:30px;">Tidak ada data pegawai yang sesuai dengan filter pencarian.</td></tr>';
+          });
+          return;
         }
 
-        if (!q) return true;
-        return (p.nama && p.nama.toLowerCase().includes(q)) ||
-               (p.nip && p.nip.toLowerCase().includes(q)) ||
-               (p.username && p.username.toLowerCase().includes(q)) ||
-               (p.jabatan && p.jabatan.toLowerCase().includes(q)) ||
-               (currentRole.toLowerCase().includes(q));
-      });
+        const curUser = window.CURRENT_USER || (typeof CURRENT_USER !== 'undefined' ? CURRENT_USER : {}) || {};
+        const curUname = String(curUser.username || '').toLowerCase();
+        const curNip = String(curUser.nip || '').replace(/[\s.]+/g, '');
+        const curNama = String(curUser.nama || '').toLowerCase();
 
-      if (filtered.length === 0) {
-        tbodies.forEach(tb => {
-          tb.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:30px;">Tidak ada data pegawai yang sesuai dengan filter pencarian.</td></tr>';
-        });
-        return;
-      }
+        let html = '';
+        filtered.forEach((p, idx) => {
+          const pCleanNip = String(p.nip || '').replace(/[\s.]+/g, '');
+          const pUname = String(p.username || '').toLowerCase();
+          const pNama = String(p.nama || '').toLowerCase();
+          const isMe = (pUname && curUname && pUname === curUname) ||
+                       (pCleanNip && curNip && pCleanNip === curNip) ||
+                       (pNama && curNama && pNama === curNama);
+          const currentRole = rolesStore[pCleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
+          const isActive = (p.is_active === 1 || p.is_active === true || p.is_active === '1' || p.is_active === undefined);
 
-      let html = '';
-      filtered.forEach((p, idx) => {
-        const isMe = (p.username === CURRENT_USER.username || p.nip === CURRENT_USER.nip || p.nama === CURRENT_USER.nama);
-        const cleanNip = String(p.nip || '').replace(/\s+/g, '');
-        const currentRole = rolesStore[cleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
-        const isActive = (p.is_active === 1 || p.is_active === true || p.is_active === '1' || p.is_active === undefined);
-
-        html += `
-          <tr>
-            <td style="font-weight: 700; color: #94a3b8; text-align: center;">${p.no_urut || p.no || idx + 1}</td>
-            <td>
-              <div class="pegawai-name-cell" style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
-                ${p.nama}
-                ${isMe ? '<span class="badge-system-live" style="font-size: 10px; padding: 1px 6px;">Anda</span>' : ''}
-              </div>
-              <div style="font-size: 11.5px; color: #94a3b8; font-family: monospace;">${p.nip_full || p.nipFull || p.nip} <span style="color:#64748b;">(@${p.username || '-'})</span></div>
-            </td>
-            <td><span class="pegawai-jabatan-cell" style="font-weight: 600;">${p.jabatan || "-"}</span></td>
-            <td><span class="rm-badge" style="font-size: 11px;">${p.golongan || p.gol || 'BLUD'}</span></td>
-            <td>
-              <select class="role-select-custom" onchange="window.DeveloperWebController.updateUserRole('${p.nip}', this.value, ${p.id || 'null'})" ${isMe ? 'disabled title="Role Anda dilindungi sebagai Super Admin Utama"' : ''}>
-                <option value="Super Admin" ${currentRole === 'Super Admin' ? 'selected' : ''}>👑 1. Super Admin</option>
-                <option value="Admin" ${currentRole === 'Admin' ? 'selected' : ''}>🛡️ 2. Admin</option>
-                <option value="Kepala Puskesmas" ${currentRole === 'Kepala Puskesmas' ? 'selected' : ''}>🏛️ 3. Kepala Puskesmas</option>
-                <option value="PJ Klaster" ${currentRole === 'PJ Klaster' ? 'selected' : ''}>📋 4. PJ Klaster</option>
-                <option value="Petugas Puskesmas" ${currentRole === 'Petugas Puskesmas' ? 'selected' : ''}>👤 5. Petugas Puskesmas</option>
-              </select>
-            </td>
-            <td style="text-align: center;">
-              ${isActive ? 
-                `<button type="button" class="btn-dev-status-toggle active" onclick="window.DeveloperWebController.toggleUserStatus('${p.nip}', 0, ${p.id || 'null'})" ${isMe ? 'disabled title="Akun Anda aktif"' : 'title="Klik untuk Nonaktifkan Akun"'}>🟢 Aktif</button>` :
-                `<button type="button" class="btn-dev-status-toggle inactive" onclick="window.DeveloperWebController.toggleUserStatus('${p.nip}', 1, ${p.id || 'null'})" title="Klik untuk Aktifkan Akun">🔴 Nonaktif</button>`
-              }
-            </td>
-            <td style="text-align: center;">
-              <div style="display: inline-flex; align-items: center; gap: 5px;">
-                <button type="button" class="btn-dev-action-mini edit" onclick="window.DeveloperWebController.openEditUserModal('${p.nip}')" title="Edit Data Pegawai">
-                  ✏️ Edit
-                </button>
-                <button type="button" class="btn-dev-action-mini reset" onclick="window.DeveloperWebController.resetUserPass('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Reset Kata Sandi Akun ke Default (bankot2026)">
-                  🔑 Reset
-                </button>
-                ${!isMe ? `
-                  <button type="button" class="btn-dev-action-mini delete" onclick="window.DeveloperWebController.deleteUser('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Hapus Akun Pegawai">
-                    🗑️
+          html += `
+            <tr>
+              <td style="font-weight: 700; color: #94a3b8; text-align: center;">${p.no_urut || p.no || idx + 1}</td>
+              <td>
+                <div class="pegawai-name-cell" style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                  ${p.nama}
+                  ${isMe ? '<span class="badge-system-live" style="font-size: 10px; padding: 1px 6px;">Anda</span>' : ''}
+                </div>
+                <div style="font-size: 11.5px; color: #94a3b8; font-family: monospace;">${p.nip_full || p.nipFull || p.nip} <span style="color:#64748b;">(@${p.username || '-'})</span></div>
+              </td>
+              <td><span class="pegawai-jabatan-cell" style="font-weight: 600;">${p.jabatan || "-"}</span></td>
+              <td><span class="rm-badge" style="font-size: 11px;">${p.golongan || p.gol || 'BLUD'}</span></td>
+              <td>
+                <select class="role-select-custom" onchange="window.DeveloperWebController.updateUserRole('${p.nip}', this.value, ${p.id || 'null'})" ${isMe ? 'disabled title="Role Anda dilindungi sebagai Super Admin Utama"' : ''}>
+                  <option value="Super Admin" ${currentRole === 'Super Admin' ? 'selected' : ''}>👑 1. Super Admin</option>
+                  <option value="Admin" ${currentRole === 'Admin' ? 'selected' : ''}>🛡️ 2. Admin</option>
+                  <option value="Kepala Puskesmas" ${currentRole === 'Kepala Puskesmas' ? 'selected' : ''}>🏛️ 3. Kepala Puskesmas</option>
+                  <option value="PJ Klaster" ${currentRole === 'PJ Klaster' ? 'selected' : ''}>📋 4. PJ Klaster</option>
+                  <option value="Petugas Puskesmas" ${currentRole === 'Petugas Puskesmas' ? 'selected' : ''}>👤 5. Petugas Puskesmas</option>
+                </select>
+              </td>
+              <td style="text-align: center;">
+                ${isActive ? 
+                  `<button type="button" class="btn-dev-status-toggle active" onclick="window.DeveloperWebController.toggleUserStatus('${p.nip}', 0, ${p.id || 'null'})" ${isMe ? 'disabled title="Akun Anda aktif"' : 'title="Klik untuk Nonaktifkan Akun"'}>🟢 Aktif</button>` :
+                  `<button type="button" class="btn-dev-status-toggle inactive" onclick="window.DeveloperWebController.toggleUserStatus('${p.nip}', 1, ${p.id || 'null'})" title="Klik untuk Aktifkan Akun">🔴 Nonaktif</button>`
+                }
+              </td>
+              <td style="text-align: center;">
+                <div style="display: inline-flex; align-items: center; gap: 5px;">
+                  <button type="button" class="btn-dev-action-mini edit" onclick="window.DeveloperWebController.openEditUserModal('${p.nip}')" title="Edit Data Pegawai">
+                    ✏️ Edit
                   </button>
-                ` : ''}
-              </div>
-            </td>
-          </tr>
-        `;
-      });
+                  <button type="button" class="btn-dev-action-mini reset" onclick="window.DeveloperWebController.resetUserPass('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Reset Kata Sandi Akun ke Default (bankot2026)">
+                    🔑 Reset
+                  </button>
+                  ${!isMe ? `
+                    <button type="button" class="btn-dev-action-mini delete" onclick="window.DeveloperWebController.deleteUser('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Hapus Akun Pegawai">
+                      🗑️
+                    </button>
+                  ` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        });
 
-      tbodies.forEach(tb => {
-        tb.innerHTML = html;
-      });
+        tbodies.forEach(tb => {
+          tb.innerHTML = html;
+        });
+      } catch (err) {
+        console.error('Error in renderUsers:', err);
+        tbodies.forEach(tb => {
+          tb.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#ef4444; padding:24px;">Gagal menampilkan daftar akun: ${err.message}</td></tr>`;
+        });
+      }
     },
 
     filterUsersLocal(query = '', roleFilter = '') {
