@@ -679,6 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const viewSppdLpt = document.getElementById('viewSppdLpt');
   const viewJadwalKegiatan = document.getElementById('viewJadwalKegiatan');
   const viewDeveloperWeb = document.getElementById('viewDeveloperWeb');
+  const viewKelolaAkun = document.getElementById('viewKelolaAkun');
   const navItemDevWeb = document.getElementById('navItemDevWeb');
   const navSectionGodMode = document.getElementById('navSectionGodMode');
 
@@ -1787,6 +1788,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (viewTpPol) viewTpPol.style.display = 'none';
     if (viewSppdLpt) viewSppdLpt.style.display = 'none';
     if (viewJadwalKegiatan) viewJadwalKegiatan.style.display = 'none';
+    if (viewKelolaAkun) viewKelolaAkun.style.display = 'none';
     if (viewDeveloperWeb) viewDeveloperWeb.style.display = 'none';
 
     if (targetView !== 'developer-web' && window.DeveloperWebController && window.DeveloperWebController.stopLiveAutoSync) {
@@ -1876,27 +1878,23 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      if (viewDeveloperWeb) {
-        viewDeveloperWeb.style.display = 'block';
-        gsap.fromTo(viewDeveloperWeb, 
+      if (viewKelolaAkun) {
+        viewKelolaAkun.style.display = 'block';
+        gsap.fromTo(viewKelolaAkun, 
           { opacity: 0, y: 15 }, 
           { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }
         );
       }
-      if (topbarCategory) topbarCategory.textContent = 'MENU ADMIN & HAK AKSES';
+      if (topbarCategory) topbarCategory.textContent = 'PENGATURAN & AKUN';
       if (topbarTitle) topbarTitle.textContent = 'Kelola Akun Pegawai';
       if (topbarSubtitle) topbarSubtitle.textContent = 'Manajemen akun pegawai, level hak akses wewenang, status akun, dan data pegawai Puskesmas Banjaran Kota';
 
       if (window.DeveloperWebController) {
         window.DeveloperWebController.init();
-      }
-      setTimeout(() => {
-        const userTabBtn = document.querySelector('.dev-tab-btn[data-devtab="users"]');
-        if (userTabBtn) userTabBtn.click();
-        if (window.DeveloperWebController && typeof window.DeveloperWebController.renderUsers === 'function') {
+        if (typeof window.DeveloperWebController.renderUsers === 'function') {
           window.DeveloperWebController.renderUsers();
         }
-      }, 60);
+      }
 
     } else if (targetView === 'developer-web') {
       let u = window.CURRENT_USER;
@@ -13720,12 +13718,50 @@ document.addEventListener('DOMContentLoaded', () => {
       const userForm = document.getElementById('devUserForm');
       const modal = document.getElementById('devUserModal');
 
-      if (btnAdd) btnAdd.addEventListener('click', () => this.openAddUserModal());
-      if (btnRefresh) btnRefresh.addEventListener('click', async () => {
+      // Top & Section Buttons in dedicated viewKelolaAkun
+      const btnKelolaAdd = document.getElementById('btnKelolaAkunAdd');
+      const btnKelolaAddTop = document.getElementById('btnAddKelolaAkunTop');
+      const btnKelolaRefresh = document.getElementById('btnKelolaAkunRefresh');
+      const btnKelolaRefreshTop = document.getElementById('btnRefreshKelolaAkunTop');
+      const kelolaSearch = document.getElementById('kelolaAkunSearch');
+      const kelolaRoleFilter = document.getElementById('kelolaAkunRoleFilter');
+      const devSearch = document.getElementById('devSearchUser');
+
+      const triggerAdd = () => this.openAddUserModal();
+      const triggerRefresh = async () => {
         showToast('Memuat ulang data akun pegawai dari Cloudflare D1...', 'info');
         await this.renderUsers();
         showToast('✓ Data akun pegawai berhasil diperbarui dari Cloudflare D1!', 'success');
-      });
+      };
+
+      if (btnAdd) btnAdd.addEventListener('click', triggerAdd);
+      if (btnKelolaAdd) btnKelolaAdd.addEventListener('click', triggerAdd);
+      if (btnKelolaAddTop) btnKelolaAddTop.addEventListener('click', triggerAdd);
+
+      if (btnRefresh) btnRefresh.addEventListener('click', triggerRefresh);
+      if (btnKelolaRefresh) btnKelolaRefresh.addEventListener('click', triggerRefresh);
+      if (btnKelolaRefreshTop) btnKelolaRefreshTop.addEventListener('click', triggerRefresh);
+
+      if (kelolaSearch) {
+        kelolaSearch.addEventListener('input', (e) => {
+          const rf = kelolaRoleFilter ? kelolaRoleFilter.value : '';
+          this.renderUsers(e.target.value, rf);
+        });
+      }
+
+      if (kelolaRoleFilter) {
+        kelolaRoleFilter.addEventListener('change', (e) => {
+          const q = kelolaSearch ? kelolaSearch.value : '';
+          this.renderUsers(q, e.target.value);
+        });
+      }
+
+      if (devSearch) {
+        devSearch.addEventListener('input', (e) => {
+          this.renderUsers(e.target.value);
+        });
+      }
+
       if (btnCloseModal) btnCloseModal.addEventListener('click', () => this.closeUserModal());
       if (btnCancel) btnCancel.addEventListener('click', () => this.closeUserModal());
       if (modal) {
@@ -13736,34 +13772,68 @@ document.addEventListener('DOMContentLoaded', () => {
       if (userForm) userForm.addEventListener('submit', (e) => this.handleUserFormSubmit(e));
     },
 
-    async renderUsers(query = '') {
-      const tbody = document.getElementById('devUserListBody');
-      const searchInput = document.getElementById('devSearchUser');
-      const countTitle = document.getElementById('devUserCountTitle');
-      if (!tbody) return;
+    async renderUsers(query = '', roleFilter = '') {
+      const tbody1 = document.getElementById('kelolaAkunListBody');
+      const tbody2 = document.getElementById('devUserListBody');
+      const countTitle1 = document.getElementById('kelolaAkunCountTitle');
+      const countTitle2 = document.getElementById('devUserCountTitle');
+      
+      const tbodies = [tbody1, tbody2].filter(Boolean);
+      if (tbodies.length === 0) return;
 
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:24px;">⏳ Memuat data akun pegawai dari Cloudflare D1...</td></tr>';
+      tbodies.forEach(tb => {
+        tb.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:24px;">⏳ Memuat data akun pegawai dari Cloudflare D1...</td></tr>';
+      });
 
       // Always fetch freshest live users from Cloudflare D1
       const users = await CloudflareDB.fetchUsers();
       this.loadedUsers = Array.isArray(users) ? users : [];
       const rolesStore = JSON.parse(localStorage.getItem('SICEKAS_USER_ROLES')) || {};
 
-      if (countTitle) {
-        countTitle.textContent = `Manajemen Hak Akses & Akun Pegawai (${this.loadedUsers.length} Pegawai)`;
-      }
+      // Compute statistics for KPI cards
+      let activeCount = 0;
+      let adminCount = 0;
+      this.loadedUsers.forEach(p => {
+        const cleanNip = String(p.nip || '').replace(/\s+/g, '');
+        const r = rolesStore[cleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
+        const isActive = (p.is_active === 1 || p.is_active === true || p.is_active === '1' || p.is_active === undefined);
+        if (isActive) activeCount++;
+        if (r.includes('Admin') || r.includes('Super Admin')) adminCount++;
+      });
+
+      const kpiTotal = document.getElementById('kpiTotalPegawai');
+      const kpiActive = document.getElementById('kpiAkunAktif');
+      const kpiAdmin = document.getElementById('kpiTotalAdmin');
+      if (kpiTotal) kpiTotal.textContent = `${this.loadedUsers.length} Orang`;
+      if (kpiActive) kpiActive.textContent = `${activeCount} Aktif`;
+      if (kpiAdmin) kpiAdmin.textContent = `${adminCount} Akun`;
+
+      if (countTitle1) countTitle1.textContent = `Daftar Pegawai & Tingkat Hak Akses (${this.loadedUsers.length} Pegawai)`;
+      if (countTitle2) countTitle2.textContent = `Manajemen Hak Akses & Akun Pegawai (${this.loadedUsers.length} Pegawai)`;
+
+      const q = (query || '').toLowerCase().trim();
+      const rFilter = (roleFilter || '').trim();
 
       const filtered = this.loadedUsers.filter(p => {
-        if (!query) return true;
-        const q = query.toLowerCase();
+        const cleanNip = String(p.nip || '').replace(/\s+/g, '');
+        const currentRole = rolesStore[cleanNip] || rolesStore[p.nip] || p.role || 'Petugas Puskesmas';
+
+        if (rFilter && currentRole !== rFilter) {
+          return false;
+        }
+
+        if (!q) return true;
         return (p.nama && p.nama.toLowerCase().includes(q)) ||
                (p.nip && p.nip.toLowerCase().includes(q)) ||
                (p.username && p.username.toLowerCase().includes(q)) ||
-               (p.jabatan && p.jabatan.toLowerCase().includes(q));
+               (p.jabatan && p.jabatan.toLowerCase().includes(q)) ||
+               (currentRole.toLowerCase().includes(q));
       });
 
       if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:30px;">Tidak ada data pegawai yang sesuai dengan pencarian.</td></tr>';
+        tbodies.forEach(tb => {
+          tb.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#94a3b8; padding:30px;">Tidak ada data pegawai yang sesuai dengan filter pencarian.</td></tr>';
+        });
         return;
       }
 
@@ -13898,7 +13968,9 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       });
 
-      tbody.innerHTML = html;
+      tbodies.forEach(tb => {
+        tb.innerHTML = html;
+      });
     },
 
     openAddUserModal() {
