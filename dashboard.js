@@ -8234,7 +8234,7 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 
   <div class="print-quick-tools">
-    <span style="color: #94a3b8; font-size: 11px; font-weight: 600;">Kustomisasi:</span>
+    <span class="print-quick-title-label" style="font-size: 11px; font-weight: 600;">Kustomisasi:</span>
     <label class="print-quick-label" title="Sembunyikan garis tabel">
       <input type="checkbox" id="popCheckBorders" ${sppdCustomSettings.hideTableBorders ? 'checked' : ''} onchange="window.setCustomBorder(this.checked)">
       <span>Hide Garis</span>
@@ -8251,7 +8251,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <span>Warna:</span>
       <input type="color" id="popTextColor" value="${sppdCustomSettings.fontColor || '#000000'}" onchange="window.setCustomColor(this.value)" style="width:20px;height:20px;border:none;border-radius:4px;cursor:pointer;padding:0;background:transparent;">
     </label>
-    <select id="popFontFamily" onchange="window.setCustomFont(this.value)" style="background:#0f172a;color:#f8fafc;border:1px solid rgba(255,255,255,0.2);border-radius:4px;font-size:11px;padding:2px 4px;cursor:pointer;">
+    <select id="popFontFamily" class="print-custom-font-select" onchange="window.setCustomFont(this.value)" style="font-size:11px;padding:2px 4px;cursor:pointer;border-radius:4px;">
       <option value="arial" ${sppdCustomSettings.fontFamily === 'arial' ? 'selected' : ''}>Arial</option>
       <option value="times" ${sppdCustomSettings.fontFamily === 'times' ? 'selected' : ''}>Times New Roman</option>
       <option value="calibri" ${sppdCustomSettings.fontFamily === 'calibri' ? 'selected' : ''}>Calibri</option>
@@ -9176,10 +9176,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
               </svg>
             </div>
-            <h4 style="font-size: 15px; font-weight: 700; color: #ffffff; margin-bottom: 6px;">
+            <h4 class="evidence-empty-title" style="font-size: 15px; font-weight: 700; margin-bottom: 6px;">
               ${q ? `Tidak ada template yang cocok` : `Belum Ada ${typeTitle} Tersimpan`}
             </h4>
-            <p style="font-size: 12px; color: #94a3b8; max-width: 440px; margin: 0 auto 18px auto; line-height: 1.5;">
+            <p class="evidence-empty-desc" style="font-size: 12px; max-width: 440px; margin: 0 auto 18px auto; line-height: 1.5;">
               ${q ? 'Silakan periksa kembali kata kunci pencarian Anda.' : `Simpan konfigurasi ${typeTitle} yang sering digunakan agar dapat diterapkan kembali dalam 1 detik.`}
             </p>
             <button type="button" class="btn-save-current-template-modal" onclick="window.SppdTemplateController.saveCurrentAsTemplate('${type}')" style="margin: 0 auto; display: inline-flex;">
@@ -9233,34 +9233,34 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="evidence-route-pill">
                 <span>${berangkat}</span>
                 <span class="evidence-route-arrow">➔</span>
-                <span style="font-weight: 700; color: #ffffff;">${tujuan}</span>
+                <span class="evidence-route-dest" style="font-weight: 700;">${tujuan}</span>
               </div>
               <div class="evidence-detail-row">
                 <span class="evidence-detail-icon">📋</span>
                 <div>
-                  <strong style="color: #ffffff;">Maksud:</strong>
-                  <div style="color: #cbd5e1;">${maksud}</div>
+                  <strong class="evidence-detail-label">Maksud:</strong>
+                  <div class="evidence-detail-val">${maksud}</div>
                 </div>
               </div>
               ${t.tgl_berangkat ? `
               <div class="evidence-detail-row">
                 <span class="evidence-detail-icon">📅</span>
                 <div>
-                  <strong style="color: #ffffff;">Jadwal Dinas:</strong>
+                  <strong class="evidence-detail-label">Jadwal Dinas:</strong>
                   <div style="color: #ffd166; font-weight: 600;">${escapeHtmlHelper(t.tgl_berangkat)}${t.tgl_kembali && t.tgl_kembali !== t.tgl_berangkat ? ` s/d ${escapeHtmlHelper(t.tgl_kembali)}` : ''}</div>
                 </div>
               </div>` : ''}
               <div class="evidence-detail-row">
                 <span class="evidence-detail-icon">👤</span>
                 <div>
-                  <strong style="color: #ffffff;">Pelaksana Utama:</strong>
+                  <strong class="evidence-detail-label">Pelaksana Utama:</strong>
                   <div>${pegawai} ${nip !== '-' ? `<span style="color: #94a3b8; font-size: 10.5px;">(${nip})</span>` : ''}</div>
                 </div>
               </div>
               <div class="evidence-detail-row">
                 <span class="evidence-detail-icon">👥</span>
                 <div>
-                  <strong style="color: #ffffff;">Petugas Pengikut:</strong>
+                  <strong class="evidence-detail-label">Petugas Pengikut:</strong>
                   <div style="margin-top: 3px;">${pengikutHtml}</div>
                 </div>
               </div>
@@ -9299,36 +9299,36 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="evidence-detail-row">
                 <span class="evidence-detail-icon">📜</span>
                 <div>
-                  <strong style="color: #ffffff;">Dasar SPT:</strong>
-                  <div style="color: #cbd5e1;">${dasar}</div>
+                  <strong class="evidence-detail-label">Dasar SPT:</strong>
+                  <div class="evidence-detail-val">${dasar}</div>
                 </div>
               </div>
               <div class="evidence-detail-row">
                 <span class="evidence-detail-icon">🎯</span>
                 <div>
-                  <strong style="color: #ffffff;">Tujuan Laporan:</strong>
-                  <div style="color: #cbd5e1;">${tujuan}</div>
+                  <strong class="evidence-detail-label">Tujuan Laporan:</strong>
+                  <div class="evidence-detail-val">${tujuan}</div>
                 </div>
               </div>
               ${lpt.tanggal_laporan ? `
               <div class="evidence-detail-row">
                 <span class="evidence-detail-icon">📅</span>
                 <div>
-                  <strong style="color: #ffffff;">Tanggal Laporan:</strong>
+                  <strong class="evidence-detail-label">Tanggal Laporan:</strong>
                   <div style="color: #38bdf8; font-weight: 600;">${escapeHtmlHelper(lpt.tanggal_laporan)}</div>
                 </div>
               </div>` : ''}
               <div class="evidence-detail-row">
                 <span class="evidence-detail-icon">📝</span>
                 <div>
-                  <strong style="color: #ffffff;">Ringkasan Hasil:</strong>
-                  <div style="font-size: 11px; color: #94a3b8;">${hasil}</div>
+                  <strong class="evidence-detail-label">Ringkasan Hasil:</strong>
+                  <div class="evidence-detail-sub" style="font-size: 11px;">${hasil}</div>
                 </div>
               </div>
               <div class="evidence-detail-row">
                 <span class="evidence-detail-icon">👤</span>
                 <div>
-                  <strong style="color: #ffffff;">Pelapor:</strong>
+                  <strong class="evidence-detail-label">Pelapor:</strong>
                   <div>${pet1}</div>
                 </div>
               </div>
@@ -9367,7 +9367,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="evidence-detail-icon">🏷️</span>
                 <div>
                   <strong style="color: #ffffff;">Judul Kegiatan:</strong>
-                  <div style="color: #cbd5e1;">${judul}</div>
+                  <div class="evidence-detail-val">${judul}</div>
                 </div>
               </div>
               <div class="evidence-detail-row">
@@ -12745,16 +12745,16 @@ document.addEventListener('DOMContentLoaded', () => {
               <div class="bok-req-avatar" style="width: 40px; height: 40px; border-radius: 50%; background: var(--teal-gradient); color: #06080d; font-weight: 800; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0;">${initials}</div>
               <div class="bok-req-text" style="flex: 1;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
-                  <h5 style="margin: 0; color: #ffffff; font-size: 13.5px; font-weight: 700;">
+                  <h5 class="bok-req-from-name" style="margin: 0; font-size: 13.5px; font-weight: 700;">
                     ${fromName} <span style="color: #94a3b8; font-weight: 400; font-size: 12px;">(${fromJab})</span>
                     ${isSender ? '<span style="color: #2dd4bf; font-size: 11px; margin-left: 6px;">(Anda Pengirim)</span>' : ''}
                   </h5>
                   ${statusBadge}
                 </div>
-                <p style="margin: 0 0 4px 0; color: #cbd5e1; font-size: 12.5px;">
+                <p class="bok-req-to-p" style="margin: 0 0 4px 0; font-size: 12.5px;">
                   <strong>Kepada:</strong> <span style="color: #ffd166;">${toName}</span> (${toJab})
                 </p>
-                <p style="margin: 0 0 4px 0; color: #e2e8f0; font-size: 12.5px;">
+                <p class="bok-req-date-p" style="margin: 0 0 4px 0; font-size: 12.5px;">
                   📅 <strong>${req.tanggal}</strong> • No.${noKeg} ${namaKeg}
                 </p>
                 ${req.keterangan ? `<p style="margin: 0; color: #94a3b8; font-size: 12px; font-style: italic;">• "${req.keterangan}"</p>` : ''}
@@ -13826,13 +13826,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <tr>
             <td style="font-weight: 700; color: #94a3b8; text-align: center;">${p.no_urut || p.no || idx + 1}</td>
             <td>
-              <div style="font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+              <div class="pegawai-name-cell" style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
                 ${p.nama}
                 ${isMe ? '<span class="badge-system-live" style="font-size: 10px; padding: 1px 6px;">Anda</span>' : ''}
               </div>
               <div style="font-size: 11.5px; color: #94a3b8; font-family: monospace;">${p.nip_full || p.nipFull || p.nip} <span style="color:#64748b;">(@${p.username || '-'})</span></div>
             </td>
-            <td><span style="font-weight: 600; color: #cbd5e1;">${p.jabatan || '-'}</span></td>
+            <td><span class="pegawai-jabatan-cell" style="font-weight: 600;">${p.jabatan || "-"}</span></td>
             <td><span class="rm-badge" style="font-size: 11px;">${p.golongan || p.gol || 'BLUD'}</span></td>
             <td>
               <select class="role-select-custom" onchange="window.DeveloperWebController.updateUserRole('${p.nip}', this.value, ${p.id || 'null'})" ${isMe ? 'disabled title="Role Anda dilindungi sebagai Super Admin Utama"' : ''}>
@@ -13904,13 +13904,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <tr>
             <td style="font-weight: 700; color: #94a3b8; text-align: center;">${p.no_urut || p.no || idx + 1}</td>
             <td>
-              <div style="font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+              <div class="pegawai-name-cell" style="font-weight: 700; display: flex; align-items: center; gap: 6px;">
                 ${p.nama}
                 ${isMe ? '<span class="badge-system-live" style="font-size: 10px; padding: 1px 6px;">Anda</span>' : ''}
               </div>
               <div style="font-size: 11.5px; color: #94a3b8; font-family: monospace;">${p.nip_full || p.nipFull || p.nip} <span style="color:#64748b;">(@${p.username || '-'})</span></div>
             </td>
-            <td><span style="font-weight: 600; color: #cbd5e1;">${p.jabatan || '-'}</span></td>
+            <td><span class="pegawai-jabatan-cell" style="font-weight: 600;">${p.jabatan || "-"}</span></td>
             <td><span class="rm-badge" style="font-size: 11px;">${p.golongan || p.gol || 'BLUD'}</span></td>
             <td>
               <select class="role-select-custom" onchange="window.DeveloperWebController.updateUserRole('${p.nip}', this.value, ${p.id || 'null'})" ${isMe ? 'disabled title="Role Anda dilindungi sebagai Super Admin Utama"' : ''}>
@@ -15374,12 +15374,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 `}
               </td>
               <td>
-                <div style="color: #f1f5f9; font-weight: 600; cursor: pointer;" onclick="window.R2FileManager.previewFileByIdx(${idx})">${escName}</div>
+                <div class="r2-file-name-cell" style="font-weight: 600; cursor: pointer;" onclick="window.R2FileManager.previewFileByIdx(${idx})">${escName}</div>
                 <span style="color: #64748b; font-size: 10.5px;">${escKey}</span>
               </td>
-              <td><span style="color: #cbd5e1; font-weight: 600;">${sizeStr}</span></td>
-              <td><span style="color: #94a3b8; font-size: 11px;">${dateStr}</span></td>
-              <td><span style="color: #e2e8f0;">${escapeHtmlHelper(file.uploadedBy)}</span></td>
+              <td><span class="r2-file-size-cell" style="font-weight: 600;">${sizeStr}</span></td>
+              <td><span class="r2-file-date-cell" style="font-size: 11px;">${dateStr}</span></td>
+              <td><span class="r2-file-uploader-cell">${escapeHtmlHelper(file.uploadedBy)}</span></td>
               <td style="text-align: right;">
                 <div style="display: flex; gap: 4px; justify-content: flex-end;">
                   <button type="button" class="r2-action-btn-mini" title="Salin Link" onclick="window.R2FileManager.copyLinkByIdx(${idx})">🔗</button>

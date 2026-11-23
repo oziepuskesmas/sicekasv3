@@ -11368,8 +11368,8 @@ body.theme-light, html.theme-light {
   --accent-rose: #e11d48;
   --text-primary: #0f172a;
   --text-secondary: #334155;
-  --text-muted: #64748b;
-  --text-dim: #94a3b8;
+  --text-muted: #475569;
+  --text-dim: #64748b;
   --text-gold: #b45309;
   --text-teal: #0d9488;
   --gold-primary: #d97706;
@@ -12202,19 +12202,133 @@ body.theme-light .sppd-btn-save-template {
 }
 body.theme-light .sppd-template-card {
   background: #ffffff !important;
-  border: 1px solid #e2e8f0 !important;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+  border: 1.5px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
 }
 body.theme-light .sppd-template-card:hover {
+  background: #f8fafc !important;
   border-color: #0d9488 !important;
   box-shadow: 0 4px 14px rgba(13, 148, 136, 0.12) !important;
 }
+body.theme-light .sppd-template-title,
+body.theme-light .sppd-template-title span,
 body.theme-light .sppd-template-name {
   color: #0f172a !important;
   font-weight: 700 !important;
+  opacity: 1 !important;
 }
+body.theme-light .sppd-template-sub,
 body.theme-light .sppd-template-meta {
+  color: #334155 !important;
+  font-weight: 500 !important;
+  opacity: 1 !important;
+}
+body.theme-light .sppd-template-btn-apply {
+  background: #f0fdfa !important;
+  border: 1px solid #99f6e4 !important;
+  color: #0f766e !important;
+  font-weight: 600 !important;
+}
+body.theme-light .sppd-template-btn-apply:hover {
+  background: #0d9488 !important;
+  border-color: #0d9488 !important;
+  color: #ffffff !important;
+}
+body.theme-light .sppd-template-btn-del {
+  background: transparent !important;
+  color: #94a3b8 !important;
+}
+body.theme-light .sppd-template-btn-del:hover {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+body.theme-light .sppd-template-empty {
+  color: #475569 !important;
+}
+
+/* Tips Info Boxes in Sidebar (SPPD, LPT, Foto Dokumentasi) */
+body.theme-light .sppd-template-tip-box {
+  background: #fefce8 !important;
+  border: 1px solid #fef08a !important;
+}
+body.theme-light .sppd-template-tip-box.lpt-tip-box {
+  background: #f0f9ff !important;
+  border: 1px solid #bae6fd !important;
+}
+body.theme-light .sppd-template-tip-box.dok-tip-box {
+  background: #f0fdfa !important;
+  border: 1px solid #99f6e4 !important;
+}
+body.theme-light .sppd-template-tip-box .sppd-tip-inner,
+body.theme-light .sppd-template-tip-box .sppd-tip-inner span,
+body.theme-light .sppd-template-tip-box .sppd-tip-inner strong {
+  color: #451a03 !important;
+  font-weight: 500 !important;
+}
+body.theme-light .sppd-template-tip-box.lpt-tip-box .sppd-tip-inner,
+body.theme-light .sppd-template-tip-box.lpt-tip-box .sppd-tip-inner span,
+body.theme-light .sppd-template-tip-box.lpt-tip-box .sppd-tip-inner strong {
+  color: #0369a1 !important;
+}
+body.theme-light .sppd-template-tip-box.dok-tip-box .sppd-tip-inner,
+body.theme-light .sppd-template-tip-box.dok-tip-box .sppd-tip-inner span,
+body.theme-light .sppd-template-tip-box.dok-tip-box .sppd-tip-inner strong {
+  color: #0f766e !important;
+}
+
+/* Preview Toolbar & Customization Popover */
+body.theme-light .sppd-preview-header-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+body.theme-light .print-quick-tools {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  color: #334155 !important;
+}
+body.theme-light .print-quick-title-label,
+body.theme-light .print-quick-label {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+body.theme-light .print-custom-font-select {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+/* LPT Dynamic Table Editor Controls & Badges */
+body.theme-light .lpt-badge-status {
+  color: #475569 !important;
+}
+body.theme-light .sppd-btn-table-action {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+body.theme-light .sppd-btn-table-action:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+body.theme-light .lpt-table-editor-title {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+body.theme-light .lpt-table-editor-hint {
   color: #64748b !important;
+}
+
+/* Foto Dropzone & Alignment in Light Mode */
+body.theme-light .dok-dropzone-title {
+  color: #0f172a !important;
+}
+body.theme-light .dok-dropzone-subtitle {
+  color: #64748b !important;
+}
+body.theme-light .dok-align-label {
+  color: #334155 !important;
+  font-weight: 600 !important;
 }
 
 /* LPT Side Editor Tables */
@@ -12445,6 +12559,114 @@ body.theme-light .bok-select {
 body.theme-light .bok-select option {
   background-color: #ffffff !important;
   color: #0f172a !important;
+}
+
+/* Jadwal Kegiatan BOK Full Calendar Light Mode Overhaul */
+body.theme-light .bok-cal-month-title {
+  color: #0f172a !important;
+}
+body.theme-light .btn-cal-today {
+  background: #f0fdfa !important;
+  border: 1px solid #99f6e4 !important;
+  color: #0f766e !important;
+}
+body.theme-light .btn-cal-today:hover {
+  background: #0d9488 !important;
+  color: #ffffff !important;
+  border-color: #0d9488 !important;
+}
+body.theme-light .bok-cal-legend {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+}
+body.theme-light .cal-leg-item {
+  color: #475569 !important;
+}
+body.theme-light .bok-cal-day-header {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0d9488 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+body.theme-light .bok-cal-day-header.weekend {
+  background: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  color: #e11d48 !important;
+}
+body.theme-light .bok-cal-cell {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+body.theme-light .bok-cal-cell:hover {
+  background: #f8fafc !important;
+  border-color: #0d9488 !important;
+  box-shadow: 0 6px 18px rgba(13, 148, 136, 0.12) !important;
+}
+body.theme-light .bok-cal-cell.is-other-month {
+  background: #f8fafc !important;
+  border-color: #f1f5f9 !important;
+  opacity: 0.55 !important;
+}
+body.theme-light .bok-cal-cell.is-today {
+  background: #f0fdfa !important;
+  border: 2px solid #0d9488 !important;
+  box-shadow: 0 0 16px rgba(13, 148, 136, 0.15) !important;
+}
+body.theme-light .bok-cal-cell.is-sunday {
+  background: #fff5f5 !important;
+  border-color: #fed7d7 !important;
+}
+body.theme-light .bok-cal-cell.is-holiday:not(.is-sunday) {
+  background: #fff5f5 !important;
+  border-color: #fed7d7 !important;
+}
+body.theme-light .bok-cal-date-num {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+}
+body.theme-light .bok-cal-cell:hover .bok-cal-date-num {
+  background: #f0fdfa !important;
+  border-color: #0d9488 !important;
+  color: #0d9488 !important;
+}
+body.theme-light .bok-cal-cell.is-today .bok-cal-date-num {
+  background: linear-gradient(135deg, #0d9488, #0f766e) !important;
+  color: #ffffff !important;
+  border: none !important;
+}
+body.theme-light .bok-cal-cell.is-sunday .bok-cal-date-num {
+  background: #ffe4e6 !important;
+  border-color: #fecdd3 !important;
+  color: #e11d48 !important;
+}
+body.theme-light .bok-cal-pill.mine {
+  background: #fef3c7 !important;
+  border-left: 3.5px solid #d97706 !important;
+  border-top: 1px solid #fde68a !important;
+  border-right: 1px solid #fde68a !important;
+  border-bottom: 1px solid #fde68a !important;
+  color: #92400e !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+body.theme-light .bok-cal-pill.collab {
+  background: #e0f2fe !important;
+  border-left: 3.5px solid #0284c7 !important;
+  border-top: 1px solid #bae6fd !important;
+  border-right: 1px solid #bae6fd !important;
+  border-bottom: 1px solid #bae6fd !important;
+  color: #0369a1 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+body.theme-light .bok-cal-pill.other {
+  background: #f1f5f9 !important;
+  border-left: 3.5px solid #64748b !important;
+  border-top: 1px solid #e2e8f0 !important;
+  border-right: 1px solid #e2e8f0 !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #1e293b !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
 }
 
 /* ============================================================================
@@ -13008,17 +13230,139 @@ body.theme-light .evidence-idx-badge {
 body.theme-light .evidence-time-text {
   color: #64748b !important;
 }
-body.theme-light .evidence-card-title {
+body.theme-light .evidence-card-title,
+body.theme-light .evidence-card h4 {
   color: #0f172a !important;
   font-weight: 700 !important;
 }
 body.theme-light .evidence-detail-row {
+  color: #334155 !important;
+}
+body.theme-light .evidence-detail-row strong,
+body.theme-light .evidence-detail-label {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+body.theme-light .evidence-detail-val {
+  color: #334155 !important;
+  font-weight: 500 !important;
+}
+body.theme-light .evidence-detail-sub {
+  color: #475569 !important;
+}
+body.theme-light .evidence-route-pill {
+  background: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #334155 !important;
+}
+body.theme-light .evidence-route-dest {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+body.theme-light .evidence-empty-title {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+body.theme-light .evidence-empty-desc {
   color: #475569 !important;
 }
 body.theme-light .evidence-count-tag {
   background: #fef3c7 !important;
   border: 1px solid #fde68a !important;
   color: #b45309 !important;
+}
+
+/* Dev User Modal & Pegawai Management */
+body.theme-light .dev-modal-label,
+body.theme-light #devUserModal label {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+}
+body.theme-light .pegawai-name-cell {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+body.theme-light .pegawai-jabatan-cell {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+
+/* R2 File Table Cells in Light Mode */
+body.theme-light .r2-file-name-cell {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+body.theme-light .r2-file-size-cell {
+  color: #334155 !important;
+  font-weight: 600 !important;
+}
+body.theme-light .r2-file-date-cell {
+  color: #64748b !important;
+}
+body.theme-light .r2-file-uploader-cell {
+  color: #334155 !important;
+}
+
+/* BOK Collaboration Request Cards in Light Mode */
+body.theme-light .bok-inline-req-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+}
+body.theme-light .bok-req-from-name {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+body.theme-light .bok-req-to-p {
+  color: #334155 !important;
+}
+body.theme-light .bok-req-date-p {
+  color: #1e293b !important;
+}
+
+/* Evidence Viewer Modal in Light Mode */
+body.theme-light .viewer-keterangan-label {
+  color: #64748b !important;
+}
+body.theme-light .viewer-keterangan-val {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+/* Beranda Pro KPI Cards in Light Mode */
+body.theme-light .stat-card-pro {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04) !important;
+}
+body.theme-light .stat-card-pro:hover {
+  background: #f8fafc !important;
+  border-color: #0d9488 !important;
+  box-shadow: 0 6px 18px rgba(13, 148, 136, 0.12) !important;
+}
+body.theme-light .stat-label-pro {
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+body.theme-light .stat-val-pro {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+}
+body.theme-light .stat-sub-pro {
+  color: #64748b !important;
+}
+body.theme-light .cal-weekday {
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+body.theme-light .cal-weekday.sunday {
+  color: #e11d48 !important;
+}
+body.theme-light .cal-legend-hint {
+  color: #64748b !important;
+}
+body.theme-light .cal-legend-item {
+  color: #334155 !important;
 }
 
 /* ============================================================================
