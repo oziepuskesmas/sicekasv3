@@ -217,7 +217,19 @@ async function handleApiRequest(request, env, ctx) {
       const userActive = (is_active === 0 || is_active === false || is_active === '0') ? 0 : 1;
       const avatarLetters = (nama || 'MF').split(' ').map(w => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase();
 
+      let existing = null;
       if (id) {
+        existing = await db.prepare('SELECT * FROM users WHERE id = ?').bind(id).first();
+      }
+      if (!existing && cleanNip && cleanNip !== '-') {
+        existing = await db.prepare('SELECT * FROM users WHERE nip = ?').bind(cleanNip).first();
+      }
+      if (!existing && cleanUsername) {
+        existing = await db.prepare('SELECT * FROM users WHERE username = ?').bind(cleanUsername).first();
+      }
+
+      if (id || existing) {
+        const targetId = id || existing?.id;
         // Update existing user
         if (password && password.trim().length >= 6) {
           await db.prepare(`
@@ -225,14 +237,14 @@ async function handleApiRequest(request, env, ctx) {
               nama = ?, nip = ?, nip_full = ?, username = ?, jabatan = ?,
               golongan = ?, role = ?, is_active = ?, avatar = ?, password_hash = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ? OR nip = ?
-          `).bind(nama, cleanNip, fullNip, cleanUsername, jabatan, userGol, userRole, userActive, avatarLetters, password.trim(), id, cleanNip).run();
+          `).bind(nama, cleanNip, fullNip, cleanUsername, jabatan, userGol, userRole, userActive, avatarLetters, password.trim(), targetId, cleanNip).run();
         } else {
           await db.prepare(`
             UPDATE users SET
               nama = ?, nip = ?, nip_full = ?, username = ?, jabatan = ?,
               golongan = ?, role = ?, is_active = ?, avatar = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ? OR nip = ?
-          `).bind(nama, cleanNip, fullNip, cleanUsername, jabatan, userGol, userRole, userActive, avatarLetters, id, cleanNip).run();
+          `).bind(nama, cleanNip, fullNip, cleanUsername, jabatan, userGol, userRole, userActive, avatarLetters, targetId, cleanNip).run();
         }
 
         await db.prepare(

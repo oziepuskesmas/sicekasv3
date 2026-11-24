@@ -13529,6 +13529,14 @@ document.addEventListener('DOMContentLoaded', () => {
           if (e.target === modal) this.closeUserModal();
         });
       }
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          const m = document.getElementById('devUserModal');
+          if (m && (m.classList.contains('active') || m.style.display === 'flex')) {
+            this.closeUserModal();
+          }
+        }
+      });
       if (userForm) userForm.addEventListener('submit', (e) => this.handleUserFormSubmit(e));
     },
 
@@ -13646,14 +13654,14 @@ document.addEventListener('DOMContentLoaded', () => {
               </td>
               <td style="text-align: center;">
                 <div style="display: inline-flex; align-items: center; gap: 5px;">
-                  <button type="button" class="btn-dev-action-mini edit" onclick="window.DeveloperWebController.openEditUserModal('${p.nip}')" title="Edit Data Pegawai">
+                  <button type="button" class="btn-dev-action-mini edit" onclick="window.DeveloperWebController.openEditUserModal('${p.id || ''}', '${p.nip || ''}', '${p.username || ''}')" title="Edit Data Pegawai">
                     ✏️ Edit
                   </button>
-                  <button type="button" class="btn-dev-action-mini reset" onclick="window.DeveloperWebController.resetUserPass('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Reset Kata Sandi Akun ke Default (bankot2026)">
+                  <button type="button" class="btn-dev-action-mini reset" onclick="window.DeveloperWebController.resetUserPass('${(p.nama || '').replace(/'/g, "\\'")}', '${p.nip || ''}', ${p.id || 'null'})" title="Reset Kata Sandi Akun ke Default (bankot2026)">
                     🔑 Reset
                   </button>
                   ${!isMe ? `
-                    <button type="button" class="btn-dev-action-mini delete" onclick="window.DeveloperWebController.deleteUser('${p.nama}', '${p.nip}', ${p.id || 'null'})" title="Hapus Akun Pegawai">
+                    <button type="button" class="btn-dev-action-mini delete" onclick="window.DeveloperWebController.deleteUser('${(p.nama || '').replace(/'/g, "\\'")}', '${p.nip || ''}', ${p.id || 'null'})" title="Hapus Akun Pegawai">
                       🗑️
                     </button>
                   ` : ''}
@@ -13691,15 +13699,36 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('devUserPassword').placeholder = 'Default: bankot2026';
       if (title) title.textContent = 'Daftarkan Akun Pegawai Baru';
       modal.style.display = 'flex';
+      modal.classList.add('active');
+      if (typeof gsap !== 'undefined') {
+        gsap.fromTo('#devUserModal .modal-card', 
+          { opacity: 0, scale: 0.94, y: 15 }, 
+          { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'back.out(1.4)' }
+        );
+      }
     },
 
-    openEditUserModal(nipOrId) {
+    openEditUserModal(nipOrId, nipParam, usernameParam) {
       const modal = document.getElementById('devUserModal');
       const form = document.getElementById('devUserForm');
       const title = document.getElementById('devUserModalTitle');
       if (!modal || !form) return;
 
-      const user = (this.loadedUsers || []).find(u => u.nip === nipOrId || String(u.id) === String(nipOrId));
+      const needle = String(nipOrId || '').trim();
+      const needleNip = String(nipParam || '').trim();
+      const needleUname = String(usernameParam || '').trim().toLowerCase();
+
+      const user = (this.loadedUsers || []).find(u => {
+        if (needle && u.id && String(u.id) === needle) return true;
+        if (needleNip && u.nip && u.nip === needleNip && needleNip !== '-') return true;
+        if (needleUname && u.username && u.username.toLowerCase() === needleUname) return true;
+        if (needle && u.nip && u.nip === needle && needle !== '-') return true;
+        if (needle && u.username && u.username.toLowerCase() === needle.toLowerCase()) return true;
+        if (needle && u.nama && u.nama.toLowerCase() === needle.toLowerCase()) return true;
+        if (needle && String(u.no_urut || u.no) === needle) return true;
+        return false;
+      });
+
       if (!user) {
         showToast('Data pegawai tidak ditemukan!', 'error');
         return;
@@ -13708,7 +13737,9 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('devUserId').value = user.id || '';
       document.getElementById('devUserNama').value = user.nama || '';
       document.getElementById('devUserNip').value = user.nip || '';
-      document.getElementById('devUserUsername').value = user.username || '';
+
+      const defaultUname = (user.nama || '').split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+      document.getElementById('devUserUsername').value = user.username || defaultUname || '';
       document.getElementById('devUserJabatan').value = user.jabatan || '';
       document.getElementById('devUserGolongan').value = user.golongan || user.gol || 'BLUD';
       document.getElementById('devUserRole').value = user.role || 'Petugas Puskesmas';
@@ -13718,11 +13749,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (title) title.textContent = `Edit Data Pegawai: ${user.nama}`;
       modal.style.display = 'flex';
+      modal.classList.add('active');
+      if (typeof gsap !== 'undefined') {
+        gsap.fromTo('#devUserModal .modal-card', 
+          { opacity: 0, scale: 0.94, y: 15 }, 
+          { opacity: 1, scale: 1, y: 0, duration: 0.3, ease: 'back.out(1.4)' }
+        );
+      }
     },
 
     closeUserModal() {
       const modal = document.getElementById('devUserModal');
-      if (modal) modal.style.display = 'none';
+      if (!modal) return;
+      if (typeof gsap !== 'undefined') {
+        gsap.to('#devUserModal .modal-card', {
+          opacity: 0, scale: 0.94, y: 10, duration: 0.2, ease: 'power2.in',
+          onComplete: () => {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+          }
+        });
+      } else {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+      }
     },
 
     async handleUserFormSubmit(e) {

@@ -15584,3 +15584,41 @@ body.theme-light .activity-modal-overlay .modal-footer {
 body.theme-light .modal-subtitle {
   color: #64748b !important;
 }
+
+/* ==========================================================================
+   MODAL 14: MANAJEMEN AKUN & DATA PEGAWAI (D1 CLOUD USER MANAGEMENT)
+   ========================================================================== */
+#devUserModal.modal-backdrop,
+#devUserModal.dev-user-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(4, 8, 16, 0.85) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  backdrop-filter: blur(14px) !important;
+  display: none;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 10005 !important;
+  padding: clamp(10px, 2.5vw, 24px) !important;
+  box-sizing: border-box !important;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+#devUserModal.modal-backdrop.active,
+#devUserModal.dev-user-modal-overlay.active,
+#devUserModal.active {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body.theme-light #devUserModal.modal-backdrop,
+body.theme-light #devUserModal.dev-user-modal-overlay {
+  background: rgba(15, 23, 42, 0.55) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  backdrop-filter: blur(10px) !important;
+}
+

@@ -3956,78 +3956,6 @@
               </div>
             </div>
 
-            <!-- MODAL FORM TAMBAH / EDIT DATA PEGAWAI -->
-            <div class="activity-modal-overlay" id="devUserModal" style="display: none;">
-              <div class="modal-card" style="max-width: 580px; width: 95%; background: linear-gradient(145deg, rgba(14, 19, 28, 0.98) 0%, rgba(8, 11, 17, 0.98) 100%); border: 1px solid rgba(45, 212, 191, 0.35); border-radius: 20px; box-shadow: 0 25px 65px rgba(0, 0, 0, 0.85);">
-                <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: space-between;">
-                  <div class="modal-title-group" style="display: flex; align-items: center; gap: 12px;">
-                    <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(45, 212, 191, 0.15); border: 1px solid rgba(45, 212, 191, 0.35); display: flex; align-items: center; justify-content: center; font-size: 20px;">👤</div>
-                    <div>
-                      <h3 class="modal-title" id="devUserModalTitle" style="font-size: 17px; font-weight: 800; margin: 0;">Daftarkan Akun Pegawai Baru</h3>
-                      <p class="modal-subtitle" style="font-size: 12px; margin: 2px 0 0 0;">Kelola profil, jabatan, hak akses, dan autentikasi akun di Cloudflare D1</p>
-                    </div>
-                  </div>
-                  <button type="button" class="btn-modal-close" id="closeDevUserModal" style="background: transparent; border: none; color: #94a3b8; font-size: 24px; cursor: pointer;">&times;</button>
-                </div>
-                <form id="devUserForm">
-                  <input type="hidden" id="devUserId">
-                  <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; max-height: 68vh; overflow-y: auto; padding: 20px 24px;">
-                    <div class="input-group">
-                      <label for="devUserNama" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Nama Lengkap &amp; Gelar <span style="color: #ef4444;">*</span></label>
-                      <input type="text" class="custom-input" id="devUserNama" required placeholder="Contoh: dr. Budi Santoso, Sp.A">
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                      <div class="input-group">
-                        <label for="devUserNip" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">NIP / NRP Pegawai <span style="color: #ef4444;">*</span></label>
-                        <input type="text" class="custom-input" id="devUserNip" required placeholder="19850101 201001 1 001">
-                      </div>
-                      <div class="input-group">
-                        <label for="devUserUsername" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Username Login <span style="color: #ef4444;">*</span></label>
-                        <input type="text" class="custom-input" id="devUserUsername" required placeholder="Contoh: budi">
-                      </div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                      <div class="input-group">
-                        <label for="devUserJabatan" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Profesi / Jabatan <span style="color: #ef4444;">*</span></label>
-                        <input type="text" class="custom-input" id="devUserJabatan" required placeholder="Contoh: Dokter Umum / Perawat">
-                      </div>
-                      <div class="input-group">
-                        <label for="devUserGolongan" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Golongan / Kategori</label>
-                        <input type="text" class="custom-input" id="devUserGolongan" placeholder="Contoh: III/a, III/d, BLUD, PPTK">
-                      </div>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                      <div class="input-group">
-                        <label for="devUserRole" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Level Hak Akses / Role <span style="color: #ef4444;">*</span></label>
-                        <select class="custom-input" id="devUserRole" required>
-                          <option value="Petugas Puskesmas">👤 5. Petugas Puskesmas</option>
-                          <option value="PJ Klaster">📋 4. PJ Klaster</option>
-                          <option value="Kepala Puskesmas">🏛️ 3. Kepala Puskesmas</option>
-                          <option value="Admin">🛡️ 2. Admin</option>
-                          <option value="Super Admin">👑 1. Super Admin</option>
-                        </select>
-                      </div>
-                      <div class="input-group">
-                        <label for="devUserStatus" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Status Akun <span style="color: #ef4444;">*</span></label>
-                        <select class="custom-input" id="devUserStatus" required>
-                          <option value="1">🟢 Aktif (Dapat Login)</option>
-                          <option value="0">🔴 Nonaktif (Dinonaktifkan)</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="input-group">
-                      <label for="devUserPassword" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Kata Sandi Akun <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">(Default: bankot2026, minimal 6 karakter)</span></label>
-                      <input type="text" class="custom-input" id="devUserPassword" placeholder="Biarkan kosong jika tidak diubah / gunakan default (bankot2026)">
-                    </div>
-                  </div>
-                  <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.08);">
-                    <button type="button" class="btn-dev-action" id="btnCancelDevUser">Batal</button>
-                    <button type="submit" class="btn-dev-action primary" id="btnSaveDevUser" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">💾 Simpan ke Cloud D1</button>
-                  </div>
-                </form>
-              </div>
-            </div>
-
             <!-- TAB 3: TERMINAL LOG CONSOLE -->
             <div class="dev-tab-panel" id="devTabLogs" style="display: none;">
               <div class="dev-terminal-container">
@@ -5266,7 +5194,81 @@
     </div>
   </div>
 
+  <!-- ==========================================================================
+       MODAL 14: FORM TAMBAH / EDIT DATA & AKUN PEGAWAI (D1 USER MANAGEMENT)
+       ========================================================================== -->
+  <div class="modal-backdrop dev-user-modal-overlay" id="devUserModal">
+    <div class="modal-card modal-card-large" style="max-width: 580px; width: 95%; background: linear-gradient(145deg, rgba(14, 19, 28, 0.98) 0%, rgba(8, 11, 17, 0.98) 100%); border: 1px solid rgba(45, 212, 191, 0.35); border-radius: 20px; box-shadow: 0 25px 65px rgba(0, 0, 0, 0.85);">
+      <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; justify-content: space-between;">
+        <div class="modal-title-group" style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(45, 212, 191, 0.15); border: 1px solid rgba(45, 212, 191, 0.35); display: flex; align-items: center; justify-content: center; font-size: 20px;">👤</div>
+          <div>
+            <h3 class="modal-title" id="devUserModalTitle" style="font-size: 17px; font-weight: 800; margin: 0;">Daftarkan Akun Pegawai Baru</h3>
+            <p class="modal-subtitle" style="font-size: 12px; margin: 2px 0 0 0;">Kelola profil, jabatan, hak akses, dan autentikasi akun di Cloudflare D1</p>
+          </div>
+        </div>
+        <button type="button" class="btn-modal-close modal-close-btn" id="closeDevUserModal" style="background: transparent; border: none; color: #94a3b8; font-size: 24px; cursor: pointer;">&times;</button>
+      </div>
+      <form id="devUserForm">
+        <input type="hidden" id="devUserId">
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; max-height: 68vh; overflow-y: auto; padding: 20px 24px;">
+          <div class="input-group">
+            <label for="devUserNama" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Nama Lengkap &amp; Gelar <span style="color: #ef4444;">*</span></label>
+            <input type="text" class="custom-input" id="devUserNama" required placeholder="Contoh: dr. Budi Santoso, Sp.A">
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="input-group">
+              <label for="devUserNip" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">NIP / NRP Pegawai <span style="color: #ef4444;">*</span></label>
+              <input type="text" class="custom-input" id="devUserNip" required placeholder="19850101 201001 1 001">
+            </div>
+            <div class="input-group">
+              <label for="devUserUsername" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Username Login <span style="color: #ef4444;">*</span></label>
+              <input type="text" class="custom-input" id="devUserUsername" required placeholder="Contoh: budi">
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="input-group">
+              <label for="devUserJabatan" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Profesi / Jabatan <span style="color: #ef4444;">*</span></label>
+              <input type="text" class="custom-input" id="devUserJabatan" required placeholder="Contoh: Dokter Umum / Perawat">
+            </div>
+            <div class="input-group">
+              <label for="devUserGolongan" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Golongan / Kategori</label>
+              <input type="text" class="custom-input" id="devUserGolongan" placeholder="Contoh: III/a, III/d, BLUD, PPTK">
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="input-group">
+              <label for="devUserRole" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Level Hak Akses / Role <span style="color: #ef4444;">*</span></label>
+              <select class="custom-input" id="devUserRole" required>
+                <option value="Petugas Puskesmas">👤 5. Petugas Puskesmas</option>
+                <option value="PJ Klaster">📋 4. PJ Klaster</option>
+                <option value="Kepala Puskesmas">🏛️ 3. Kepala Puskesmas</option>
+                <option value="Admin">🛡️ 2. Admin</option>
+                <option value="Super Admin">👑 1. Super Admin</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label for="devUserStatus" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Status Akun <span style="color: #ef4444;">*</span></label>
+              <select class="custom-input" id="devUserStatus" required>
+                <option value="1">🟢 Aktif (Dapat Login)</option>
+                <option value="0">🔴 Nonaktif (Dinonaktifkan)</option>
+              </select>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="devUserPassword" class="dev-modal-label" style="font-size: 12.5px; font-weight: 700;">Kata Sandi Akun <span style="font-size: 11px; color: #94a3b8; font-weight: normal;">(Default: bankot2026, minimal 6 karakter)</span></label>
+            <input type="text" class="custom-input" id="devUserPassword" placeholder="Biarkan kosong jika tidak diubah / gunakan default (bankot2026)">
+          </div>
+        </div>
+        <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.08);">
+          <button type="button" class="btn-dev-action" id="btnCancelDevUser">Batal</button>
+          <button type="submit" class="btn-dev-action primary" id="btnSaveDevUser" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">💾 Simpan ke Cloud D1</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="sppd_assets.js"></script>
-  <script src="dashboard.js?v=110"></script>
+  <script src="dashboard.js?v=111"></script>
 </body>
 </html>
