@@ -738,7 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { no: 32, nama: "Mutiara Sofiatussirri, Amd.", nip: "873.3204.05.05.005", nipFull: "NRP. 873.3204.05.05.005", gol: "BLUD", jabatan: "ATLM" },
     { no: 33, nama: "Muhamad Faridz Alparizy, Amd.Kep", nip: "873.3204.14.05.040", nipFull: "NRP. 873.3204.14.05.040", gol: "BLUD", jabatan: "Perawat" },
     { no: 34, nama: "Neng Safitri Nur Ladyawati, AM.Keb", nip: "873.3204.09.06.106", nipFull: "NRP. 873.3204.09.06.106", gol: "BLUD", jabatan: "Bidan Desa" },
-    { no: 35, nama: "Dani Setiadi, S.Farm", nip: "873.3204.18.01.002", nipFull: "NRP. 873.3204.18.01.002", gol: "BLUD", jabatan: "TTK" },
+    { no: 35, nama: "Dani Setiadi, S.Si", nip: "873.3204.18.01.002", nipFull: "NRP. 873.3204.18.01.002", gol: "BLUD", jabatan: "TTK" },
     { no: 36, nama: "Ripan Sutiana", nip: "-", nipFull: "-", gol: "BLUD", jabatan: "Petugas Keamanan" },
     { no: 37, nama: "Mevi Riyanayasti", nip: "-", nipFull: "-", gol: "BLUD", jabatan: "Petugas Kebersihan" },
     { no: 38, nama: "Ade Boy", nip: "-", nipFull: "-", gol: "BLUD", jabatan: "Supir" },
@@ -878,20 +878,49 @@ document.addEventListener('DOMContentLoaded', () => {
             // Sync in-memory DAFTAR_PEGAWAI
             if (Array.isArray(window.DAFTAR_PEGAWAI)) {
               json.users.forEach(u => {
-                const idx = window.DAFTAR_PEGAWAI.findIndex(p => p.nip === u.nip || p.nama === u.nama);
+                const idx = window.DAFTAR_PEGAWAI.findIndex(p => 
+                  (u.id && p.id && String(p.id) === String(u.id)) ||
+                  (u.nip && p.nip && u.nip !== '-' && p.nip === u.nip) ||
+                  (u.username && p.username && u.username.toLowerCase() === p.username.toLowerCase()) ||
+                  (u.no_urut && (p.no_urut === u.no_urut || p.no === u.no_urut)) ||
+                  (p.nama && u.nama && p.nama.toLowerCase() === u.nama.toLowerCase())
+                );
                 if (idx >= 0) {
+                  window.DAFTAR_PEGAWAI[idx].id = u.id;
+                  window.DAFTAR_PEGAWAI[idx].nama = u.nama;
+                  window.DAFTAR_PEGAWAI[idx].nip = u.nip;
+                  window.DAFTAR_PEGAWAI[idx].nipFull = u.nip_full || (u.nip && u.nip.startsWith('19') ? `NIP. ${u.nip}` : (u.nip === '-' ? '-' : `NRP. ${u.nip}`));
+                  window.DAFTAR_PEGAWAI[idx].nip_full = window.DAFTAR_PEGAWAI[idx].nipFull;
+                  window.DAFTAR_PEGAWAI[idx].username = u.username;
                   window.DAFTAR_PEGAWAI[idx].role = u.role;
                   window.DAFTAR_PEGAWAI[idx].jabatan = u.jabatan;
                   window.DAFTAR_PEGAWAI[idx].gol = u.golongan;
+                  window.DAFTAR_PEGAWAI[idx].golongan = u.golongan;
                   window.DAFTAR_PEGAWAI[idx].is_active = u.is_active;
+                } else {
+                  window.DAFTAR_PEGAWAI.push({
+                    id: u.id,
+                    no: u.no_urut || window.DAFTAR_PEGAWAI.length + 1,
+                    no_urut: u.no_urut || window.DAFTAR_PEGAWAI.length + 1,
+                    nama: u.nama,
+                    nip: u.nip,
+                    nipFull: u.nip_full || (u.nip && u.nip.startsWith('19') ? `NIP. ${u.nip}` : (u.nip === '-' ? '-' : `NRP. ${u.nip}`)),
+                    nip_full: u.nip_full,
+                    username: u.username,
+                    role: u.role,
+                    jabatan: u.jabatan,
+                    gol: u.golongan,
+                    golongan: u.golongan,
+                    is_active: u.is_active
+                  });
                 }
               });
             }
             if (typeof window.populateTpPolSignatureDropdowns === 'function') {
-              window.populateTpPolSignatureDropdowns();
+              window.populateTpPolSignatureDropdowns(json.users);
             }
-            if (typeof window.populatePoaOfficerDropdown === 'function') {
-              window.populatePoaOfficerDropdown();
+            if (typeof window.populateSppdPegawaiDropdowns === 'function') {
+              window.populateSppdPegawaiDropdowns(json.users);
             }
             return json.users;
           }
@@ -899,7 +928,11 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) {
         console.warn('Fallback to local users cache / defaults', e);
       }
-      return JSON.parse(localStorage.getItem('SICEKAS_D1_USERS_CACHE')) || DAFTAR_PEGAWAI;
+      const cached = JSON.parse(localStorage.getItem('SICEKAS_D1_USERS_CACHE')) || window.DAFTAR_PEGAWAI || DAFTAR_PEGAWAI;
+      if (typeof window.populateSppdPegawaiDropdowns === 'function') {
+        window.populateSppdPegawaiDropdowns(cached);
+      }
+      return cached;
     },
 
     async saveUser(userData) {
@@ -1859,6 +1892,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (topbarSubtitle) topbarSubtitle.textContent = 'Penerbitan Surat Perjalanan Dinas dan Laporan Pertanggungjawaban Pelaksanaan Tugas';
       if (window.SppdTemplateController && typeof window.SppdTemplateController.loadTemplates === 'function') {
         window.SppdTemplateController.loadTemplates();
+      }
+      if (typeof window.populateSppdPegawaiDropdowns === 'function') {
+        window.populateSppdPegawaiDropdowns();
       }
     } else if (targetView === 'jadwal-kegiatan') {
       if (viewJadwalKegiatan) {
@@ -5563,6 +5599,138 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   };
+
+  // ==========================================================================
+  // SYNC SPPD, LPT & POA PEGAWAI DROPDOWNS FROM LIVE CLOUD / IN-MEMORY USERS
+  // ==========================================================================
+  const populateSppdPegawaiDropdowns = (staffList) => {
+    let list = staffList;
+    if (!Array.isArray(list) || list.length === 0) {
+      list = window.DAFTAR_PEGAWAI || DAFTAR_PEGAWAI;
+    }
+    if (!Array.isArray(list) || list.length === 0) return;
+
+    // Helper to refresh custom searchable select UI if enhanced
+    const refreshSelect = (el) => {
+      if (!el) return;
+      if (window.SearchableSelect && window.SearchableSelect.instances) {
+        const inst = window.SearchableSelect.instances.get(el);
+        if (inst && typeof inst.rebuild === 'function') {
+          inst.rebuild();
+          if (typeof inst.sync === 'function') inst.sync();
+        } else if (typeof window.SearchableSelect.enhance === 'function') {
+          window.SearchableSelect.enhance(el);
+        }
+      }
+    };
+
+    // Helper to check if a staff matches an existing selection
+    const isOfficerMatch = (curVal, p) => {
+      if (!curVal) return false;
+      if (curVal === p.nama) return true;
+      if (p.nip && p.nip !== '-' && curVal.includes(p.nip)) return true;
+      const cleanCur = curVal.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const cleanP = (p.nama || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (cleanCur && cleanP && (cleanCur.includes('danisetiadi') && cleanP.includes('danisetiadi'))) return true;
+      return false;
+    };
+
+    // 1. sppdInputPegawai (Pegawai yang Bertugas Utama)
+    const sppdInputPegawai = document.getElementById('sppdInputPegawai');
+    if (sppdInputPegawai) {
+      const curVal = sppdInputPegawai.value;
+      let html = '<option value="">-- Pilih Pegawai yang Bertugas --</option>';
+      list.forEach((p, idx) => {
+        const no = p.no_urut || p.no || idx + 1;
+        const fullNip = p.nip_full || p.nipFull || (p.nip && p.nip.startsWith('19') ? `NIP. ${p.nip}` : (p.nip === '-' ? '-' : `NRP. ${p.nip}`));
+        const gol = p.golongan || p.gol || 'BLUD';
+        const jab = p.jabatan || '-';
+        const isSel = isOfficerMatch(curVal, p) ? 'selected' : '';
+        html += `<option value="${p.nama}" data-nip="${fullNip}" data-jabatan="${jab}" data-pangkat="${gol}" ${isSel}>${no}. ${p.nama} (${jab})</option>`;
+      });
+      sppdInputPegawai.innerHTML = html;
+      refreshSelect(sppdInputPegawai);
+    }
+
+    // 2. sppdPengikutSelect1 .. 4 (Petugas Pengikut SPPD)
+    for (let i = 1; i <= 4; i++) {
+      const el = document.getElementById(`sppdPengikutSelect${i}`);
+      if (el) {
+        const curVal = el.value;
+        let html = `<option value="">-- Pilih Petugas ${i} / Kosong --</option>`;
+        list.forEach((p, idx) => {
+          const no = p.no_urut || p.no || idx + 1;
+          const fullNip = p.nip_full || p.nipFull || (p.nip && p.nip.startsWith('19') ? `NIP. ${p.nip}` : (p.nip === '-' ? '-' : `NRP. ${p.nip}`));
+          const jab = p.jabatan || '-';
+          const isSel = isOfficerMatch(curVal, p) ? 'selected' : '';
+          html += `<option value="${p.nama}" data-nip="${fullNip}" data-ket="${jab}" ${isSel}>${no}. ${p.nama} (${jab})</option>`;
+        });
+        html += '<option value="CUSTOM">-- Ketik Manual --</option>';
+        el.innerHTML = html;
+        refreshSelect(el);
+      }
+    }
+
+    // 3. lptSelectPetugas1 (Petugas Pelapor Utama LPT)
+    const lpt1 = document.getElementById('lptSelectPetugas1');
+    if (lpt1) {
+      const curVal = lpt1.value;
+      let html = '<option value="">-- Pilih Petugas Pelapor (Utama) --</option>';
+      list.forEach((p, idx) => {
+        const no = p.no_urut || p.no || idx + 1;
+        const fullNip = p.nip_full || p.nipFull || (p.nip && p.nip.startsWith('19') ? `NIP. ${p.nip}` : (p.nip === '-' ? '-' : `NRP. ${p.nip}`));
+        const jab = p.jabatan || '-';
+        const isSel = isOfficerMatch(curVal, p) ? 'selected' : '';
+        html += `<option value="${p.nama}" data-nip="${fullNip}" ${isSel}>${no}. ${p.nama} (${jab})</option>`;
+      });
+      html += '<option value="CUSTOM">-- Ketik Manual --</option>';
+      lpt1.innerHTML = html;
+      refreshSelect(lpt1);
+    }
+
+    // 4. lptSelectPetugas2 .. 5 (Petugas Pengikut LPT)
+    for (let k = 2; k <= 5; k++) {
+      const elk = document.getElementById(`lptSelectPetugas${k}`);
+      if (elk) {
+        const curVal = elk.value;
+        let html = `<option value="">-- Pilih Petugas ${k} --</option>`;
+        html += '<option value="CUSTOM">-- Ketik Manual --</option>';
+        list.forEach((p, idx) => {
+          const no = p.no_urut || p.no || idx + 1;
+          const fullNip = p.nip_full || p.nipFull || (p.nip && p.nip.startsWith('19') ? `NIP. ${p.nip}` : (p.nip === '-' ? '-' : `NRP. ${p.nip}`));
+          const jab = p.jabatan || '-';
+          const isSel = isOfficerMatch(curVal, p) ? 'selected' : '';
+          html += `<option value="${p.nama}" data-nip="${fullNip}" ${isSel}>${no}. ${p.nama} (${jab})</option>`;
+        });
+        elk.innerHTML = html;
+        refreshSelect(elk);
+      }
+    }
+
+    // 5. poaSelectOfficer (POA Bulanan)
+    const poaSel = document.getElementById('poaSelectOfficer');
+    if (poaSel) {
+      const curVal = poaSel.value;
+      let html = '';
+      list.forEach((p, idx) => {
+        const no = p.no_urut || p.no || idx + 1;
+        const jab = p.jabatan || '-';
+        const isMe = (window.CURRENT_USER && (p.username === window.CURRENT_USER.username || p.nama === window.CURRENT_USER.nama));
+        const isSel = curVal ? (curVal === p.nama) : isMe;
+        html += `<option value="${p.nama}" ${isSel ? 'selected' : ''}>${no}. ${p.nama} (${jab}${isMe ? ' / Anda' : ''})</option>`;
+      });
+      poaSel.innerHTML = html;
+      refreshSelect(poaSel);
+    }
+
+    // Trigger sync to live document preview
+    if (typeof syncSppdLptData === 'function') {
+      syncSppdLptData();
+    }
+  };
+
+  window.populateSppdPegawaiDropdowns = populateSppdPegawaiDropdowns;
+
 
   // List of 40 Official Puskesmas Activities for SPPD & LPT
   const SPPD_KEGIATAN_LIST = [
@@ -13820,6 +13988,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         this.closeUserModal();
         await this.renderUsers();
+        await CloudflareDB.fetchUsers(true);
+        if (typeof window.populateSppdPegawaiDropdowns === 'function') {
+          window.populateSppdPegawaiDropdowns();
+        }
+        if (typeof window.populateTpPolSignatureDropdowns === 'function') {
+          window.populateTpPolSignatureDropdowns();
+        }
       } else {
         if (typeof Swal !== 'undefined') {
           Swal.fire({
@@ -13911,6 +14086,10 @@ document.addEventListener('DOMContentLoaded', () => {
         this.log('USER_MGT', `Akun pegawai [${nama}] (${nip}) telah dihapus dari Cloudflare D1`, 'term-danger');
         showToast(`✓ Akun [${nama}] berhasil dihapus.`, 'success');
         await this.renderUsers();
+        await CloudflareDB.fetchUsers(true);
+        if (typeof window.populateSppdPegawaiDropdowns === 'function') {
+          window.populateSppdPegawaiDropdowns();
+        }
       } else {
         showToast(`❌ ${res?.error || 'Gagal menghapus akun.'}`, 'error');
       }
@@ -15680,6 +15859,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.DeveloperWebController = DeveloperWebController;
   DeveloperWebController.init();
+
+  if (typeof window.populateSppdPegawaiDropdowns === 'function') {
+    window.populateSppdPegawaiDropdowns();
+  }
 
   if (window.SearchableSelect && typeof window.SearchableSelect.initAll === 'function') {
     window.SearchableSelect.initAll();

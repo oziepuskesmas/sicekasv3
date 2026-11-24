@@ -51,7 +51,7 @@ const OFFICIAL_39_USERS = [
   [32, 'mutiara', 'bankot2026', '873.3204.05.05.005', 'NRP. 873.3204.05.05.005', 'Mutiara Sofiatussirri, Amd.', 'ATLM', 'BLUD', 'Petugas Puskesmas', 'MS'],
   [33, 'faridz', 'bankot2026', '873.3204.14.05.040', 'NRP. 873.3204.14.05.040', 'Muhamad Faridz Alparizy, Amd.Kep', 'Perawat', 'BLUD', 'Petugas Puskesmas', 'FA'],
   [34, 'nengsafitri', 'bankot2026', '873.3204.09.06.106', 'NRP. 873.3204.09.06.106', 'Neng Safitri Nur Ladyawati, AM.Keb', 'Bidan Desa', 'BLUD', 'Petugas Puskesmas', 'NS'],
-  [35, 'dani', 'bankot2026', '873.3204.18.01.002', 'NRP. 873.3204.18.01.002', 'Dani Setiadi, S.Farm', 'TTK', 'BLUD', 'Petugas Puskesmas', 'DS'],
+  [35, 'dani', 'bankot2026', '873.3204.18.01.002', 'NRP. 873.3204.18.01.002', 'Dani Setiadi, S.Si', 'TTK', 'BLUD', 'Petugas Puskesmas', 'DS'],
   [36, 'ripan', 'bankot2026', 'BLUD-SEC-01', 'NRP. BLUD-SEC-01', 'Ripan Sutiana', 'Petugas Keamanan', 'BLUD', 'Petugas Puskesmas', 'RS'],
   [37, 'mevi', 'bankot2026', 'BLUD-CL-01', 'NRP. BLUD-CL-01', 'Mevi Riyanayasti', 'Petugas Kebersihan', 'BLUD', 'Petugas Puskesmas', 'MR'],
   [38, 'adeboy', 'bankot2026', 'BLUD-DRV-01', 'NRP. BLUD-DRV-01', 'Ade Boy', 'Supir', 'BLUD', 'Petugas Puskesmas', 'AB'],
