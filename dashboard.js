@@ -223,6 +223,16 @@ window.SearchableSelect = {
       return existing;
     }
 
+    const existingWrap = selectEl.closest('.searchable-select-wrap');
+    if (existingWrap) {
+      for (const inst of this.allInstances) {
+        if (inst && (inst.selectEl === selectEl || inst.wrap === existingWrap)) {
+          inst.rebuild();
+          return inst;
+        }
+      }
+    }
+
     // Explicit exclusions (e.g. mini inline header navigator widgets)
     if (selectEl.hasAttribute('data-no-searchable') || 
         selectEl.classList.contains('select-beranda-month') || 
@@ -345,15 +355,17 @@ window.SearchableSelect = {
     };
 
     const filterOptions = () => {
-      const query = searchInput.value.trim().toLowerCase();
+      const query = (searchInput.value || '').trim().toLowerCase();
       clearBtn.style.display = query ? 'block' : 'none';
 
       const terms = query.split(/\s+/).filter(Boolean);
       let visibleCount = 0;
+      let firstMatchIndex = -1;
 
       const items = optionsContainer.querySelectorAll('.searchable-select-option');
       items.forEach((item) => {
         const text = item.getAttribute('data-text') || '';
+        const rawText = item.getAttribute('data-text-raw') || text;
         const lower = text.toLowerCase();
         const matches = terms.length === 0 || terms.every(t => lower.includes(t));
 
@@ -361,7 +373,10 @@ window.SearchableSelect = {
           item.style.display = 'flex';
           const spanText = item.querySelector('.searchable-select-option-text');
           if (spanText) {
-            spanText.innerHTML = highlightText(text, query);
+            spanText.innerHTML = highlightText(rawText, query);
+          }
+          if (firstMatchIndex === -1 && !item.classList.contains('is-disabled') && !item.classList.contains('is-placeholder-opt')) {
+            firstMatchIndex = visibleCount;
           }
           visibleCount++;
         } else {
@@ -370,7 +385,13 @@ window.SearchableSelect = {
       });
 
       emptyState.style.display = visibleCount === 0 ? 'flex' : 'none';
-      activeIndex = -1;
+
+      // Auto-direct: focus/highlight the first matching option if searching
+      if (terms.length > 0 && visibleCount > 0) {
+        activeIndex = firstMatchIndex >= 0 ? firstMatchIndex : 0;
+      } else {
+        activeIndex = -1;
+      }
       updateActiveOption();
     };
 
@@ -382,7 +403,10 @@ window.SearchableSelect = {
         const item = document.createElement('div');
         item.className = 'searchable-select-option';
         item.setAttribute('data-value', opt.value);
-        item.setAttribute('data-text', opt.textContent.trim());
+        const optText = opt.textContent.trim();
+        const nip = opt.getAttribute('data-nip') || '';
+        item.setAttribute('data-text-raw', optText);
+        item.setAttribute('data-text', (optText + ' ' + nip).trim());
         item.setAttribute('data-index', idx);
 
         if (opt.selected) item.classList.add('is-selected');
@@ -391,7 +415,7 @@ window.SearchableSelect = {
 
         const spanText = document.createElement('span');
         spanText.className = 'searchable-select-option-text';
-        spanText.textContent = opt.textContent.trim();
+        spanText.textContent = optText;
         item.appendChild(spanText);
 
         item.addEventListener('click', (e) => {
@@ -406,6 +430,11 @@ window.SearchableSelect = {
       });
 
       syncLabel();
+
+      // If dropdown is currently open or search has active text, retain filtering immediately!
+      if (isOpen || (searchInput && searchInput.value && searchInput.value.trim())) {
+        filterOptions();
+      }
     };
 
     const selectOption = (idx) => {
@@ -490,7 +519,20 @@ window.SearchableSelect = {
       }
     });
 
+    searchBox.addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+
     searchInput.addEventListener('input', () => {
+      filterOptions();
+    });
+
+    searchInput.addEventListener('keyup', (e) => {
+      if (['ArrowDown', 'ArrowUp', 'Enter', 'Escape', 'Tab'].includes(e.key)) return;
+      filterOptions();
+    });
+
+    searchInput.addEventListener('search', () => {
       filterOptions();
     });
 
@@ -537,7 +579,7 @@ window.SearchableSelect = {
           selectOption(idx);
           closeDropdown();
           trigger.focus();
-        } else if (visibleItems.length === 1) {
+        } else if (visibleItems.length > 0) {
           const idx = parseInt(visibleItems[0].getAttribute('data-index'), 10);
           selectOption(idx);
           closeDropdown();
@@ -5624,6 +5666,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     };
 
+    // Helper to only update and rebuild DOM options if content actually changed
+    const updateSelectIfChanged = (el, newHtml) => {
+      if (!el) return;
+      if (el.innerHTML.trim() !== newHtml.trim()) {
+        el.innerHTML = newHtml;
+        refreshSelect(el);
+      }
+    };
+
     // Helper to check if a staff matches an existing selection
     const isOfficerMatch = (curVal, p) => {
       if (!curVal) return false;
@@ -5648,8 +5699,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSel = isOfficerMatch(curVal, p) ? 'selected' : '';
         html += `<option value="${p.nama}" data-nip="${fullNip}" data-jabatan="${jab}" data-pangkat="${gol}" ${isSel}>${no}. ${p.nama} (${jab})</option>`;
       });
-      sppdInputPegawai.innerHTML = html;
-      refreshSelect(sppdInputPegawai);
+      updateSelectIfChanged(sppdInputPegawai, html);
     }
 
     // 2. sppdPengikutSelect1 .. 4 (Petugas Pengikut SPPD)
@@ -5666,8 +5716,7 @@ document.addEventListener('DOMContentLoaded', () => {
           html += `<option value="${p.nama}" data-nip="${fullNip}" data-ket="${jab}" ${isSel}>${no}. ${p.nama} (${jab})</option>`;
         });
         html += '<option value="CUSTOM">-- Ketik Manual --</option>';
-        el.innerHTML = html;
-        refreshSelect(el);
+        updateSelectIfChanged(el, html);
       }
     }
 
@@ -5684,8 +5733,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html += `<option value="${p.nama}" data-nip="${fullNip}" ${isSel}>${no}. ${p.nama} (${jab})</option>`;
       });
       html += '<option value="CUSTOM">-- Ketik Manual --</option>';
-      lpt1.innerHTML = html;
-      refreshSelect(lpt1);
+      updateSelectIfChanged(lpt1, html);
     }
 
     // 4. lptSelectPetugas2 .. 5 (Petugas Pengikut LPT)
@@ -5702,8 +5750,7 @@ document.addEventListener('DOMContentLoaded', () => {
           const isSel = isOfficerMatch(curVal, p) ? 'selected' : '';
           html += `<option value="${p.nama}" data-nip="${fullNip}" ${isSel}>${no}. ${p.nama} (${jab})</option>`;
         });
-        elk.innerHTML = html;
-        refreshSelect(elk);
+        updateSelectIfChanged(elk, html);
       }
     }
 
@@ -5719,8 +5766,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const isSel = curVal ? (curVal === p.nama) : isMe;
         html += `<option value="${p.nama}" ${isSel ? 'selected' : ''}>${no}. ${p.nama} (${jab}${isMe ? ' / Anda' : ''})</option>`;
       });
-      poaSel.innerHTML = html;
-      refreshSelect(poaSel);
+      updateSelectIfChanged(poaSel, html);
     }
 
     // Trigger sync to live document preview
